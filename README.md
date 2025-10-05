@@ -28,7 +28,7 @@ Add SwiftHablaré to your project using Swift Package Manager:
 
 ```swift
 dependencies: [
-    .package(url: "path/to/SwiftHablare", from: "1.0.0")
+    .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
 ]
 ```
 
