@@ -13,6 +13,7 @@ public struct AudioPlayerWidget: View {
     @ObservedObject var playerManager: AudioPlayerManager
     @ObservedObject var providerManager: VoiceProviderManager
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \AudioFile.createdAt, order: .reverse) private var audioFiles: [AudioFile]
 
     @State private var selectedAudioFile: AudioFile?
 
@@ -145,6 +146,33 @@ public struct AudioPlayerWidget: View {
                     .padding(.top, 8)
                 }
             }
+
+            // Audio clips list
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Audio Clips")
+                    .font(.headline)
+
+                if audioFiles.isEmpty {
+                    Text("no clips available")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 8)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 4) {
+                            ForEach(audioFiles) { audioFile in
+                                AudioClipRow(audioFile: audioFile, isPlaying: playerManager.currentAudioFile?.id == audioFile.id)
+                                    .onTapGesture {
+                                        play(audioFile)
+                                    }
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                }
+            }
+            .padding(.top, 8)
         }
         .padding()
         .background(
@@ -166,6 +194,71 @@ public struct AudioPlayerWidget: View {
     private func formatTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+/// Row view for displaying an audio clip in the list
+struct AudioClipRow: View {
+    let audioFile: AudioFile
+    let isPlaying: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Play indicator
+            Image(systemName: isPlaying ? "speaker.wave.2.fill" : "waveform")
+                .font(.caption)
+                .foregroundStyle(isPlaying ? .blue : .secondary)
+                .frame(width: 20)
+
+            // Text content
+            VStack(alignment: .leading, spacing: 2) {
+                Text(audioFile.text)
+                    .font(.subheadline)
+                    .lineLimit(1)
+
+                HStack(spacing: 4) {
+                    Text(audioFile.providerId.capitalized)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
+                    Text("•")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
+                    if let duration = audioFile.duration {
+                        Text(formatDuration(duration))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("•")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
+                    Text(audioFile.audioFormat.uppercased())
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isPlaying ? Color.blue.opacity(0.1) : Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isPlaying ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+        )
+    }
+
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
