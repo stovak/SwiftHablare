@@ -55,11 +55,6 @@ public struct SpectrogramVisualizerView: View {
 
                         // Gradient for current levels
                         let gradient = Gradient(colors: [.blue, .cyan])
-                        let gradientFill = LinearGradient(
-                            gradient: gradient,
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
 
                         context.fill(
                             Path(roundedRect: rect, cornerRadius: barWidth / 2),
