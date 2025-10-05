@@ -4,6 +4,8 @@
 
 # SwiftHablaré
 
+[![Tests](https://github.com/stovak/SwiftHablare/actions/workflows/tests.yml/badge.svg)](https://github.com/stovak/SwiftHablare/actions/workflows/tests.yml)
+
 A Swift package for text-to-speech audio generation with support for multiple TTS providers, including Apple's built-in TTS and ElevenLabs.
 
 ## Features
