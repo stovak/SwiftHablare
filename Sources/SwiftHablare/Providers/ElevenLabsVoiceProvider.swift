@@ -158,36 +158,36 @@ public final class ElevenLabsVoiceProvider: VoiceProvider {
 
 // MARK: - API Response Types
 
-struct VoicesResponse: Codable {
-    let voices: [ElevenLabsVoice]
+public struct VoicesResponse: Codable {
+    public let voices: [ElevenLabsVoice]
 }
 
-struct ElevenLabsVoice: Codable {
-    let voice_id: String
-    let name: String
-    let description: String?
-    let labels: VoiceLabels?
-    let verified_languages: [VerifiedLanguage]?
+public struct ElevenLabsVoice: Codable {
+    public let voice_id: String
+    public let name: String
+    public let description: String?
+    public let labels: VoiceLabels?
+    public let verified_languages: [VerifiedLanguage]?
 
-    struct VoiceLabels: Codable {
-        let accent: String?
-        let description: String?
-        let age: String?
-        let gender: String?
-        let use_case: String?
+    public struct VoiceLabels: Codable {
+        public let accent: String?
+        public let description: String?
+        public let age: String?
+        public let gender: String?
+        public let use_case: String?
     }
 
-    struct VerifiedLanguage: Codable {
-        let language: String?
-        let model_id: String?
-        let accent: String?
-        let locale: String?
-        let preview_url: String?
+    public struct VerifiedLanguage: Codable {
+        public let language: String?
+        public let model_id: String?
+        public let accent: String?
+        public let locale: String?
+        public let preview_url: String?
     }
 
-    var id: String { voice_id }
+    public var id: String { voice_id }
 
-    var language: String? {
+    public var language: String? {
         // Get system language code
         let systemLanguageCode = Locale.current.language.languageCode?.identifier ?? "en"
 
@@ -211,7 +211,7 @@ struct ElevenLabsVoice: Codable {
         return verified_languages?.first?.language ?? labels?.accent
     }
 
-    var locality: String? {
+    public var locality: String? {
         // Get system language code
         let systemLanguageCode = Locale.current.language.languageCode?.identifier ?? "en"
 
@@ -235,7 +235,7 @@ struct ElevenLabsVoice: Codable {
         return nil
     }
 
-    var gender: String? {
+    public var gender: String? {
         return labels?.gender?.lowercased()
     }
 }

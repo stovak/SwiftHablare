@@ -142,11 +142,11 @@ public struct VoicePickerWidget: View {
 }
 
 /// Row view for displaying a voice in the picker
-struct VoiceRow: View {
-    let voice: Voice
-    let isSelected: Bool
+public struct VoiceRow: View {
+    public let voice: Voice
+    public let isSelected: Bool
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 12) {
             // Selection indicator
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")

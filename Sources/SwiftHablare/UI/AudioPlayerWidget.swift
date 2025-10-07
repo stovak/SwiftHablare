@@ -199,11 +199,11 @@ public struct AudioPlayerWidget: View {
 }
 
 /// Row view for displaying an audio clip in the list
-struct AudioClipRow: View {
-    let audioFile: AudioFile
-    let isPlaying: Bool
+public struct AudioClipRow: View {
+    public let audioFile: AudioFile
+    public let isPlaying: Bool
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 12) {
             // Play indicator
             Image(systemName: isPlaying ? "speaker.wave.2.fill" : "waveform")

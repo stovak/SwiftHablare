@@ -54,12 +54,12 @@ public struct VoiceProviderWidget: View {
 }
 
 /// Row view for displaying a voice provider in the widget
-struct ProviderRow: View {
-    let providerType: VoiceProviderType
-    let isSelected: Bool
-    let isConfigured: Bool
+public struct ProviderRow: View {
+    public let providerType: VoiceProviderType
+    public let isSelected: Bool
+    public let isConfigured: Bool
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: 12) {
             // Provider icon
             Image(systemName: iconName)
