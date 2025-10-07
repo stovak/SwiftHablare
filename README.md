@@ -22,6 +22,10 @@ A Swift package for text-to-speech audio generation with support for multiple TT
 - Swift 6.0+
 - SwiftData
 
+## Development Environment
+
+Continuous integration builds target macOS 26 runners using Xcode 26 to ensure compatibility with the latest Apple tooling.
+
 ## Installation
 
 ### Swift Package Manager
