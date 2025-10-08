@@ -1,13 +1,11 @@
-// swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "SwiftHablare",
     platforms: [
-        .macOS(.v15),
-        .iOS(.v17)
+        .macOS("26.0"),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -15,6 +13,9 @@ let package = Package(
             name: "SwiftHablare",
             targets: ["SwiftHablare"]
         ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/stovak/SwiftFixtureManager.git", from: "1.0.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -27,7 +28,10 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftHablareTests",
-            dependencies: ["SwiftHablare"]
+            dependencies: [
+                "SwiftHablare",
+                .product(name: "SwiftFixtureManager", package: "SwiftFixtureManager")
+            ]
         ),
     ]
 )
