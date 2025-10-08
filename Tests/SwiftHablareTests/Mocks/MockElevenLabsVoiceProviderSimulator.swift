@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftFixtureManager
 @testable import SwiftHablare
 
 /// Simulates ElevenLabs VoiceProvider with realistic API responses
@@ -56,90 +57,40 @@ final class MockElevenLabsVoiceProviderSimulator: VoiceProvider, @unchecked Send
             return customVoices
         }
 
-        // Return simulated ElevenLabs voices based on their API documentation
-        return [
+        // Load voices from fixture
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        let fixturesDir = try FixtureManager.getFixturesDirectory(from: testFileURL)
+        let fixtureURL = fixturesDir.appendingPathComponent("voices/elevenlabs_voices.json")
+        let jsonData = try Data(contentsOf: fixtureURL)
+
+        struct ElevenLabsVoiceResponse: Codable {
+            struct VoiceData: Codable {
+                let voice_id: String
+                let name: String
+                let description: String
+                let labels: Labels
+
+                struct Labels: Codable {
+                    let gender: String
+                }
+            }
+            let voices: [VoiceData]
+        }
+
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(ElevenLabsVoiceResponse.self, from: jsonData)
+
+        return response.voices.map { voiceData in
             Voice(
-                id: "21m00Tcm4TlvDq8ikWAM",
-                name: "Rachel",
-                description: "A young, calm female voice with an American accent",
+                id: voiceData.voice_id,
+                name: voiceData.name,
+                description: voiceData.description,
                 providerId: providerId,
                 language: "en",
                 locality: "US",
-                gender: "female"
-            ),
-            Voice(
-                id: "AZnzlk1XvdvUeBnXmlld",
-                name: "Domi",
-                description: "A confident, strong female voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "female"
-            ),
-            Voice(
-                id: "EXAVITQu4vr4xnSDxMaL",
-                name: "Bella",
-                description: "A soft, gentle female voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "female"
-            ),
-            Voice(
-                id: "ErXwobaYiN019PkySvjV",
-                name: "Antoni",
-                description: "A well-rounded male voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
-            ),
-            Voice(
-                id: "MF3mGyEYCl7XYWbV9V6O",
-                name: "Elli",
-                description: "An emotional, young female voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "female"
-            ),
-            Voice(
-                id: "TxGEqnHWrfWFTfGW9XjX",
-                name: "Josh",
-                description: "A deep, young male voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
-            ),
-            Voice(
-                id: "VR6AewLTigWG4xSOukaG",
-                name: "Arnold",
-                description: "A crisp, mature male voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
-            ),
-            Voice(
-                id: "pNInz6obpgDQGcFmaJgB",
-                name: "Adam",
-                description: "A deep, mature male voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
-            ),
-            Voice(
-                id: "yoZ06aMxZJJ28mfd3POQ",
-                name: "Sam",
-                description: "A raspy, dynamic male voice with an American accent",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
+                gender: voiceData.labels.gender
             )
-        ]
+        }
     }
 
     func generateAudio(text: String, voiceId: String) async throws -> Data {
@@ -244,35 +195,21 @@ final class MockElevenLabsVoiceProviderSimulator: VoiceProvider, @unchecked Send
     // MARK: - Private Helpers
 
     private func generateMockMP3Data(duration: TimeInterval) -> Data {
-        // Minimal valid MP3 frame header
-        // This creates a valid but silent MP3 file
-        var data = Data()
+        // Load MP3 fixture data
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        if let fixturesDir = try? FixtureManager.getFixturesDirectory(from: testFileURL) {
+            let fixtureURL = fixturesDir.appendingPathComponent("audio/sample_mp3.fixture")
+            if let mp3Data = try? Data(contentsOf: fixtureURL) {
+                return mp3Data
+            }
+        }
 
-        // ID3v2 header (optional but common)
+        // Fallback: generate minimal MP3 data
+        var data = Data()
         data.append(contentsOf: [0x49, 0x44, 0x33]) // "ID3"
         data.append(contentsOf: [0x03, 0x00]) // Version 2.3
         data.append(contentsOf: [0x00]) // Flags
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00]) // Size (0 for minimal header)
-
-        // MP3 frame header
-        // Frame sync: 11 bits of 1 (0xFFE)
-        // MPEG Audio version ID: MPEG-1 (11)
-        // Layer: Layer III (01)
-        // Bitrate: 128 kbps
-        // Sample rate: 44.1 kHz
-        // Padding: 0
-        // Mode: Stereo
-
-        // Simplified MP3 frame header (MPEG-1 Layer III, 128kbps, 44.1kHz, Stereo)
-        data.append(contentsOf: [0xFF, 0xFB]) // Frame sync + version + layer
-        data.append(contentsOf: [0x90, 0x00]) // Bitrate + sample rate + padding + mode
-
-        // Add some zero bytes as frame data (silent audio)
-        let frameCount = max(1, Int(duration)) // At least 1 frame
-        for _ in 0..<min(frameCount, 10) { // Limit to 10 frames for test efficiency
-            data.append(Data(count: 32)) // 32 bytes per frame (simplified)
-        }
-
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00]) // Size
         return data
     }
 

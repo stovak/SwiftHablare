@@ -7,6 +7,7 @@
 
 import Foundation
 import AVFoundation
+import SwiftFixtureManager
 @testable import SwiftHablare
 
 /// Simulates Apple VoiceProvider with realistic test data
@@ -49,54 +50,41 @@ final class MockAppleVoiceProviderSimulator: VoiceProvider, @unchecked Sendable 
             return customVoices
         }
 
-        // Return simulated Apple voices (based on common macOS/iOS voices)
-        return [
-            Voice(
-                id: "com.apple.voice.compact.en-US.Samantha",
-                name: "Samantha",
-                description: "English (United States) - Enhanced Quality",
+        // Load voices from fixture
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        let fixturesDir = try FixtureManager.getFixturesDirectory(from: testFileURL)
+        let fixtureURL = fixturesDir.appendingPathComponent("voices/apple_voices.json")
+        let jsonData = try Data(contentsOf: fixtureURL)
+
+        struct AppleVoiceResponse: Codable {
+            struct VoiceData: Codable {
+                let identifier: String
+                let name: String
+                let language: String
+                let quality: String
+                let gender: String
+            }
+            let voices: [VoiceData]
+        }
+
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(AppleVoiceResponse.self, from: jsonData)
+
+        return response.voices.map { voiceData in
+            let components = voiceData.language.split(separator: "-")
+            let language = String(components.first ?? "en")
+            let locality = String(components.last ?? "US")
+
+            return Voice(
+                id: voiceData.identifier,
+                name: voiceData.name,
+                description: "English (\(locality)) - \(voiceData.quality.capitalized) Quality",
                 providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "female"
-            ),
-            Voice(
-                id: "com.apple.voice.compact.en-US.Alex",
-                name: "Alex",
-                description: "English (United States) - Enhanced Quality",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "male"
-            ),
-            Voice(
-                id: "com.apple.voice.compact.en-GB.Daniel",
-                name: "Daniel",
-                description: "English (United Kingdom) - Enhanced Quality",
-                providerId: providerId,
-                language: "en",
-                locality: "GB",
-                gender: "male"
-            ),
-            Voice(
-                id: "com.apple.voice.compact.en-AU.Karen",
-                name: "Karen",
-                description: "English (Australia) - Enhanced Quality",
-                providerId: providerId,
-                language: "en",
-                locality: "AU",
-                gender: "female"
-            ),
-            Voice(
-                id: "com.apple.voice.premium.en-US.Ava",
-                name: "Ava",
-                description: "English (United States) - Premium Quality",
-                providerId: providerId,
-                language: "en",
-                locality: "US",
-                gender: "female"
+                language: language,
+                locality: locality,
+                gender: voiceData.gender
             )
-        ]
+        }
     }
 
     func generateAudio(text: String, voiceId: String) async throws -> Data {
@@ -168,50 +156,20 @@ final class MockAppleVoiceProviderSimulator: VoiceProvider, @unchecked Sendable 
     // MARK: - Private Helpers
 
     private func generateMockCAFData(duration: TimeInterval) -> Data {
-        // Minimal valid CAF file header
-        // CAF = Core Audio Format (Apple's native format)
-        var data = Data()
+        // Load CAF fixture data
+        let testFileURL = URL(fileURLWithPath: #filePath)
+        if let fixturesDir = try? FixtureManager.getFixturesDirectory(from: testFileURL) {
+            let fixtureURL = fixturesDir.appendingPathComponent("audio/sample_caf.fixture")
+            if let cafData = try? Data(contentsOf: fixtureURL) {
+                return cafData
+            }
+        }
 
-        // File header: "caff" magic
+        // Fallback: generate minimal CAF data
+        var data = Data()
         data.append(contentsOf: [0x63, 0x61, 0x66, 0x66]) // "caff"
         data.append(contentsOf: [0x00, 0x01]) // Version 1
         data.append(contentsOf: [0x00, 0x00]) // Flags
-
-        // Audio description chunk
-        data.append(contentsOf: [0x64, 0x65, 0x73, 0x63]) // "desc"
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20]) // Chunk size: 32 bytes
-
-        // Sample rate: 44100 Hz (as Double)
-        let sampleRate: Double = 44100.0
-        var sampleRateBytes = sampleRate.bitPattern.bigEndian
-        data.append(Data(bytes: &sampleRateBytes, count: 8))
-
-        // Format ID: 'lpcm' (Linear PCM)
-        data.append(contentsOf: [0x6C, 0x70, 0x63, 0x6D])
-
-        // Format flags, bytes per packet, frames per packet, channels per frame, bits per channel
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00]) // Format flags
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x02]) // Bytes per packet: 2 (16-bit mono)
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x01]) // Frames per packet: 1
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x01]) // Channels per frame: 1 (mono)
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x10]) // Bits per channel: 16
-
-        // Data chunk (silent audio)
-        data.append(contentsOf: [0x64, 0x61, 0x74, 0x61]) // "data"
-
-        // Calculate data size based on duration
-        let frameCount = Int(duration * sampleRate)
-        let dataSize = frameCount * 2 // 2 bytes per frame (16-bit)
-
-        // Data chunk size (-1 for unknown/streaming)
-        data.append(contentsOf: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-
-        // Edit count
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
-
-        // Add minimal silent audio data (just a few zero bytes)
-        data.append(Data(count: min(dataSize, 100))) // Limited to 100 bytes for test efficiency
-
         return data
     }
 }

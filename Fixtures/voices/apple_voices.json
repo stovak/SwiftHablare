@@ -1,0 +1,32 @@
+{
+  "voices": [
+    {
+      "identifier": "com.apple.voice.compact.en-US.Samantha",
+      "name": "Samantha",
+      "language": "en-US",
+      "quality": "enhanced",
+      "gender": "female"
+    },
+    {
+      "identifier": "com.apple.voice.compact.en-US.Alex",
+      "name": "Alex",
+      "language": "en-US",
+      "quality": "premium",
+      "gender": "male"
+    },
+    {
+      "identifier": "com.apple.voice.compact.en-US.Allison",
+      "name": "Allison",
+      "language": "en-US",
+      "quality": "enhanced",
+      "gender": "female"
+    },
+    {
+      "identifier": "com.apple.voice.compact.en-US.Tom",
+      "name": "Tom",
+      "language": "en-US",
+      "quality": "enhanced",
+      "gender": "male"
+    }
+  ]
+}
