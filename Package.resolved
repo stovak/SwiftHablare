@@ -1,13 +1,13 @@
 {
-  "originHash" : "390288e1b75d0510ae07dd6e600481e5d82d32df821312a1c467277d4a11373b",
+  "originHash" : "fff621150cfe3af6fe4af43e3da5313d10267e920b76822d909b578680c2b997",
   "pins" : [
     {
       "identity" : "swiftfixturemanager",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stovak/SwiftFixtureManager.git",
       "state" : {
-        "revision" : "3b3176c68634dd07f8e1d7ae6851b65a33ca214e",
-        "version" : "1.0.0"
+        "revision" : "89038d2943c061183d0f7e62a2301ae5253253e1",
+        "version" : "1.0.1"
       }
     }
   ],
