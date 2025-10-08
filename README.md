@@ -18,8 +18,9 @@ A Swift package for text-to-speech audio generation with support for multiple TT
 
 ## Requirements
 
-- macOS 14.0+ / iOS 17.0+
+- macOS 15.0+ / iOS 17.0+
 - Swift 6.0+
+- Xcode 16.4+
 - SwiftData
 
 ## Installation
@@ -181,7 +182,7 @@ public final class VoiceModel {
 
 - **Provider ID**: `apple`
 - **Requires API Key**: No
-- **Platform**: macOS, iOS
+- **Platform**: macOS 15+ / iOS 17+
 - **Features**: Built-in system voices, no API key required
 
 ### ElevenLabs Voice Provider
