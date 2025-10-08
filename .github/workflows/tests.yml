@@ -8,8 +8,11 @@ on:
 
 jobs:
   test:
-    name: Run Tests
-    runs-on: macos-15
+    name: Run Tests (macOS 15)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-15]
 
     steps:
     - name: Checkout code
