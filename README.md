@@ -20,6 +20,7 @@ A Swift package for text-to-speech audio generation with support for multiple TT
 
 - macOS 15.0+ / iOS 17.0+
 - Swift 6.2+
+- Xcode 16.2 (bundled Swift 6.2 toolchain)
 - SwiftData
 
 ## Installation
