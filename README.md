@@ -20,7 +20,7 @@ A Swift package for text-to-speech audio generation with support for multiple TT
 
 - macOS 15.0+ / iOS 17.0+
 - Swift 6.2+
-- Xcode 16.4 (bundled Swift 6.2 toolchain)
+- Xcode 16.4 with the Swift 6.2 toolchain installed (`.swift-version` pins the project to 6.2)
 - SwiftData
 
 ## Installation
@@ -34,6 +34,25 @@ dependencies: [
     .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
 ]
 ```
+
+### Swift 6.2 Toolchain Setup (macOS)
+
+1. Install Xcode 16.4 from Apple and select it:
+   ```bash
+   sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+   ```
+2. Install the Swift 6.2 toolchain from [swift.org](https://www.swift.org/download/):
+   ```bash
+   curl -L -o /tmp/swift-6.2-RELEASE-osx.pkg \
+     https://download.swift.org/swift-6.2-release/xcode/swift-6.2-RELEASE/swift-6.2-RELEASE-osx.pkg
+   sudo installer -pkg /tmp/swift-6.2-RELEASE-osx.pkg -target /
+   ```
+3. Activate the toolchain for CLI usage (matches the `.swift-version` file):
+   ```bash
+   export TOOLCHAINS=swift
+   swift --version # should report Swift 6.2
+   ```
+4. Re-run `swift build` / `swift test`.
 
 ## Usage
 

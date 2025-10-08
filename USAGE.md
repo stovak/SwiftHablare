@@ -9,7 +9,7 @@ This guide summarizes the day-to-day tasks most automations perform when integra
    .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
    ```
 2. Add `SwiftHablare` to the target dependencies that need text-to-speech features.
-3. Ensure the host app targets macOS 15/iOS 17 or newer and uses Swift 6.2 with Xcode 16.4 installed.
+3. Ensure the host app targets macOS 15/iOS 17 or newer and uses Swift 6.2 with Xcode 16.4 plus the Swift 6.2 toolchain (see below).
 4. Link SwiftData in the host target (SwiftHablaré persists data through it).
 5. On iOS/macOS, entitle the app for microphone/speaker usage when playing audio.
 
@@ -113,3 +113,16 @@ Inspect the files under `Sources/SwiftHablare/UI/` for customizable sections. Au
 | Enumerate providers | `manager.getAvailableProviders()` |
 
 Refer to [`API.md`](API.md) for type-level details when implementing new providers or extending the data models.
+
+## Appendix: Local Swift 6.2 Toolchain Setup (macOS)
+
+```bash
+sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+curl -L -o /tmp/swift-6.2-RELEASE-osx.pkg \
+  https://download.swift.org/swift-6.2-release/xcode/swift-6.2-RELEASE/swift-6.2-RELEASE-osx.pkg
+sudo installer -pkg /tmp/swift-6.2-RELEASE-osx.pkg -target /
+export TOOLCHAINS=swift # aligns with the repository's .swift-version file
+swift --version
+```
+
+Running `swift build`/`swift test` after these commands ensures the Swift 6.2 toolchain is active, preventing `swift-tools-version 6.2.0` incompatibility errors.

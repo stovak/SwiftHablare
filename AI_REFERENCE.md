@@ -5,7 +5,7 @@ This sheet is optimized for bots needing rapid recall of project fundamentals.
 ## Core Facts
 
 - **Purpose**: Unified text-to-speech abstraction over Apple TTS and ElevenLabs.
-- **Language/Runtime**: Swift 6.2 targeting iOS 17+/macOS 15+ with SwiftData persistence (Xcode 16.4 toolchain).
+- **Language/Runtime**: Swift 6.2 targeting iOS 17+/macOS 15+ with SwiftData persistence (Xcode 16.4 + Swift 6.2 toolchain).
 - **Entry Point**: `VoiceProviderManager` orchestrates providers and caching.
 - **State Storage**: SwiftData (`AudioFile`, `VoiceModel`) + Keychain for secrets.
 - **UI Helpers**: SwiftUI widgets in `Sources/SwiftHablare/UI/` wrap provider selection and configuration.
@@ -40,6 +40,19 @@ Wrap task-specific logic around this pipeline.
 
 - Unit tests live under `Tests/SwiftHablareTests/` and focus on SwiftUI view behavior with injected managers.
 - No CLI entry point exists; interactions happen through Swift APIs.
+
+### Toolchain Reminder for Agents
+
+```bash
+sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+curl -L -o /tmp/swift-6.2-RELEASE-osx.pkg \
+  https://download.swift.org/swift-6.2-release/xcode/swift-6.2-RELEASE/swift-6.2-RELEASE-osx.pkg
+sudo installer -pkg /tmp/swift-6.2-RELEASE-osx.pkg -target /
+export TOOLCHAINS=swift # matches the repository .swift-version (6.2)
+swift --version
+```
+
+Execute builds/tests after exporting `TOOLCHAINS` so SwiftPM honors the Swift 6.2 compiler requirement.
 
 ## Extensibility Reminders
 
