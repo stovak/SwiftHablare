@@ -96,11 +96,11 @@ public final class AppleVoiceProvider: VoiceProvider {
     }
 
     public func generateAudio(text: String, voiceId: String) async throws -> Data {
-        // Use AVSpeechSynthesizer.write() on both iOS 13+ and macOS 13+
+        // Use AVSpeechSynthesizer.write() on both iOS 13+ and macOS 15+
         return try await generateAudioWithAVSpeechSynthesizer(text: text, voiceId: voiceId)
     }
 
-    @available(iOS 13.0, macOS 13.0, *)
+    @available(iOS 13.0, macOS 15.0, *)
     private func generateAudioWithAVSpeechSynthesizer(text: String, voiceId: String) async throws -> Data {
         // NOTE: AVSpeechSynthesizer.write() is known to crash with buffer issues
         // As a workaround, we'll generate a placeholder audio file

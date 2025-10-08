@@ -5,7 +5,7 @@ This sheet is optimized for bots needing rapid recall of project fundamentals.
 ## Core Facts
 
 - **Purpose**: Unified text-to-speech abstraction over Apple TTS and ElevenLabs.
-- **Language/Runtime**: Swift 6 targeting iOS 17+/macOS 14+ with SwiftData persistence.
+- **Language/Runtime**: Swift 6.2 targeting iOS 17+/macOS 15+ with SwiftData persistence.
 - **Entry Point**: `VoiceProviderManager` orchestrates providers and caching.
 - **State Storage**: SwiftData (`AudioFile`, `VoiceModel`) + Keychain for secrets.
 - **UI Helpers**: SwiftUI widgets in `Sources/SwiftHablare/UI/` wrap provider selection and configuration.

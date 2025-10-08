@@ -9,7 +9,7 @@ This guide summarizes the day-to-day tasks most automations perform when integra
    .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
    ```
 2. Add `SwiftHablare` to the target dependencies that need text-to-speech features.
-3. Ensure the host app targets macOS 14/iOS 17 or newer and uses Swift 6.0 or newer.
+3. Ensure the host app targets macOS 15/iOS 17 or newer and uses Swift 6.2 or newer.
 4. Link SwiftData in the host target (SwiftHablaré persists data through it).
 5. On iOS/macOS, entitle the app for microphone/speaker usage when playing audio.
 
