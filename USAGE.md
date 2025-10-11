@@ -6,7 +6,7 @@ This guide summarizes the day-to-day tasks most automations perform when integra
 
 1. Add the package to the `dependencies` array in your `Package.swift`:
    ```swift
-   .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
+   .package(url: "https://github.com/intrusive-memory/SwiftHablare", from: "1.0.0")
    ```
 2. Add `SwiftHablare` to the target dependencies that need text-to-speech features.
 3. Ensure the host app targets macOS 15/iOS 17 or newer and uses Swift 6.0 or newer with Xcode 16.4+.

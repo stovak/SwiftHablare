@@ -15,7 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/stovak/SwiftFijos.git", from: "1.0.0")
+        .package(url: "https://github.com/intrusive-memory/SwiftFijos.git", from: "1.0.0")
     ],
     targets: [
         .target(
