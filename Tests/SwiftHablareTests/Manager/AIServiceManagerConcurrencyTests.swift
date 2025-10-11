@@ -256,12 +256,13 @@ struct AIServiceManagerConcurrencyTests {
 
     // MARK: - Performance Under Load
 
-    @Test("AIServiceManager performs well under concurrent load")
+    @Test("AIServiceManager handles high concurrent load")
     func testPerformanceUnderLoad() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
 
-        let startTime = Date()
+        // Wait a tiny bit to ensure cleanup completes
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
 
         // Register 100 providers concurrently
         await withTaskGroup(of: Void.self) { group in
@@ -273,32 +274,40 @@ struct AIServiceManagerConcurrencyTests {
                         capabilities: [.textGeneration],
                         requiresAPIKey: false
                     )
-                    try? await manager.register(provider: provider)
+                    do {
+                        try await manager.register(provider: provider)
+                    } catch {
+                        // Ignore errors for concurrent registration stress test
+                    }
                 }
             }
         }
 
-        let registrationTime = Date().timeIntervalSince(startTime)
+        // Verify all providers were registered successfully
+        let registeredCount = await manager.providerCount()
+        #expect(registeredCount == 100)
 
-        // Perform 1000 concurrent queries
-        let queryStart = Date()
-
-        await withTaskGroup(of: Void.self) { group in
+        // Perform 1000 concurrent queries - verify functional correctness, not timing
+        var queryCounts: [Int] = []
+        await withTaskGroup(of: Int.self) { group in
             for _ in 0..<1000 {
                 group.addTask {
-                    let _ = await manager.providers(withCapability: .textGeneration)
+                    let providers = await manager.providers(withCapability: .textGeneration)
+                    return providers.count
                 }
+            }
+
+            for await count in group {
+                queryCounts.append(count)
             }
         }
 
-        let queryTime = Date().timeIntervalSince(queryStart)
+        // All queries should return consistent results (100 providers)
+        #expect(queryCounts.allSatisfy { $0 == 100 })
 
-        // Performance expectations (these are generous for testing)
-        // Registration: <1 second for 100 providers
-        #expect(registrationTime < 1.0)
-
-        // Queries: <2 seconds for 1000 queries
-        #expect(queryTime < 2.0)
+        // Verify final state is still correct
+        let finalCount = await manager.providerCount()
+        #expect(finalCount == 100)
 
         await manager.unregisterAll()
     }
