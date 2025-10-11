@@ -4,7 +4,7 @@
 
 # SwiftHablaré
 
-[![Tests](https://github.com/stovak/SwiftHablare/actions/workflows/tests.yml/badge.svg)](https://github.com/stovak/SwiftHablare/actions/workflows/tests.yml)
+[![Tests](https://github.com/intrusive-memory/SwiftHablare/actions/workflows/tests.yml/badge.svg)](https://github.com/intrusive-memory/SwiftHablare/actions/workflows/tests.yml)
 
 **A unified Swift framework for integrating multiple AI services with automatic SwiftData persistence.**
 
@@ -67,7 +67,7 @@ See [METHODOLOGY.md](METHODOLOGY.md) for the complete development roadmap and [R
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/stovak/SwiftHablare", from: "1.0.0")
+    .package(url: "https://github.com/intrusive-memory/SwiftHablare", from: "1.0.0")
 ]
 ```
 
@@ -166,6 +166,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on creating provi
 
 ## Community
 
-- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/stovak/SwiftHablare/issues)
-- **Discussions**: Ask questions and share ideas in [GitHub Discussions](https://github.com/stovak/SwiftHablare/discussions)
+- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/intrusive-memory/SwiftHablare/issues)
+- **Discussions**: Ask questions and share ideas in [GitHub Discussions](https://github.com/intrusive-memory/SwiftHablare/discussions)
 - **Pull Requests**: Review the contribution guidelines before submitting
