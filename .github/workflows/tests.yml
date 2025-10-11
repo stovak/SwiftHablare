@@ -24,6 +24,12 @@ jobs:
       - name: Build
         run: swift build
 
+      - name: Clean test database
+        run: |
+          # Remove any existing test databases to prevent schema conflicts
+          rm -rf ~/Library/Application\ Support/default.store*
+          rm -rf ~/Library/Application\ Support/*.store
+
       - name: Run tests with coverage
         run: |
           # Run functional tests (exclude performance tests) and capture output
