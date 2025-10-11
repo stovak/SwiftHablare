@@ -24,7 +24,7 @@ struct DataStructureCapabilityTests {
         let capability = DataStructureCapability.model(
             TestProduct.self,
             properties: [
-                .property(\TestProduct.productDescription, constraints: .init(minLength: 50, maxLength: 500))
+                .property(\TestProduct.productDescription, name: "productDescription", constraints: .init(minLength: 50, maxLength: 500))
             ]
         )
 
@@ -63,6 +63,7 @@ struct DataStructureCapabilityTests {
     func testPropertyCapabilityFromKeyPath() {
         let property = PropertyCapability.property(
             \TestProduct.productDescription,
+            name: "productDescription",
             constraints: .init(minLength: 50)
         )
 
@@ -148,8 +149,8 @@ struct DataStructureCapabilityTests {
     @Test("DataStructureCapability properties accessor")
     func testPropertiesAccessor() {
         let properties = [
-            PropertyCapability.property(\TestProduct.name),
-            PropertyCapability.property(\TestProduct.productDescription)
+            PropertyCapability.property(\TestProduct.name, name: "name"),
+            PropertyCapability.property(\TestProduct.productDescription, name: "productDescription")
         ]
 
         let capability = DataStructureCapability.model(
@@ -194,13 +195,13 @@ struct DataStructureCapabilityTests {
         let capability = DataStructureCapability.model(
             TestProduct.self,
             properties: [
-                .property(\TestProduct.name, constraints: .init(minLength: 1, maxLength: 100)),
-                .property(\TestProduct.productDescription, constraints: .init(
+                .property(\TestProduct.name, name: "name", constraints: .init(minLength: 1, maxLength: 100)),
+                .property(\TestProduct.productDescription, name: "productDescription", constraints: .init(
                     minLength: 50,
                     maxLength: 500,
                     additionalConstraints: ["tone": "professional", "format": "markdown"]
                 )),
-                .property(\TestProduct.price)
+                .property(\TestProduct.price, name: "price")
             ]
         )
 
@@ -228,8 +229,8 @@ struct DataStructureCapabilityTests {
 
     @Test("PropertyCapability works with multiple property types")
     func testPropertyCapabilityWithMultipleTypes() {
-        let stringProp = PropertyCapability.property(\TestProduct.name)
-        let doubleProp = PropertyCapability.property(\TestProduct.price)
+        let stringProp = PropertyCapability.property(\TestProduct.name, name: "name")
+        let doubleProp = PropertyCapability.property(\TestProduct.price, name: "price")
 
         #expect(stringProp.propertyName == "name")
         #expect(doubleProp.propertyName == "price")

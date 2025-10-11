@@ -14,18 +14,18 @@ struct AIGeneratableTests {
 
         static var aiGenerationSchema: AIGenerationSchema {
             AIGenerationSchema {
-                AIProperty(\TestArticle.title)
+                AIProperty(\TestArticle.title, name: "title")
                     .providers(["openai", "anthropic"])
                     .constraints(minLength: 10, maxLength: 100)
                     .promptTemplate("Generate a title for: {content}")
                     .required()
 
-                AIProperty(\TestArticle.content)
+                AIProperty(\TestArticle.content, name: "content")
                     .providers(["openai"])
                     .constraints(minLength: 100, maxLength: 5000)
                     .optional()
 
-                AIProperty(\TestArticle.summary)
+                AIProperty(\TestArticle.summary, name: "summary")
                     .providers(["openai", "anthropic"])
                     .inputProperty("content")
                     .constraints(maxLength: 200)
@@ -48,7 +48,7 @@ struct AIGeneratableTests {
 
     @Test("AIProperty stores property information correctly")
     func testAIPropertySpec() {
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
             .providers(["openai", "anthropic"])
             .constraints(minLength: 10, maxLength: 100)
             .promptTemplate("Test template")
@@ -64,7 +64,7 @@ struct AIGeneratableTests {
 
     @Test("AIProperty optional() method works")
     func testAIPropertyOptional() {
-        let property = AIProperty(\TestArticle.content)
+        let property = AIProperty(\TestArticle.content, name: "content")
             .optional()
 
         #expect(property.required == false)
@@ -72,7 +72,7 @@ struct AIGeneratableTests {
 
     @Test("AIProperty inputProperty works")
     func testAIPropertyInputProperty() {
-        let property = AIProperty(\TestArticle.summary)
+        let property = AIProperty(\TestArticle.summary, name: "summary")
             .inputProperty("content")
 
         #expect(property.inputPropertyName == "content")
@@ -80,7 +80,7 @@ struct AIGeneratableTests {
 
     @Test("AIProperty addConstraint works")
     func testAIPropertyAddConstraint() {
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
             .addConstraint(key: "tone", value: "professional")
             .addConstraint(key: "format", value: "markdown")
 
@@ -91,9 +91,9 @@ struct AIGeneratableTests {
     @Test("AIGenerationSchemaBuilder builds correctly")
     func testSchemaBuilder() {
         let schema = AIGenerationSchema {
-            AIProperty(\TestArticle.title)
-            AIProperty(\TestArticle.content)
-            AIProperty(\TestArticle.summary)
+            AIProperty(\TestArticle.title, name: "title")
+            AIProperty(\TestArticle.content, name: "content")
+            AIProperty(\TestArticle.summary, name: "summary")
         }
 
         #expect(schema.properties.count == 3)
@@ -105,8 +105,8 @@ struct AIGeneratableTests {
     @Test("AIGenerationSchema can be constructed directly")
     func testSchemaDirectConstruction() {
         let properties = [
-            AIProperty(\TestArticle.title),
-            AIProperty(\TestArticle.content)
+            AIProperty(\TestArticle.title, name: "title"),
+            AIProperty(\TestArticle.content, name: "content")
         ]
 
         let schema = AIGenerationSchema(properties: properties)
@@ -136,7 +136,7 @@ struct AIGeneratableTests {
 
     @Test("AIPropertySpec builder methods are chainable")
     func testPropertySpecChaining() {
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
             .providers(["openai"])
             .constraints(minLength: 5, maxLength: 50)
             .promptTemplate("Generate: {title}")
@@ -154,7 +154,7 @@ struct AIGeneratableTests {
 
     @Test("AIProperty without constraints")
     func testAIPropertyWithoutConstraints() {
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
 
         #expect(property.propertyName == "title")
         #expect(property.allowedProviders.isEmpty)
@@ -169,7 +169,7 @@ struct AIGeneratableTests {
 
     @Test("AIPropertySpec is Sendable")
     func testAIPropertySpecSendable() async {
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
 
         await Task {
             // Should compile without warnings due to Sendable conformance
@@ -197,11 +197,11 @@ struct AIGeneratableTests {
         #expect(articleSchema.properties[2].propertyName == "summary")
     }
 
-    @Test("Property names are extracted correctly from KeyPath")
+    @Test("Property names are explicitly specified")
     func testPropertyNameExtraction() {
-        let titleProp = AIProperty(\TestArticle.title)
-        let contentProp = AIProperty(\TestArticle.content)
-        let summaryProp = AIProperty(\TestArticle.summary)
+        let titleProp = AIProperty(\TestArticle.title, name: "title")
+        let contentProp = AIProperty(\TestArticle.content, name: "content")
+        let summaryProp = AIProperty(\TestArticle.summary, name: "summary")
 
         #expect(titleProp.propertyName == "title")
         #expect(contentProp.propertyName == "content")
@@ -211,7 +211,7 @@ struct AIGeneratableTests {
     @Test("Constraints only for strings")
     func testConstraintsOnlyForStrings() {
         // This test verifies that constraints are optional and can be omitted
-        let property = AIProperty(\TestArticle.title)
+        let property = AIProperty(\TestArticle.title, name: "title")
             .providers(["openai"])
 
         #expect(property.minLength == nil)

@@ -147,11 +147,24 @@ public struct AIPropertySpec: Sendable {
 @available(macOS 15.0, iOS 17.0, *)
 public typealias TransformFunction = @Sendable (Any, Any) throws -> Any
 
-/// Creates an AI property specification from a KeyPath.
+/// Creates an AI property specification from a KeyPath with an explicit property name.
+///
+/// - Parameters:
+///   - keyPath: The KeyPath to the property (used for type safety)
+///   - name: The explicit property name (e.g., "title", "description")
+///
+/// - Note: Swift does not provide a reliable way to extract property names from KeyPaths at runtime,
+///         so an explicit name parameter is required for reliable property identification.
+///
+/// ## Example
+/// ```swift
+/// AIProperty(\Article.title, name: "title")
+///     .providers(["openai", "anthropic"])
+///     .constraints(minLength: 10, maxLength: 100)
+/// ```
 @available(macOS 15.0, iOS 17.0, *)
-public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>) -> AIPropertySpec {
-    let propertyName = String(describing: keyPath).components(separatedBy: ".").last ?? ""
-    return AIPropertySpec(propertyName: propertyName)
+public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>, name: String) -> AIPropertySpec {
+    return AIPropertySpec(propertyName: name)
 }
 
 // MARK: - Result Builder

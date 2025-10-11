@@ -106,13 +106,27 @@ public struct PropertyCapability: Sendable {
         self.constraints = constraints
     }
 
-    /// Creates a property capability from a KeyPath.
+    /// Creates a property capability from a KeyPath with an explicit property name.
+    ///
+    /// - Parameters:
+    ///   - keyPath: The KeyPath to the property (used for type safety)
+    ///   - name: The explicit property name (e.g., "title", "description")
+    ///   - constraints: Optional constraints for the property generation
+    ///
+    /// - Note: Swift does not provide a reliable way to extract property names from KeyPaths at runtime,
+    ///         so an explicit name parameter is required for reliable property identification.
+    ///
+    /// ## Example
+    /// ```swift
+    /// PropertyCapability.property(\Product.description, name: "description",
+    ///                              constraints: .init(minLength: 50, maxLength: 500))
+    /// ```
     public static func property<T, V>(
         _ keyPath: KeyPath<T, V>,
+        name: String,
         constraints: PropertyConstraints? = nil
     ) -> PropertyCapability {
-        let propertyName = String(describing: keyPath).components(separatedBy: ".").last ?? ""
-        return PropertyCapability(propertyName: propertyName, constraints: constraints)
+        return PropertyCapability(propertyName: name, constraints: constraints)
     }
 }
 
