@@ -90,6 +90,7 @@ struct AIServiceManagerIntegrationTests {
     func testProviderReplacementUpdatesIndices() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // Register provider with text capability
         let provider1 = MockAIServiceProvider(

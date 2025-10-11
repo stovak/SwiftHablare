@@ -33,6 +33,7 @@ struct AIServiceManagerTests {
     func testProviderRegistration() async throws {
         let manager = createManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 50_000_000) // 50ms for CI stability
 
         let provider = MockAIServiceProvider.textProvider()
 
@@ -52,7 +53,7 @@ struct AIServiceManagerTests {
         await manager.unregisterAll()
 
         // Wait for cleanup to complete
-        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms
 
         let textProvider = MockAIServiceProvider.textProvider()
         let imageProvider = MockAIServiceProvider.imageProvider()

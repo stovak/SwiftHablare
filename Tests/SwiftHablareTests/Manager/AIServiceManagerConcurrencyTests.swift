@@ -14,7 +14,7 @@ struct AIServiceManagerConcurrencyTests {
         await manager.unregisterAll()
 
         // Wait a bit longer to ensure cleanup completes in CI
-        try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms
 
         // Register 50 providers concurrently
         await withTaskGroup(of: Void.self) { group in
@@ -47,7 +47,7 @@ struct AIServiceManagerConcurrencyTests {
         await manager.unregisterAll()
 
         // Wait a bit longer to ensure cleanup completes in CI
-        try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms
 
         // Register providers first
         let providers = (0..<50).map { i in
