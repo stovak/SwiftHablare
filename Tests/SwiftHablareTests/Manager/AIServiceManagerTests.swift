@@ -149,9 +149,12 @@ struct AIServiceManagerTests {
     }
 
     @Test("AIServiceManager unregister() with non-existent ID is safe")
-    func testUnregisterNonExistentProvider() async {
+    func testUnregisterNonExistentProvider() async throws {
         let manager = createManager()
         await manager.unregisterAll()
+
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
 
         // Should not crash or throw
         await manager.unregister(providerID: "non-existent-provider")

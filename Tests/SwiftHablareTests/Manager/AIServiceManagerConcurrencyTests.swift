@@ -63,6 +63,9 @@ struct AIServiceManagerConcurrencyTests {
             try await manager.register(provider: provider)
         }
 
+        // Wait a bit to ensure all registrations are fully complete
+        try await Task.sleep(nanoseconds: 20_000_000) // 20ms
+
         let countBefore = await manager.providerCount()
         #expect(countBefore == 50)
 

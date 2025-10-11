@@ -244,7 +244,7 @@ public actor AIContentValidator {
         }
 
         do {
-            let regex = try NSRegularExpression(pattern: pattern)
+            let regex = try NSRegularExpression(pattern: pattern, options: .caseInsensitive)
             let range = NSRange(stringValue.startIndex..., in: stringValue)
             let matches = regex.matches(in: stringValue, range: range)
 
@@ -331,9 +331,15 @@ public actor AIContentValidator {
 
     /// Validates URL format.
     private func validateURL(_ value: String) -> ValidationResult {
-        if URL(string: value) == nil {
+        guard let url = URL(string: value) else {
             return .invalid(reason: "Invalid URL format")
         }
+
+        // Check that URL has a scheme (http, https, etc.)
+        guard url.scheme != nil else {
+            return .invalid(reason: "Invalid URL format")
+        }
+
         return .valid
     }
 
