@@ -37,10 +37,12 @@ struct AIServiceManagerIntegrationTests {
         #expect(retrieved != nil)
 
         // 3. Use
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
         let result = try await retrieved!.generate(
             prompt: "Test",
             parameters: [:],
-            context: try ModelContext(ModelContainer(for: TestProduct.self))
+            context: ModelContext(container)
         )
         #expect(!result.isEmpty)
 
