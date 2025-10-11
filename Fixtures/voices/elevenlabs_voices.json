@@ -6,28 +6,9 @@
       "description": "A young, calm female voice with an American accent",
       "labels": {
         "accent": "american",
+        "gender": "female",
         "age": "young",
-        "gender": "female"
-      }
-    },
-    {
-      "voice_id": "AZnzlk1XvdvUeBnXmlld",
-      "name": "Domi",
-      "description": "A confident, strong female voice with an American accent",
-      "labels": {
-        "accent": "american",
-        "age": "young",
-        "gender": "female"
-      }
-    },
-    {
-      "voice_id": "EXAVITQu4vr4xnSDxMaL",
-      "name": "Bella",
-      "description": "A soft, gentle female voice with an American accent",
-      "labels": {
-        "accent": "american",
-        "age": "young",
-        "gender": "female"
+        "use_case": "narration"
       }
     },
     {
@@ -36,28 +17,31 @@
       "description": "A well-rounded male voice with an American accent",
       "labels": {
         "accent": "american",
-        "age": "young",
-        "gender": "male"
+        "gender": "male",
+        "age": "middle_aged",
+        "use_case": "narration"
       }
     },
     {
       "voice_id": "MF3mGyEYCl7XYWbV9V6O",
       "name": "Elli",
-      "description": "An emotional, young female voice with an American accent",
+      "description": "A young, expressive female voice",
       "labels": {
         "accent": "american",
+        "gender": "female",
         "age": "young",
-        "gender": "female"
+        "use_case": "conversational"
       }
     },
     {
-      "voice_id": "TxGEqnHWrfWFTfGW9XjX",
-      "name": "Josh",
-      "description": "A deep, young male voice with an American accent",
+      "voice_id": "pNInz6obpgDQGcFmaJgB",
+      "name": "Adam",
+      "description": "Deep, resonant male voice",
       "labels": {
         "accent": "american",
-        "age": "young",
-        "gender": "male"
+        "gender": "male",
+        "age": "middle_aged",
+        "use_case": "narration"
       }
     }
   ]

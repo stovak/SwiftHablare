@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftFixtureManager
+import SwiftFijos
 @testable import SwiftHablare
 
 /// Simulates ElevenLabs VoiceProvider with realistic API responses
@@ -57,10 +57,9 @@ final class MockElevenLabsVoiceProviderSimulator: VoiceProvider, @unchecked Send
             return customVoices
         }
 
-        // Load voices from fixture
-        let testFileURL = URL(fileURLWithPath: #filePath)
-        let fixturesDir = try FixtureManager.getFixturesDirectory(from: testFileURL)
-        let fixtureURL = fixturesDir.appendingPathComponent("voices/elevenlabs_voices.json")
+        // Load voices from fixture using Fijos
+        let fixturesDirectory = try Fijos.getFixturesDirectory()
+        let fixtureURL = fixturesDirectory.appendingPathComponent("voices/elevenlabs_voices.json")
         let jsonData = try Data(contentsOf: fixtureURL)
 
         struct ElevenLabsVoiceResponse: Codable {
@@ -195,10 +194,9 @@ final class MockElevenLabsVoiceProviderSimulator: VoiceProvider, @unchecked Send
     // MARK: - Private Helpers
 
     private func generateMockMP3Data(duration: TimeInterval) -> Data {
-        // Load MP3 fixture data
-        let testFileURL = URL(fileURLWithPath: #filePath)
-        if let fixturesDir = try? FixtureManager.getFixturesDirectory(from: testFileURL) {
-            let fixtureURL = fixturesDir.appendingPathComponent("audio/sample_mp3.fixture")
+        // Load MP3 fixture data using Fijos
+        if let fixturesDirectory = try? Fijos.getFixturesDirectory() {
+            let fixtureURL = fixturesDirectory.appendingPathComponent("audio/sample_mp3.fixture")
             if let mp3Data = try? Data(contentsOf: fixtureURL) {
                 return mp3Data
             }

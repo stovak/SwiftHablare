@@ -1,6 +1,20 @@
 {
   "voices": [
     {
+      "identifier": "com.apple.voice.premium.en-US.Allison",
+      "name": "Allison",
+      "language": "en-US",
+      "quality": "premium",
+      "gender": "female"
+    },
+    {
+      "identifier": "com.apple.voice.premium.en-US.Evan",
+      "name": "Evan",
+      "language": "en-US",
+      "quality": "premium",
+      "gender": "male"
+    },
+    {
       "identifier": "com.apple.voice.compact.en-US.Samantha",
       "name": "Samantha",
       "language": "en-US",
@@ -8,24 +22,17 @@
       "gender": "female"
     },
     {
-      "identifier": "com.apple.voice.compact.en-US.Alex",
-      "name": "Alex",
+      "identifier": "com.apple.voice.premium.en-US.Zoe",
+      "name": "Zoe",
       "language": "en-US",
       "quality": "premium",
-      "gender": "male"
-    },
-    {
-      "identifier": "com.apple.voice.compact.en-US.Allison",
-      "name": "Allison",
-      "language": "en-US",
-      "quality": "enhanced",
       "gender": "female"
     },
     {
-      "identifier": "com.apple.voice.compact.en-US.Tom",
+      "identifier": "com.apple.voice.premium.en-US.Tom",
       "name": "Tom",
       "language": "en-US",
-      "quality": "enhanced",
+      "quality": "premium",
       "gender": "male"
     }
   ]
