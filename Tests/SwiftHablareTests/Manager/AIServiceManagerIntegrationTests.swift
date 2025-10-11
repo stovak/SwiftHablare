@@ -58,6 +58,9 @@ struct AIServiceManagerIntegrationTests {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
 
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+
         let providers = [
             MockAIServiceProvider(id: "provider-1", displayName: "Provider 1", capabilities: [.textGeneration], requiresAPIKey: false),
             MockAIServiceProvider(id: "provider-2", displayName: "Provider 2", capabilities: [.imageGeneration], requiresAPIKey: false),

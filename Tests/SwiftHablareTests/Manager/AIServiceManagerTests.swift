@@ -51,6 +51,9 @@ struct AIServiceManagerTests {
         let manager = createManager()
         await manager.unregisterAll()
 
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+
         let textProvider = MockAIServiceProvider.textProvider()
         let imageProvider = MockAIServiceProvider.imageProvider()
         let audioProvider = MockAIServiceProvider.audioProvider()
