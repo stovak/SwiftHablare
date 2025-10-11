@@ -40,7 +40,9 @@ struct AIPropertyBinderTests {
     func testBindStringToString() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: "Test Title",
@@ -56,7 +58,9 @@ struct AIPropertyBinderTests {
     func testBindStringToInt() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: "42",
@@ -72,7 +76,9 @@ struct AIPropertyBinderTests {
     func testBindStringToBool() async throws {
         let binder = AIPropertyBinder()
         let product = TestProduct()
-        let context = try ModelContext(ModelContainer(for: TestProduct.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
+        let context = ModelContext(container)
 
         // Test "true"
         try binder.bind(
@@ -106,7 +112,9 @@ struct AIPropertyBinderTests {
     func testBindStringToDouble() async throws {
         let binder = AIPropertyBinder()
         let product = TestProduct()
-        let context = try ModelContext(ModelContainer(for: TestProduct.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: "19.99",
@@ -122,7 +130,9 @@ struct AIPropertyBinderTests {
     func testBindStringToData() async throws {
         let binder = AIPropertyBinder()
         let product = TestProduct()
-        let context = try ModelContext(ModelContainer(for: TestProduct.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: "Hello, World!",
@@ -141,7 +151,9 @@ struct AIPropertyBinderTests {
     func testBindIntToInt() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: 100,
@@ -157,7 +169,9 @@ struct AIPropertyBinderTests {
     func testBindIntToDouble() async throws {
         let binder = AIPropertyBinder()
         let product = TestProduct()
-        let context = try ModelContext(ModelContainer(for: TestProduct.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: 42,
@@ -173,7 +187,9 @@ struct AIPropertyBinderTests {
     func testBindDoubleToInt() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: 42.7,
@@ -191,7 +207,9 @@ struct AIPropertyBinderTests {
     func testBindDataToData() async throws {
         let binder = AIPropertyBinder()
         let product = TestProduct()
-        let context = try ModelContext(ModelContainer(for: TestProduct.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestProduct.self, configurations: config)
+        let context = ModelContext(container)
 
         let testData = "Test Data".data(using: .utf8)!
 
@@ -209,7 +227,9 @@ struct AIPropertyBinderTests {
     func testBindDataToString() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         let testData = "Test Content".data(using: .utf8)!
 
@@ -229,7 +249,9 @@ struct AIPropertyBinderTests {
     func testBindInvalidConversion() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         do {
             try binder.bind(
@@ -252,7 +274,9 @@ struct AIPropertyBinderTests {
     func testBindIncompatibleTypes() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         do {
             // Try to bind an array to a string property
@@ -278,7 +302,9 @@ struct AIPropertyBinderTests {
     func testBindEmptyString() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: "",
@@ -294,7 +320,9 @@ struct AIPropertyBinderTests {
     func testBindZeroValues() async throws {
         let binder = AIPropertyBinder()
         let article = TestArticle()
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
 
         try binder.bind(
             value: 0,

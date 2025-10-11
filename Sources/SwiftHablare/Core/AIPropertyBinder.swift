@@ -144,9 +144,11 @@ public struct AIPropertyBinder: Sendable {
             return URL(string: string) as? V
         }
 
-        // String → Data
-        if V.self == Data.self {
-            return string.data(using: .utf8) as? V
+        // String → Data (including Optional<Data>)
+        if V.self == Data.self || V.self == Optional<Data>.self {
+            if let data = string.data(using: .utf8) {
+                return data as? V
+            }
         }
 
         return nil

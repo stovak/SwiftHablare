@@ -1,10 +1,10 @@
 {
-  "originHash" : "dfd9ce127ddb477cefd5a008b9f3793a7000ef46c05af51fdae2e5e713cb0a02",
+  "originHash" : "4bdc693c117261e4d25b27d7085d2aedb49d47482e3063bf2c6f606466a39b75",
   "pins" : [
     {
       "identity" : "swiftfijos",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/stovak/SwiftFijos.git",
+      "location" : "https://github.com/intrusive-memory/SwiftFijos.git",
       "state" : {
         "revision" : "cd3897d48eefddd27cd0fbedf066268fb59c3b38",
         "version" : "1.0.1"

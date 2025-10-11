@@ -53,6 +53,11 @@ final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
         lastPrompt = prompt
         lastParameters = parameters
 
+        // Check if provider is configured
+        if !configured {
+            throw AIServiceError.configurationError("Provider is not configured")
+        }
+
         if let error = shouldThrowError {
             throw error
         }

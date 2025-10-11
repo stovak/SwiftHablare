@@ -22,7 +22,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator generates and persists content")
     func testGenerateAndPersist() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -43,7 +45,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator saves to SwiftData")
     func testSavesToSwiftData() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -67,7 +71,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator uses cache for duplicate requests")
     func testCaching() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let cache = AIResponseCache()
         let coordinator = AIPersistenceCoordinator(cache: cache)
 
@@ -106,7 +112,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator bypasses cache when disabled")
     func testBypassCache() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -145,7 +153,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator validates generated content")
     func testValidation() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -168,7 +178,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator rejects invalid content")
     func testRejectInvalid() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let validator = AIContentValidator()
 
         // Register a custom rule that always fails
@@ -209,7 +221,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator applies transformations")
     func testTransformation() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -224,20 +238,30 @@ struct AIPersistenceCoordinatorTests {
             property: \TestArticle.title,
             context: context,
             transform: { value in
-                guard let string = value as? String else { return value }
-                return string.uppercased()
+                // Convert Data to String if needed
+                if let data = value as? Data, let string = String(data: data, encoding: .utf8) {
+                    return string.uppercased()
+                }
+                // Handle String directly
+                if let string = value as? String {
+                    return string.uppercased()
+                }
+                return value
             },
             useCache: false
         )
 
-        #expect(article.title == article.title.uppercased())
+        // Verify the title was uppercased
+        #expect(article.title.uppercased() == article.title)
     }
 
     // MARK: - Cache Management
 
     @Test("AIPersistenceCoordinator clears cache")
     func testClearCache() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let cache = AIResponseCache()
         let coordinator = AIPersistenceCoordinator(cache: cache)
 
@@ -267,7 +291,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator invalidates provider cache")
     func testInvalidateProviderCache() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let cache = AIResponseCache()
         let coordinator = AIPersistenceCoordinator(cache: cache)
 
@@ -321,7 +347,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator reports cache statistics")
     func testCacheStatistics() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let stats = await coordinator.cacheStatistics()
@@ -335,7 +363,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator handles provider errors")
     func testProviderError() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         // Create a provider that will fail
@@ -366,7 +396,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator batch generation placeholder")
     func testBatchGeneration() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let provider = MockAIServiceProvider.textProvider()
@@ -395,7 +427,9 @@ struct AIPersistenceCoordinatorTests {
 
     @Test("AIPersistenceCoordinator registers custom validation rules")
     func testCustomValidationRule() async throws {
-        let context = try ModelContext(ModelContainer(for: TestArticle.self))
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: TestArticle.self, configurations: config)
+        let context = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let customRule = AIContentValidator.ValidationRule(
