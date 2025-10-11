@@ -3,6 +3,7 @@ import SwiftData
 import Foundation
 @testable import SwiftHablare
 
+@Suite(.serialized)
 struct AIServiceManagerIntegrationTests {
 
     // MARK: - Test Model

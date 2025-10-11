@@ -3,6 +3,7 @@ import SwiftData
 import Foundation
 @testable import SwiftHablare
 
+@Suite(.serialized)
 struct AIServiceManagerConcurrencyTests {
 
     // MARK: - Concurrent Registration Tests
@@ -11,6 +12,9 @@ struct AIServiceManagerConcurrencyTests {
     func testConcurrentRegistration() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+
+        // Wait a tiny bit to ensure cleanup completes
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
 
         // Register 50 providers concurrently
         await withTaskGroup(of: Void.self) { group in
@@ -22,7 +26,11 @@ struct AIServiceManagerConcurrencyTests {
                         capabilities: [.textGeneration],
                         requiresAPIKey: false
                     )
-                    try? await manager.register(provider: provider)
+                    do {
+                        try await manager.register(provider: provider)
+                    } catch {
+                        // Ignore errors for concurrent registration stress test
+                    }
                 }
             }
         }
@@ -38,6 +46,9 @@ struct AIServiceManagerConcurrencyTests {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
 
+        // Wait a tiny bit to ensure cleanup completes
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+
         // Register providers first
         let providers = (0..<50).map { i in
             MockAIServiceProvider(
@@ -52,7 +63,8 @@ struct AIServiceManagerConcurrencyTests {
             try await manager.register(provider: provider)
         }
 
-        #expect(await manager.providerCount() == 50)
+        let countBefore = await manager.providerCount()
+        #expect(countBefore == 50)
 
         // Unregister all concurrently
         await withTaskGroup(of: Void.self) { group in
