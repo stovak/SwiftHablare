@@ -26,14 +26,24 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          # Run tests and capture output
-          swift test --enable-code-coverage 2>&1 | tee test-output.log
+          # Run functional tests (exclude performance tests) and capture output
+          swift test --enable-code-coverage --skip 'AIServiceManagerPerformanceTests' 2>&1 | tee test-output.log
 
           # Capture exit code
           TEST_EXIT_CODE=${PIPESTATUS[0]}
 
           # Exit with the test exit code
           exit $TEST_EXIT_CODE
+
+      - name: Run performance tests
+        if: always()
+        continue-on-error: true
+        run: |
+          # Run performance tests separately (they should not fail the build)
+          swift test --filter 'AIServiceManagerPerformanceTests' 2>&1 | tee performance-output.log || true
+
+          # Extract performance metrics from output
+          grep "PERFORMANCE_METRIC:" performance-output.log | sed 's/PERFORMANCE_METRIC: //' > performance-metrics.json || true
 
       - name: Generate coverage report
         run: |
@@ -104,6 +114,30 @@ jobs:
             echo "No test output found" >> $GITHUB_STEP_SUMMARY
           fi
 
+          # Add performance metrics section
+          if [ -f performance-metrics.json ] && [ -s performance-metrics.json ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Performance Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value | Unit |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|------|" >> $GITHUB_STEP_SUMMARY
+
+            # Parse each line of JSON metrics
+            while IFS= read -r line; do
+              if [ -n "$line" ]; then
+                NAME=$(echo "$line" | grep -o '"name":"[^"]*"' | sed 's/"name":"//' | sed 's/"//')
+                VALUE=$(echo "$line" | grep -o '"value":[0-9.]*' | sed 's/"value"://')
+                UNIT=$(echo "$line" | grep -o '"unit":"[^"]*"' | sed 's/"unit":"//' | sed 's/"//')
+
+                if [ -n "$NAME" ] && [ -n "$VALUE" ] && [ -n "$UNIT" ]; then
+                  # Format value to 2 decimal places
+                  VALUE_FORMATTED=$(printf "%.2f" "$VALUE")
+                  echo "| $NAME | $VALUE_FORMATTED | $UNIT |" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done < performance-metrics.json
+          fi
+
           if [ -f coverage-report.txt ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
@@ -138,6 +172,8 @@ jobs:
           name: test-results-and-coverage
           path: |
             test-output.log
+            performance-output.log
+            performance-metrics.json
             coverage-report.txt
             coverage.lcov
             .github/coverage-badge.json

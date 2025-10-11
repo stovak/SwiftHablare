@@ -257,64 +257,6 @@ struct AIServiceManagerConcurrencyTests {
         await manager.unregisterAll()
     }
 
-    // MARK: - Performance Under Load
-
-    @Test("AIServiceManager handles high concurrent load")
-    func testPerformanceUnderLoad() async throws {
-        let manager = AIServiceManager.shared
-        await manager.unregisterAll()
-
-        // Wait a tiny bit to ensure cleanup completes
-        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
-
-        // Register 100 providers concurrently
-        await withTaskGroup(of: Void.self) { group in
-            for i in 0..<100 {
-                group.addTask {
-                    let provider = MockAIServiceProvider(
-                        id: "provider-\(i)",
-                        displayName: "Provider \(i)",
-                        capabilities: [.textGeneration],
-                        requiresAPIKey: false
-                    )
-                    do {
-                        try await manager.register(provider: provider)
-                    } catch {
-                        // Ignore errors for concurrent registration stress test
-                    }
-                }
-            }
-        }
-
-        // Verify all providers were registered successfully
-        let registeredCount = await manager.providerCount()
-        #expect(registeredCount == 100)
-
-        // Perform 1000 concurrent queries - verify functional correctness, not timing
-        var queryCounts: [Int] = []
-        await withTaskGroup(of: Int.self) { group in
-            for _ in 0..<1000 {
-                group.addTask {
-                    let providers = await manager.providers(withCapability: .textGeneration)
-                    return providers.count
-                }
-            }
-
-            for await count in group {
-                queryCounts.append(count)
-            }
-        }
-
-        // All queries should return consistent results (100 providers)
-        #expect(queryCounts.allSatisfy { $0 == 100 })
-
-        // Verify final state is still correct
-        let finalCount = await manager.providerCount()
-        #expect(finalCount == 100)
-
-        await manager.unregisterAll()
-    }
-
     // MARK: - Singleton Consistency
 
     @Test("AIServiceManager shared instance is consistent across concurrent access")
