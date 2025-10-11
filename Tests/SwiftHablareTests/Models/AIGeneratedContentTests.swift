@@ -65,8 +65,8 @@ struct AIGeneratedContentTests {
         )
 
         #expect(text.content == "Once upon a time in a digital realm")
-        #expect(text.characterCount == 37)
-        #expect(text.wordCount == 7)
+        #expect(text.characterCount == 35)
+        #expect(text.wordCount == 8)
         #expect(text.languageCode == "en")
         #expect(text.modelIdentifier == "gpt-4")
     }
