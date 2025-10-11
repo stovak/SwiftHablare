@@ -14,7 +14,9 @@ let package = Package(
             targets: ["SwiftHablare"]
         ),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/stovak/SwiftFijos.git", from: "1.0.0")
+    ],
     targets: [
         .target(
             name: "SwiftHablare",
@@ -24,7 +26,10 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftHablareTests",
-            dependencies: ["SwiftHablare"]
+            dependencies: [
+                "SwiftHablare",
+                .product(name: "SwiftFijos", package: "SwiftFijos")
+            ]
         ),
     ]
 )

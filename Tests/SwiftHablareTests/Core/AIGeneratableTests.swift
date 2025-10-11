@@ -14,18 +14,18 @@ struct AIGeneratableTests {
 
         static var aiGenerationSchema: AIGenerationSchema {
             AIGenerationSchema {
-                AIProperty(\.title)
+                AIProperty(\TestArticle.title)
                     .providers(["openai", "anthropic"])
                     .constraints(minLength: 10, maxLength: 100)
                     .promptTemplate("Generate a title for: {content}")
                     .required()
 
-                AIProperty(\.content)
+                AIProperty(\TestArticle.content)
                     .providers(["openai"])
                     .constraints(minLength: 100, maxLength: 5000)
                     .optional()
 
-                AIProperty(\.summary)
+                AIProperty(\TestArticle.summary)
                     .providers(["openai", "anthropic"])
                     .inputProperty("content")
                     .constraints(maxLength: 200)

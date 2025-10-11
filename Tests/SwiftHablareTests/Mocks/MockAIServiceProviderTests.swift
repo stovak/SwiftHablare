@@ -3,6 +3,13 @@ import SwiftData
 import Foundation
 @testable import SwiftHablare
 
+// Test model for generateProperty tests
+@Model
+final class TestModelForGenerateProperty {
+    var title: String = ""
+    init() {}
+}
+
 struct MockAIServiceProviderTests {
 
     @Test("MockAIServiceProvider initializes with defaults")
@@ -199,18 +206,12 @@ struct MockAIServiceProviderTests {
     func testGeneratePropertyTracking() async throws {
         let provider = MockAIServiceProvider()
 
-        @Model
-        final class TestModel {
-            var title: String = ""
-            init() {}
-        }
-
-        let model = TestModel()
+        let model = TestModelForGenerateProperty()
         #expect(provider.generatePropertyCallCount == 0)
 
         _ = try await provider.generateProperty(
             for: model,
-            property: \TestModel.title,
+            property: \TestModelForGenerateProperty.title,
             prompt: "Generate title",
             context: [:]
         )

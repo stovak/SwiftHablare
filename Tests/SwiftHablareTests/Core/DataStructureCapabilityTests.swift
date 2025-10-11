@@ -135,7 +135,7 @@ struct DataStructureCapabilityTests {
         )
 
         let protocolCap = DataStructureCapability.protocol(
-            AIGeneratable.self,
+            (any AIGeneratable).self,
             typeConstraints: []
         )
 

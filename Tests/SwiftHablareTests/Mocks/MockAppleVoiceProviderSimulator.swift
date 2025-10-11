@@ -7,7 +7,7 @@
 
 import Foundation
 import AVFoundation
-import SwiftFixtureManager
+import SwiftFijos
 @testable import SwiftHablare
 
 /// Simulates Apple VoiceProvider with realistic test data
@@ -50,10 +50,9 @@ final class MockAppleVoiceProviderSimulator: VoiceProvider, @unchecked Sendable 
             return customVoices
         }
 
-        // Load voices from fixture
-        let testFileURL = URL(fileURLWithPath: #filePath)
-        let fixturesDir = try FixtureManager.getFixturesDirectory(from: testFileURL)
-        let fixtureURL = fixturesDir.appendingPathComponent("voices/apple_voices.json")
+        // Load voices from fixture using Fijos
+        let fixturesDirectory = try Fijos.getFixturesDirectory()
+        let fixtureURL = fixturesDirectory.appendingPathComponent("voices/apple_voices.json")
         let jsonData = try Data(contentsOf: fixtureURL)
 
         struct AppleVoiceResponse: Codable {
@@ -156,10 +155,9 @@ final class MockAppleVoiceProviderSimulator: VoiceProvider, @unchecked Sendable 
     // MARK: - Private Helpers
 
     private func generateMockCAFData(duration: TimeInterval) -> Data {
-        // Load CAF fixture data
-        let testFileURL = URL(fileURLWithPath: #filePath)
-        if let fixturesDir = try? FixtureManager.getFixturesDirectory(from: testFileURL) {
-            let fixtureURL = fixturesDir.appendingPathComponent("audio/sample_caf.fixture")
+        // Load CAF fixture data using Fijos
+        if let fixturesDirectory = try? Fijos.getFixturesDirectory() {
+            let fixtureURL = fixturesDirectory.appendingPathComponent("audio/sample_caf.fixture")
             if let cafData = try? Data(contentsOf: fixtureURL) {
                 return cafData
             }
