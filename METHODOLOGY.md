@@ -618,7 +618,38 @@ Each phase follows this structure:
 **Duration**: 4-5 weeks (updated from 3-4 weeks to include provider refactoring)
 **Goal**: Implement typed return data support with schema validation and API Requestor pattern
 
-**⚠️ IMPORTANT**: This phase requires refactoring all Phase 5 providers from monolithic architecture to API Requestor pattern. See `/Docs/PHASE_6_PROVIDER_REFACTORING_PLAN.md` for detailed refactoring plan.
+**⚠️ IMPORTANT**: This phase requires refactoring all Phase 5 providers from monolithic architecture to API Requestor pattern.
+
+**📋 Sub-Phases**: Phase 6 is broken into 4 gated sub-phases (6A, 6B, 6C, 6D) for incremental validation and reduced risk. See `/Docs/PHASE_6_GATED_SUBPHASES.md` for detailed gated implementation plan.
+
+**Documents**:
+- `/Docs/PHASE_6_PROVIDER_REFACTORING_PLAN.md` - Comprehensive refactoring plan
+- `/Docs/PHASE_6_GATED_SUBPHASES.md` - Gated sub-phase implementation plan (6A → 6B → 6C → 6D)
+
+### Sub-Phase Structure
+
+Phase 6 is broken into **4 gated sub-phases** for incremental validation:
+
+**Phase 6A: Foundation (Week 1)**
+- Core protocols: AIRequestor, SerializableTypedData
+- Supporting types: ProviderCategory, OutputFileType, Storage references
+- Quality Gate 6A: All Phase 5 tests pass, protocols compile, docs complete
+
+**Phase 6B: Text Requestors (Week 2-3)**
+- Refactor OpenAI, Anthropic, Apple Intelligence providers
+- Create GeneratedText, GeneratedTextRecord
+- Quality Gate 6B: ≥85% test coverage per requestor, backward compatibility
+
+**Phase 6C: Audio + File Storage (Week 3-4)**
+- Integrate SwiftGuion library, implement TextPackCoordinator
+- Refactor ElevenLabs provider
+- Create GeneratedAudio with file storage
+- Quality Gate 6C: File I/O working, performance acceptable
+
+**Phase 6D: Integration (Week 5)**
+- Implement TypedDataBroker actor
+- End-to-end integration testing
+- Quality Gate 6D: All workflows working, all gates passed
 
 ### Overview
 
