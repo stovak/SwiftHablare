@@ -51,7 +51,12 @@ public actor AIServiceManager {
     // MARK: - Initialization
 
     /// Private initializer to enforce singleton pattern.
-    private init() {}
+    /// Creates a new service manager instance.
+    ///
+    /// While the framework primarily exposes the shared singleton via ``shared``,
+    /// tests can initialize isolated instances to avoid cross-test interference
+    /// when running in parallel.
+    internal init() {}
 
     // MARK: - Registration
 

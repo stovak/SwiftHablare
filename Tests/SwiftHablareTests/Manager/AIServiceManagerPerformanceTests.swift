@@ -10,6 +10,12 @@ import Foundation
 @Suite(.serialized, .tags(.performance))
 struct AIServiceManagerPerformanceTests {
 
+    /// Creates an isolated manager per test to ensure performance measurements
+    /// aren't impacted by shared state from other suites running in parallel.
+    private func makeManager() -> AIServiceManager {
+        AIServiceManager()
+    }
+
     // MARK: - Performance Metrics Output
 
     /// Writes performance metrics in JSON format for GitHub Actions tracking.
@@ -38,7 +44,7 @@ struct AIServiceManagerPerformanceTests {
 
     @Test("Measures concurrent registration performance", .tags(.performance))
     func measureConcurrentRegistration() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Wait for cleanup
@@ -89,7 +95,7 @@ struct AIServiceManagerPerformanceTests {
 
     @Test("Measures concurrent query performance", .tags(.performance))
     func measureConcurrentQueries() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Register test providers
@@ -139,7 +145,7 @@ struct AIServiceManagerPerformanceTests {
 
     @Test("Measures high load performance with mixed operations", .tags(.performance))
     func measureHighLoadMixedOperations() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         try await Task.sleep(nanoseconds: 50_000_000) // 50ms

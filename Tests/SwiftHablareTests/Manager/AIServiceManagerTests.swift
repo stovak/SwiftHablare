@@ -10,9 +10,7 @@ struct AIServiceManagerTests {
 
     /// Creates a fresh manager instance for isolated testing.
     func createManager() -> AIServiceManager {
-        // Note: Cannot use shared instance for tests as it's persistent
-        // For now, we'll test the shared instance with cleanup
-        return AIServiceManager.shared
+        AIServiceManager()
     }
 
     /// Test model for SwiftData integration.
