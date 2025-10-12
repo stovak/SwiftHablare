@@ -630,12 +630,17 @@ Each phase follows this structure:
 - [ ] Support for JSON schema, Pydantic-style models, or Swift Codable types
 - [ ] Provider capability declarations for supported return types
 - [ ] Type conversion and validation middleware
+- [ ] SwiftData model requirements: Each AI requestor must provide its own SwiftData table/model for storing typed data
+- [ ] SwiftUI display requirements: Each AI requestor must provide a SwiftUI view component that can display its typed data
 
 #### Documentation
 - [ ] Typed return data guide
 - [ ] Schema definition examples
 - [ ] Error handling patterns for type mismatches
 - [ ] Provider implementation guide for typed responses
+- [ ] SwiftData model creation guide for typed data storage
+- [ ] SwiftUI view component guide for displaying typed data
+- [ ] Complete example: defining requestor with model and view
 - [ ] Inline API documentation (100% coverage)
 
 #### Testing
@@ -675,6 +680,9 @@ Each phase follows this structure:
 - [ ] Provider returns partial data (error case)
 - [ ] Multiple typed requests in batch
 - [ ] Type validation across different providers
+- [ ] SwiftData model persistence for typed data
+- [ ] SwiftUI view component rendering of typed data
+- [ ] Complete flow: request → validate → persist → display
 
 #### Error Handling Tests
 - [ ] Missing required fields in response
