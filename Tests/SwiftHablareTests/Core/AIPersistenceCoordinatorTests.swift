@@ -349,7 +349,7 @@ struct AIPersistenceCoordinatorTests {
     func testCacheStatistics() async throws {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: TestArticle.self, configurations: config)
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let stats = await coordinator.cacheStatistics()
@@ -429,7 +429,7 @@ struct AIPersistenceCoordinatorTests {
     func testCustomValidationRule() async throws {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: TestArticle.self, configurations: config)
-        let context = ModelContext(container)
+        _ = ModelContext(container)
         let coordinator = AIPersistenceCoordinator()
 
         let customRule = AIContentValidator.ValidationRule(
