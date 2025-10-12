@@ -6,11 +6,17 @@ import Foundation
 @Suite(.serialized)
 struct AIServiceManagerConcurrencyTests {
 
+    /// Creates an isolated manager instance for each test to prevent shared-state
+    /// interference when the test suite executes in parallel with others.
+    private func makeManager() -> AIServiceManager {
+        AIServiceManager()
+    }
+
     // MARK: - Concurrent Registration Tests
 
     @Test("AIServiceManager handles concurrent registration safely")
     func testConcurrentRegistration() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Wait longer to ensure cleanup completes in CI and other suites finish
@@ -52,7 +58,7 @@ struct AIServiceManagerConcurrencyTests {
 
     @Test("AIServiceManager handles concurrent unregistration safely")
     func testConcurrentUnregistration() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Wait longer to ensure cleanup completes in CI and other suites finish
@@ -102,7 +108,7 @@ struct AIServiceManagerConcurrencyTests {
 
     @Test("AIServiceManager handles concurrent mixed operations safely")
     func testConcurrentMixedOperations() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Perform mixed operations concurrently
@@ -147,7 +153,7 @@ struct AIServiceManagerConcurrencyTests {
 
     @Test("AIServiceManager handles concurrent queries safely")
     func testConcurrentQueries() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Register some providers
@@ -189,7 +195,7 @@ struct AIServiceManagerConcurrencyTests {
 
     @Test("AIServiceManager handles registration/unregistration races")
     func testRegistrationUnregistrationRace() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         let providerID = "race-provider"
@@ -234,7 +240,7 @@ struct AIServiceManagerConcurrencyTests {
 
     @Test("AIServiceManager maintains index consistency under concurrent access")
     func testIndexConsistencyUnderConcurrency() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
 
         // Register and unregister providers concurrently
