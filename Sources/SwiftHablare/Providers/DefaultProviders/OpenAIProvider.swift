@@ -258,6 +258,23 @@ extension OpenAIProvider {
     }
 }
 
+// MARK: - Phase 6 Requestors
+
+@available(macOS 15.0, iOS 17.0, *)
+extension OpenAIProvider {
+
+    /// Returns all requestors offered by this provider
+    ///
+    /// OpenAI offers multiple text requestors for different GPT models.
+    public func availableRequestors() -> [any AIRequestor] {
+        return [
+            OpenAITextRequestor(provider: self, model: .gpt4),
+            OpenAITextRequestor(provider: self, model: .gpt4Turbo),
+            OpenAITextRequestor(provider: self, model: .gpt35Turbo)
+        ]
+    }
+}
+
 // MARK: - Factory Methods
 
 @available(macOS 15.0, iOS 17.0, *)

@@ -261,6 +261,23 @@ extension AnthropicProvider {
     }
 }
 
+// MARK: - Phase 6 Requestors
+
+@available(macOS 15.0, iOS 17.0, *)
+extension AnthropicProvider {
+
+    /// Returns all requestors offered by this provider
+    ///
+    /// Anthropic offers multiple text requestors for different Claude 3 models.
+    public func availableRequestors() -> [any AIRequestor] {
+        return [
+            AnthropicTextRequestor(provider: self, model: .claude3Opus),
+            AnthropicTextRequestor(provider: self, model: .claude3Sonnet),
+            AnthropicTextRequestor(provider: self, model: .claude3Haiku)
+        ]
+    }
+}
+
 // MARK: - Factory Methods
 
 @available(macOS 15.0, iOS 17.0, *)
