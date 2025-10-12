@@ -18,6 +18,10 @@ struct AIServiceManagerTests {
     final class TestArticle {
         var title: String = ""
         var content: String = ""
+        var summary: String = ""
+        var wordCount: Int = 0
+        var publishedAt: Date?
+        var tags: [String] = []
 
         init(title: String = "", content: String = "") {
             self.title = title

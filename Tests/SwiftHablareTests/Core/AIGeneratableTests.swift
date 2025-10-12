@@ -11,6 +11,9 @@ struct AIGeneratableTests {
         var title: String = ""
         var content: String = ""
         var summary: String = ""
+        var wordCount: Int = 0
+        var publishedAt: Date?
+        var tags: [String] = []
 
         static var aiGenerationSchema: AIGenerationSchema {
             AIGenerationSchema {

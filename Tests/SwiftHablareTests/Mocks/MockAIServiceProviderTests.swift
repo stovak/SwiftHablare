@@ -12,6 +12,11 @@ final class TestModelForGenerateProperty {
 
 struct MockAIServiceProviderTests {
 
+    // Helper to create test containers
+    private func testContainer<T: PersistentModel>(for modelType: T.Type) throws -> ModelContainer {
+        return try TestHelpers.testContainer(for: modelType)
+    }
+
     @Test("MockAIServiceProvider initializes with defaults")
     func testInitialization() {
         let provider = MockAIServiceProvider()
@@ -41,7 +46,7 @@ struct MockAIServiceProviderTests {
     @Test("MockAIServiceProvider generate tracks calls")
     func testGenerateTracking() async throws {
         let provider = MockAIServiceProvider()
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
 
         #expect(provider.generateCallCount == 0)
 
@@ -61,7 +66,7 @@ struct MockAIServiceProviderTests {
         let provider = MockAIServiceProvider()
         provider.generatedDataResponse = Data("custom response".utf8)
 
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
         let result = try await provider.generate(
             prompt: "test",
             parameters: [:],
@@ -76,7 +81,7 @@ struct MockAIServiceProviderTests {
         let provider = MockAIServiceProvider()
         provider.shouldThrowError = .networkError("Test error")
 
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
 
         await #expect(throws: AIServiceError.self) {
             _ = try await provider.generate(
@@ -92,7 +97,7 @@ struct MockAIServiceProviderTests {
         let provider = MockAIServiceProvider()
         provider.generationDelay = 0.05 // 50ms
 
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
 
         let start = Date()
         _ = try await provider.generate(prompt: "test", parameters: [:], context: context)
@@ -105,7 +110,7 @@ struct MockAIServiceProviderTests {
     @Test("MockAIServiceProvider reset() clears state")
     func testReset() async throws {
         let provider = MockAIServiceProvider()
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
 
         _ = try await provider.generate(prompt: "test", parameters: [:], context: context)
         provider.shouldThrowError = .networkError("test")
@@ -157,7 +162,7 @@ struct MockAIServiceProviderTests {
             error: .rateLimitExceeded("Too many requests")
         )
 
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
 
         await #expect(throws: AIServiceError.self) {
             _ = try await provider.generate(prompt: "test", parameters: [:], context: context)
@@ -178,7 +183,7 @@ struct MockAIServiceProviderTests {
 
         #expect(provider.generationDelay == 0.05)
 
-        let context = try ModelContext(ModelContainer(for: GeneratedText.self))
+        let context = try ModelContext(testContainer(for: GeneratedText.self))
         let start = Date()
         _ = try await provider.generate(prompt: "test", parameters: [:], context: context)
         let duration = Date().timeIntervalSince(start)
