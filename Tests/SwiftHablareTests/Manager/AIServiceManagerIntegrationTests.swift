@@ -27,6 +27,7 @@ struct AIServiceManagerIntegrationTests {
     func testProviderLifecycle() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // 1. Register
         let provider = MockAIServiceProvider.textProvider()
@@ -59,7 +60,7 @@ struct AIServiceManagerIntegrationTests {
         await manager.unregisterAll()
 
         // Wait for cleanup to complete
-        try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider(id: "provider-1", displayName: "Provider 1", capabilities: [.textGeneration], requiresAPIKey: false),
@@ -133,6 +134,7 @@ struct AIServiceManagerIntegrationTests {
     func testComplexCapabilityQuery() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider(id: "text-only", displayName: "Text Only", capabilities: [.textGeneration], requiresAPIKey: false),
@@ -163,6 +165,7 @@ struct AIServiceManagerIntegrationTests {
     func testModelTypeQuery() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let provider1 = MockAIServiceProvider(
             id: "provider-1",
@@ -211,6 +214,7 @@ struct AIServiceManagerIntegrationTests {
     func testEmptyCapabilityArray() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider.textProvider(),
@@ -229,6 +233,7 @@ struct AIServiceManagerIntegrationTests {
     func testNonExistentCapabilityQuery() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         try await manager.register(provider: MockAIServiceProvider.textProvider())
 
@@ -239,9 +244,10 @@ struct AIServiceManagerIntegrationTests {
     }
 
     @Test("Query for non-existent model type returns empty array")
-    func testNonExistentModelTypeQuery() async {
+    func testNonExistentModelTypeQuery() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = await manager.providers(forModelType: "NonExistentModel")
         #expect(providers.isEmpty)
@@ -253,6 +259,7 @@ struct AIServiceManagerIntegrationTests {
     func testStatisticsAccuracy() async throws {
         let manager = AIServiceManager.shared
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // Add diverse providers
         let providers = [
