@@ -146,11 +146,17 @@ public actor AIRequestManager {
             // Update status to executing
             await updateStatus(for: requestID, status: .executing(progress: nil))
 
+            // Check cancellation before executing
+            try Task.checkCancellation()
+
             // Execute the request
             let result = await provider.generate(
                 prompt: tracked.request.prompt,
                 parameters: tracked.request.parameters
             )
+
+            // Check cancellation before persisting results
+            try Task.checkCancellation()
 
             // Create response data
             let responseData: AIResponseData
