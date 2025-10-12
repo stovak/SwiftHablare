@@ -53,15 +53,16 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          # Get the build path
-          BUILD_PATH=$(swift build --show-bin-path)
-          XCTEST_PATH=$(find $BUILD_PATH -name "*.xctest" | head -n 1)
-
-          # Find the profdata file
+          # Find the xctest bundle and profdata file without rebuilding
+          XCTEST_PATH=$(find .build -name "*.xctest" | head -n 1)
           PROFDATA_PATH=$(find .build -name "*.profdata" | head -n 1)
 
-          if [ -f "$PROFDATA_PATH" ]; then
+          echo "XCTEST_PATH: $XCTEST_PATH"
+          echo "PROFDATA_PATH: $PROFDATA_PATH"
+
+          if [ -n "$PROFDATA_PATH" ] && [ -f "$PROFDATA_PATH" ] && [ -n "$XCTEST_PATH" ] && [ -d "$XCTEST_PATH" ]; then
             echo "Found profdata at: $PROFDATA_PATH"
+            echo "Found xctest at: $XCTEST_PATH"
 
             # Generate coverage report
             xcrun llvm-cov report \
@@ -81,7 +82,10 @@ jobs:
             echo "Coverage report generated"
             cat coverage-report.txt
           else
-            echo "No profdata file found"
+            echo "Error: Could not find required files for coverage generation"
+            [ -z "$PROFDATA_PATH" ] && echo "  - profdata file not found"
+            [ -z "$XCTEST_PATH" ] && echo "  - xctest bundle not found"
+            exit 1
           fi
 
       - name: Extract test summary
