@@ -32,8 +32,14 @@ public actor AIRateLimiter {
     /// Token refill rate (tokens per second).
     private let refillRate: Double
 
-    /// Queue of waiting tasks with their continuation.
-    private var waitQueue: [(continuation: CheckedContinuation<Void, Never>, requestedAt: Date)] = []
+    /// Queue of waiting task continuations.
+    private var waitQueue: [CheckedContinuation<Void, Never>] = []
+
+    /// Task responsible for waking queued callers when tokens become available.
+    private var scheduledRefillTask: Task<Void, Never>?
+
+    /// Minimum delay between scheduled refill checks to avoid busy waiting.
+    private let minimumSchedulerInterval: TimeInterval = 0.01
 
     /// Creates a new rate limiter.
     ///
@@ -61,7 +67,8 @@ public actor AIRateLimiter {
 
         // No tokens available, wait in queue
         await withCheckedContinuation { continuation in
-            waitQueue.append((continuation, Date()))
+            waitQueue.append(continuation)
+            scheduleRefillIfNeeded()
         }
     }
 
@@ -76,6 +83,7 @@ public actor AIRateLimiter {
             return true
         }
 
+        scheduleRefillIfNeeded()
         return false
     }
 
@@ -83,6 +91,15 @@ public actor AIRateLimiter {
     private func refillTokens() {
         let now = Date()
         let elapsed = now.timeIntervalSince(lastRefillTime)
+
+        // Unlimited limiters simply reset to full capacity without performing
+        // arithmetic that can overflow on platforms without 128-bit doubles.
+        if maxRequests == Int.max {
+            tokens = maxRequests
+            lastRefillTime = now
+            processWaitQueue()
+            return
+        }
 
         if elapsed > 0 {
             let tokensToAdd = Int(elapsed * refillRate)
@@ -100,10 +117,69 @@ public actor AIRateLimiter {
     /// Processes the wait queue and grants permissions.
     private func processWaitQueue() {
         while tokens > 0 && !waitQueue.isEmpty {
-            let waiting = waitQueue.removeFirst()
+            let continuation = waitQueue.removeFirst()
             tokens -= 1
-            waiting.continuation.resume()
+            continuation.resume()
         }
+
+        if tokens == 0 && !waitQueue.isEmpty {
+            scheduleRefillIfNeeded()
+        }
+    }
+
+    /// Schedules a future refill attempt when callers are waiting for tokens.
+    private func scheduleRefillIfNeeded() {
+        guard !waitQueue.isEmpty else { return }
+        guard scheduledRefillTask == nil else { return }
+        guard maxRequests != Int.max else { return }
+
+        let delay = max(nextTokenDelay(), minimumSchedulerInterval)
+        let nanoseconds = Self.nanoseconds(from: delay)
+
+        scheduledRefillTask = Task { [self] in
+            if nanoseconds > 0 {
+                try? await Task.sleep(nanoseconds: nanoseconds)
+            }
+            await self.handleScheduledRefill()
+        }
+    }
+
+    /// Handles a scheduled refill timer firing.
+    private func handleScheduledRefill() async {
+        scheduledRefillTask = nil
+
+        if Task.isCancelled {
+            return
+        }
+
+        refillTokens()
+    }
+
+    /// Calculates the delay until the next token should become available.
+    private func nextTokenDelay() -> TimeInterval {
+        if refillRate <= 0 {
+            return max(timeWindow, minimumSchedulerInterval)
+        }
+
+        let safeMaxRequests = max(1, maxRequests)
+        let timePerToken = max(timeWindow, minimumSchedulerInterval) / Double(safeMaxRequests)
+        let elapsed = Date().timeIntervalSince(lastRefillTime)
+        let remaining = timePerToken - elapsed
+
+        if remaining.isFinite && remaining > 0 {
+            return remaining
+        }
+
+        return timePerToken
+    }
+
+    /// Converts a `TimeInterval` to nanoseconds with overflow protection.
+    private static func nanoseconds(from timeInterval: TimeInterval) -> UInt64 {
+        guard timeInterval.isFinite, timeInterval > 0 else { return 0 }
+
+        let maxInterval = TimeInterval(UInt64.max) / 1_000_000_000.0
+        let clamped = min(timeInterval, maxInterval)
+        return UInt64(clamped * 1_000_000_000.0)
     }
 
     /// Returns the current number of available tokens.
@@ -133,8 +209,11 @@ public actor AIRateLimiter {
         lastRefillTime = Date()
 
         // Resume all waiting tasks
-        for waiting in waitQueue {
-            waiting.continuation.resume()
+        scheduledRefillTask?.cancel()
+        scheduledRefillTask = nil
+
+        for continuation in waitQueue {
+            continuation.resume()
         }
         waitQueue.removeAll()
     }
@@ -163,6 +242,10 @@ public actor AIRateLimiter {
             queueLength: waitQueue.count,
             estimatedWaitTime: estimatedWaitTime()
         )
+    }
+
+    deinit {
+        scheduledRefillTask?.cancel()
     }
 }
 
