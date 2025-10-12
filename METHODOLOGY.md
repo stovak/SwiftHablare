@@ -633,6 +633,15 @@ Each phase follows this structure:
 - [ ] SwiftData model requirements: Each AI requestor must provide its own SwiftData table/model for storing typed data
 - [ ] SwiftUI display requirements: Each AI requestor must provide a SwiftUI view component that can display its typed data
 
+#### Concurrency and Performance Requirements
+- [ ] Request execution: All AI requests must execute on background threads (never on main thread)
+- [ ] Response persistence: All SwiftData writes must occur on the main thread
+- [ ] Thread communication: Use Sendable protocol for all data passed between background and main threads
+- [ ] Large data handling: Typed data exceeding main thread performance threshold must be written to filesystem
+- [ ] File storage location: Large data files stored in Resources/.guion directory structure
+- [ ] File references: Large data stored as file references in the typed data Sendable object
+- [ ] Performance threshold: Define and enforce size limits for in-memory vs file-based data storage
+
 #### Documentation
 - [ ] Typed return data guide
 - [ ] Schema definition examples
@@ -641,6 +650,9 @@ Each phase follows this structure:
 - [ ] SwiftData model creation guide for typed data storage
 - [ ] SwiftUI view component guide for displaying typed data
 - [ ] Complete example: defining requestor with model and view
+- [ ] Concurrency patterns: background request → Sendable transfer → main thread persistence
+- [ ] File storage patterns: when and how to store large data in Resources/.guion
+- [ ] Performance guidelines: determining data size thresholds for file vs in-memory storage
 - [ ] Inline API documentation (100% coverage)
 
 #### Testing
@@ -660,6 +672,8 @@ Each phase follows this structure:
 | **QG-6.4** | Error handling | Error tests | Clear errors for type mismatches |
 | **QG-6.5** | Provider integration | Integration tests | Providers support typed responses |
 | **QG-6.6** | Performance | Benchmarks | Type validation <5ms overhead |
+| **QG-6.7** | Concurrency compliance | Thread safety tests | Requests on background threads, persistence on main thread, all data Sendable |
+| **QG-6.8** | Large data handling | Performance tests | Large data stored in filesystem without blocking main thread |
 
 ### Testing Requirements
 
@@ -672,6 +686,11 @@ Each phase follows this structure:
 - [ ] Schema validation errors
 - [ ] Type mismatch detection
 - [ ] Partial data handling
+- [ ] Sendable protocol conformance verification
+- [ ] Thread safety of typed data objects
+- [ ] File storage threshold logic
+- [ ] File path generation for Resources/.guion
+- [ ] File reference creation and resolution
 
 #### Integration Tests
 - [ ] Request with typed response specification
@@ -683,6 +702,12 @@ Each phase follows this structure:
 - [ ] SwiftData model persistence for typed data
 - [ ] SwiftUI view component rendering of typed data
 - [ ] Complete flow: request → validate → persist → display
+- [ ] Background thread request execution (verify never on main thread)
+- [ ] Main thread SwiftData writes (verify persistence only on main thread)
+- [ ] Sendable data transfer between threads
+- [ ] Large data file storage to Resources/.guion
+- [ ] File reference retrieval and loading
+- [ ] Concurrent request handling with proper thread isolation
 
 #### Error Handling Tests
 - [ ] Missing required fields in response
@@ -699,6 +724,12 @@ Each phase follows this structure:
 - [ ] Complex nested type handling
 - [ ] Large array type validation
 - [ ] Memory usage for type validation
+- [ ] Main thread blocking prevention (verify no blocking during background requests)
+- [ ] SwiftData write performance on main thread
+- [ ] File I/O performance for large data (Resources/.guion)
+- [ ] Thread switching overhead (background → main)
+- [ ] Concurrent request throughput with proper thread isolation
+- [ ] Memory usage: in-memory vs file-based storage comparison
 
 #### Provider Integration Tests
 - [ ] OpenAI with typed responses (structured outputs)
@@ -1331,7 +1362,7 @@ These activities run throughout all phases:
 | **Phase 3** | REQ-3.1.x (partial), 3.2.x (partial), 3.3.x | ≥85% | 9 gates | ✅ Complete (89%) |
 | **Phase 4** | REQ-4.1.x, 4.2.x | ≥95% | 5 gates | ✅ Complete (96%) |
 | **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider | ✅ Complete |
-| **Phase 6** | Typed Return Data | ≥90% | 6 gates | 📋 Planned |
+| **Phase 6** | Typed Return Data | ≥90% | 8 gates | 📋 Planned |
 | **Phase 7** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates | 📋 Planned |
 | **Phase 8** | REQ-13.5.3 (Sample apps) | N/A | 5 gates | 📋 Planned |
 | **Phase 9** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates | 📋 Planned |
@@ -1340,7 +1371,7 @@ These activities run throughout all phases:
 | **Phase 12** | All requirements | Final validation | 6 gates | 📋 Planned |
 
 **Total Requirements**: 200+ individual requirements
-**Total Quality Gates**: 71+ gates
+**Total Quality Gates**: 73+ gates
 **Estimated Total Duration**: 37-51 weeks (9.25-12.75 months)
 
 ---
