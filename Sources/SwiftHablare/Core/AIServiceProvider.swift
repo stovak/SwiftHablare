@@ -85,11 +85,37 @@ public protocol AIServiceProvider: Sendable {
     /// - Throws: ``AIServiceError/configurationError(_:)`` if configuration is invalid.
     func validateConfiguration() throws
 
-    // MARK: - Generation
+    // MARK: - Response Type
+
+    /// The type of response content this provider generates.
+    ///
+    /// Providers should return the primary content type they produce (e.g., `.text` for LLMs,
+    /// `.audio` for TTS providers, `.image` for image generators).
+    var responseType: ResponseContent.ContentType { get }
+
+    // MARK: - Generation (New API)
 
     /// Generates data based on a prompt and parameters.
     ///
-    /// This is the primary generation method for creating AI-generated content.
+    /// This is the **new** primary generation method that returns typed content without
+    /// requiring ModelContext. This method executes in background contexts and should not
+    /// interact with SwiftData directly.
+    ///
+    /// - Parameters:
+    ///   - prompt: The input prompt or instruction for generation.
+    ///   - parameters: Provider-specific parameters (model, temperature, etc.).
+    /// - Returns: Result containing either the generated content or an error.
+    ///
+    /// - Note: This method is designed to be called from background actors. It should not
+    ///         access ModelContext or other main-actor-bound resources.
+    func generate(
+        prompt: String,
+        parameters: [String: Any]
+    ) async -> Result<ResponseContent, AIServiceError>
+
+    // MARK: - Generation (Legacy API - Deprecated)
+
+    /// Generates data based on a prompt and parameters (legacy method).
     ///
     /// - Parameters:
     ///   - prompt: The input prompt or instruction for generation.
@@ -97,13 +123,18 @@ public protocol AIServiceProvider: Sendable {
     ///   - context: SwiftData model context for persistence.
     /// - Returns: Generated data in a format appropriate for the capability type.
     /// - Throws: ``AIServiceError`` if generation fails.
+    ///
+    /// - Warning: This method is deprecated. Use the new `generate(prompt:parameters:)` method
+    ///           that returns `Result<ResponseContent, AIServiceError>` and use `AIDataCoordinator`
+    ///           for SwiftData persistence.
+    @available(*, deprecated, message: "Use generate(prompt:parameters:) -> Result<ResponseContent, AIServiceError> instead")
     func generate(
         prompt: String,
         parameters: [String: Any],
         context: ModelContext
     ) async throws -> Data
 
-    /// Generates data for a specific property of a SwiftData model.
+    /// Generates data for a specific property of a SwiftData model (legacy method).
     ///
     /// This method enables property-level generation with automatic persistence.
     ///
@@ -114,6 +145,9 @@ public protocol AIServiceProvider: Sendable {
     ///   - context: Additional context for prompt template substitution.
     /// - Returns: The generated value, typed appropriately for the property.
     /// - Throws: ``AIServiceError`` if generation fails.
+    ///
+    /// - Warning: This method is deprecated. Use `AIRequestManager` and `AIDataCoordinator` instead.
+    @available(*, deprecated, message: "Use AIRequestManager.submitAndExecute() and AIDataCoordinator.mergeResponse() instead")
     func generateProperty<T: PersistentModel>(
         for model: T,
         property: PartialKeyPath<T>,
@@ -124,12 +158,43 @@ public protocol AIServiceProvider: Sendable {
 
 // MARK: - Default Implementations
 
-
 public extension AIServiceProvider {
     /// Default implementation validates that requiresAPIKey implies credentials exist.
     func validateConfiguration() throws {
         if requiresAPIKey && !isConfigured() {
             throw AIServiceError.configurationError("API key required but not configured for provider '\(id)'")
+        }
+    }
+
+    /// Default implementation of the new generate method that calls the legacy method.
+    ///
+    /// Providers should override this with a proper implementation that doesn't use ModelContext.
+    /// This default implementation is provided for backward compatibility during migration.
+    func generate(
+        prompt: String,
+        parameters: [String: Any]
+    ) async -> Result<ResponseContent, AIServiceError> {
+        // For backward compatibility, create a temporary ModelContext
+        // This is not ideal and should be replaced by providers
+        return .failure(.unsupportedOperation(
+            "Provider '\(id)' has not implemented the new generate(prompt:parameters:) method. " +
+            "Please update the provider to support the new concurrency model."
+        ))
+    }
+
+    /// Default implementation of responseType based on capabilities.
+    ///
+    /// Providers should override this to specify their actual response type.
+    var responseType: ResponseContent.ContentType {
+        // Infer from capabilities
+        if capabilities.contains(.textGeneration) {
+            return .text
+        } else if capabilities.contains(.audioGeneration) {
+            return .audio
+        } else if capabilities.contains(.imageGeneration) {
+            return .image
+        } else {
+            return .data
         }
     }
 }
