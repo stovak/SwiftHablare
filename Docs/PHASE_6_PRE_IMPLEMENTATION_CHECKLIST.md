@@ -121,63 +121,63 @@ actor TypedDataBroker {
 
 ## ⚠️ CRITICAL - Must Define Before Implementation Begins
 
-### 1. API Requestor Protocol Interface
-**Priority**: 🔴 CRITICAL
-**Status**: ⚠️ NEEDS DEFINITION
+### 1. API Requestor Protocol Interface ✅
+**Priority**: 🔴 CRITICAL (RESOLVED)
+**Status**: ✅ DEFINED
 **Impact**: Core architecture - all providers depend on this
+**Resolution Document**: `PHASE_6_API_REQUESTOR_PROTOCOL.md`
 
-**Current State**: High-level definition exists
-> "An API Requestor is a request-based interface to a local or remote AI system provider"
+**Resolution Summary**:
+- ✅ Complete protocol defined with all required methods and properties
+- ✅ AIServiceProvider extended with `availableRequestors()` method
+- ✅ Each requestor returns exactly ONE file type
+- ✅ Providers can offer MULTIPLE requestors (e.g., OpenAI offers text, image, embedding requestors)
+- ✅ Associated types: TypedData, ResponseModel, Configuration
+- ✅ Storage area integration: requestors receive StorageAreaReference
+- ✅ Swift Codable schema system (JSON Schema deferred to Phase 7)
+- ✅ Complete examples provided for text, image, and audio requestors
 
-**Missing Specifications**:
-- [ ] Required protocol methods/properties
-- [ ] Relationship to existing `AIServiceProvider` protocol
-- [ ] Method signatures for requesting typed data
-- [ ] How configuration widgets are provided
-- [ ] How SwiftData models are provided
-- [ ] Associated types and constraints
-- [ ] Error handling patterns
+**Key Design Decisions**:
+1. ✅ AIRequestor is a separate protocol; AIServiceProvider offers multiple requestors
+2. ✅ Existing providers implement `availableRequestors()` to expose their requestors
+3. ✅ Multi-capability providers (like ChatGPT) provide separate requestors for each type:
+   - `openai.text.gpt4` for text generation
+   - `openai.image.dalle3` for image generation
+   - `openai.embedding.ada002` for embeddings
 
-**Suggested Interface**:
+**Implementation Pattern**:
 ```swift
-protocol AIRequestor {
-    // Type definitions
-    associatedtype Configuration: View         // Configuration widget
-    associatedtype ResponseModel: AIGeneratedContent  // SwiftData model
-    associatedtype TypedData: Codable & Sendable      // Typed data structure
-
-    // Core request functionality
-    func request(
-        with configuration: Configuration,
-        options: RequestOptions
-    ) async throws -> TypedData
-
-    // UI provision
-    func makeConfigurationView() -> Configuration
-
-    // Type information
-    var supportedTypes: [TypedDataSchema] { get }
-    var providerCategory: ProviderCategory { get }  // Audio, Text, Image, Video
-
-    // SwiftData model factory
-    func makeResponseModel(from data: TypedData) -> ResponseModel
+// Provider offers multiple requestors
+public class OpenAIProvider: AIServiceProvider {
+    public func availableRequestors() -> [any AIRequestor] {
+        return [
+            OpenAITextRequestor(provider: self, model: .gpt4),
+            OpenAIImageRequestor(provider: self, model: .dalle3),
+            OpenAIEmbeddingRequestor(provider: self)
+        ]
+    }
 }
 
-enum ProviderCategory {
-    case audio
-    case text
-    case image
-    case video
-    case multiModal([ProviderCategory])
+// Each requestor generates one file type
+public class OpenAITextRequestor: AIRequestor {
+    public typealias TypedData = GeneratedText
+    public typealias ResponseModel = GeneratedTextRecord
+    public typealias Configuration = TextGenerationConfig
+
+    public let category: ProviderCategory = .text
+    public let outputFileType = OutputFileType.plainText
+
+    public func request(
+        prompt: String,
+        configuration: Configuration,
+        storageArea: StorageAreaReference
+    ) async -> Result<TypedData, AIServiceError> {
+        // Implementation
+    }
 }
 ```
 
-**Questions to Resolve**:
-1. Does `AIRequestor` extend `AIServiceProvider` or replace it?
-2. How do existing Phase 5 providers (OpenAI, Anthropic, ElevenLabs, Apple) adopt this?
-3. What happens to providers that return multiple types (e.g., vision models)?
-
-**Action Required**: Define complete protocol interface with examples
+**See**: `PHASE_6_API_REQUESTOR_PROTOCOL.md` for complete specification with examples
 
 ---
 
@@ -671,11 +671,11 @@ struct MultiTypeConfigurationView: View {
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| 🔴 **CRITICAL** (Must Define Before) | 3 | Blocking |
+| 🔴 **CRITICAL** (Must Define Before) | 2 | Blocking |
 | 🟡 **HIGH** (Must Define Before/Early) | 2 | Blocking |
 | 🟢 **MEDIUM** (Should Define Before/During) | 5 | Non-blocking |
 | 🔵 **LOW** (Can Define During) | 1 | Non-blocking |
-| ✅ **RESOLVED** | 3 | Complete |
+| ✅ **RESOLVED** | 4 | Complete |
 | **TOTAL** | 14 | |
 
 ---
