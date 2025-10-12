@@ -1,6 +1,14 @@
 import Foundation
 import SwiftData
 
+/// Type-erased wrapper for values that need to be sent across actor boundaries.
+private struct UncheckedSendableBox: @unchecked Sendable {
+    let value: Any
+    init(_ value: Any) {
+        self.value = value
+    }
+}
+
 /// Main actor coordinator for merging AI-generated responses into SwiftData.
 ///
 /// `AIDataCoordinator` is the **only** component that should interact with SwiftData's
@@ -87,7 +95,7 @@ public final class AIDataCoordinator {
         context: ModelContext,
         constraints: [String: String] = [:],
         transform: ((ResponseContent) throws -> Any)? = nil
-    ) throws {
+    ) async throws {
         willMergeResponse?(response)
 
         do {
@@ -108,9 +116,12 @@ public final class AIDataCoordinator {
                 value = try convertContentToValue(content, for: property)
             }
 
+            // Box the value for safe sending to validator actor
+            let boxedValue = UncheckedSendableBox(value)
+
             // Validate if constraints provided
             if !constraints.isEmpty {
-                try validator.validate(value: value, constraints: constraints)
+                try await validator.validate(value: boxedValue.value, constraints: constraints)
             }
 
             // Bind to model property
@@ -202,7 +213,7 @@ public final class AIDataCoordinator {
         into models: [T],
         property: ReferenceWritableKeyPath<T, V>,
         context: ModelContext
-    ) -> [Result<Void, Error>] {
+    ) async -> [Result<Void, Error>] {
         guard responses.count == models.count else {
             let error = AIServiceError.invalidRequest("Response count (\(responses.count)) doesn't match model count (\(models.count))")
             return Array(repeating: .failure(error), count: responses.count)
@@ -212,7 +223,7 @@ public final class AIDataCoordinator {
 
         for (response, model) in zip(responses, models) {
             do {
-                try mergeResponse(response, into: model, property: property, context: context)
+                try await mergeResponse(response, into: model, property: property, context: context)
                 results.append(.success(()))
             } catch {
                 results.append(.failure(error))
@@ -271,7 +282,7 @@ public final class AIDataCoordinator {
     public func validateResponse(
         _ response: AIResponseData,
         constraints: [String: String]
-    ) throws {
+    ) async throws {
         guard case .success(let content) = response.result else {
             if let error = response.error {
                 throw error
@@ -295,7 +306,10 @@ public final class AIDataCoordinator {
             value = dict
         }
 
-        try validator.validate(value: value, constraints: constraints)
+        // Box the value for safe sending to validator actor
+        let boxedValue = UncheckedSendableBox(value)
+
+        try await validator.validate(value: boxedValue.value, constraints: constraints)
     }
 
     /// Registers a custom validation rule.
@@ -395,8 +409,8 @@ extension AIDataCoordinator {
         into model: T,
         property: ReferenceWritableKeyPath<T, String>,
         context: ModelContext
-    ) throws {
-        try mergeResponse(
+    ) async throws {
+        try await mergeResponse(
             response,
             into: model,
             property: property,
@@ -423,8 +437,8 @@ extension AIDataCoordinator {
         into model: T,
         property: ReferenceWritableKeyPath<T, Data>,
         context: ModelContext
-    ) throws {
-        try mergeResponse(
+    ) async throws {
+        try await mergeResponse(
             response,
             into: model,
             property: property,

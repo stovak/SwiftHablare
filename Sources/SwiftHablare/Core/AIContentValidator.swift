@@ -62,9 +62,9 @@ public actor AIContentValidator {
     ///   - constraints: Dictionary of constraint names to string values
     /// - Throws: ``AIServiceError/validationError(_:)`` if validation fails
     ///
-    /// - Note: This method is nonisolated and can be called synchronously from any context.
-    nonisolated public func validate(value: Any, constraints: [String: String]) throws {
-        let result = validateValue(value, constraints: constraints)
+    /// - Note: This method validates both standard and custom rules.
+    public func validate(value: Any, constraints: [String: String]) throws {
+        let result = validateValueWithCustomRules(value, constraints: constraints)
         if case .invalid(let reason) = result {
             throw AIServiceError.validationError(reason)
         }
