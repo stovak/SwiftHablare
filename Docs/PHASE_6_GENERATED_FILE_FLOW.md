@@ -20,55 +20,78 @@ The workflow demonstrates:
 flowchart TD
     Start([Parent Requests File Generation]) --> GenID[Broker: Generate Request ID]
 
-    GenID --> CreateStorage[Coordinator: Create Storage Area<br/>Requests/{requestID}.guion]
-    CreateStorage --> InitBundle[Initialize Bundle Structure<br/>info.json, Resources/]
-    InitBundle --> StoreMapping[Broker: Store Mappings<br/>requestID → storageArea<br/>requestID → parentID]
-    StoreMapping --> SubmitReq[Broker: Submit Request<br/>to AIRequestManager]
+    GenID --> CreateStorage["Coordinator: Create Storage Area
+    Requests/{requestID}.guion"]
+    CreateStorage --> InitBundle["Initialize Bundle Structure
+    info.json, Resources/"]
+    InitBundle --> StoreMapping["Broker: Store Mappings
+    requestID → storageArea
+    requestID → parentID"]
+    StoreMapping --> SubmitReq["Broker: Submit Request
+    to AIRequestManager"]
 
     SubmitReq --> ReturnID[Return requestID to Parent]
     ReturnID --> Execute[Broker: Execute Request]
 
-    Execute --> UpdateStatus[RequestManager:<br/>Update Status to Executing]
-    UpdateStatus --> RetrieveStorage[RequestManager:<br/>Retrieve Storage Area]
-    RetrieveStorage --> CallProvider[Provider: API Call<br/>with Storage Area Access]
+    Execute --> UpdateStatus["RequestManager:
+    Update Status to Executing"]
+    UpdateStatus --> RetrieveStorage["RequestManager:
+    Retrieve Storage Area"]
+    RetrieveStorage --> CallProvider["Provider: API Call
+    with Storage Area Access"]
 
-    CallProvider --> ReceiveData[Provider: Receive Typed Data<br/>+ Optional Text]
+    CallProvider --> ReceiveData["Provider: Receive Typed Data
+    + Optional Text"]
     ReceiveData --> CheckSize{Data Size Check}
 
-    CheckSize -->|Large Data| WriteFile[Coordinator: Write File<br/>to storageArea/Resources/{UUID}]
+    CheckSize -->|Large Data| WriteFile["Coordinator: Write File
+    to storageArea/Resources/{UUID}"]
     CheckSize -->|Small Data| InMemory[Store Inline in ResponseContent]
 
-    WriteFile --> CreateFileRef[Create TypedDataFileReference<br/>uniqueID, requestID, bundlePath]
-    CreateFileRef --> StoreFileRef[Store File Reference<br/>in ResponseContent]
+    WriteFile --> CreateFileRef["Create TypedDataFileReference
+    uniqueID, requestID, bundlePath"]
+    CreateFileRef --> StoreFileRef["Store File Reference
+    in ResponseContent"]
 
-    InMemory --> CreateResponse[Create AIResponseData<br/>with requestID]
+    InMemory --> CreateResponse["Create AIResponseData
+    with requestID"]
     StoreFileRef --> CreateResponse
 
     CreateResponse --> ReturnToBroker[Return AIResponseData to Broker]
-    ReturnToBroker --> RetrieveParent[Broker: Retrieve parentID<br/>from Mapping]
-    RetrieveParent --> MergeResponse[DataCoordinator:<br/>Merge Response to Parent]
+    ReturnToBroker --> RetrieveParent["Broker: Retrieve parentID
+    from Mapping"]
+    RetrieveParent --> MergeResponse["DataCoordinator:
+    Merge Response to Parent"]
 
-    MergeResponse --> UpdateSwiftData[SwiftData: Update Parent<br/>with File Reference]
+    MergeResponse --> UpdateSwiftData["SwiftData: Update Parent
+    with File Reference"]
     UpdateSwiftData --> Persist[SwiftData: Persist Changes]
-    Persist --> Notify[Broker: Notify Parent<br/>of Completion]
+    Persist --> Notify["Broker: Notify Parent
+    of Completion"]
 
-    Notify --> DisplayDecision{Parent Requests<br/>Display View?}
+    Notify --> DisplayDecision{"Parent Requests
+    Display View?"}
 
-    DisplayDecision -->|Yes| RequestView[Parent: Request Display View<br/>from Broker]
+    DisplayDecision -->|Yes| RequestView["Parent: Request Display View
+    from Broker"]
     DisplayDecision -->|No| End([End])
 
-    RequestView --> ProviderView[Provider: makeTypedDataView<br/>fileReference]
+    RequestView --> ProviderView["Provider: makeTypedDataView
+    fileReference"]
     ProviderView --> CheckStorage{Storage Type?}
 
-    CheckStorage -->|File-based| ReadFile[Coordinator: Read Resource<br/>from fileReference]
+    CheckStorage -->|File-based| ReadFile["Coordinator: Read Resource
+    from fileReference"]
     CheckStorage -->|In-memory| AccessInline[Access Inline Data]
 
     ReadFile --> ParseData[Provider: Parse Typed Data]
     AccessInline --> ParseData
 
-    ParseData --> CreateView[Provider: Create SwiftUI View<br/>for Data Type]
+    ParseData --> CreateView["Provider: Create SwiftUI View
+    for Data Type"]
     CreateView --> ReturnView[Return View to Broker]
-    ReturnView --> DisplayView[Parent: Display View<br/>in UI Hierarchy]
+    ReturnView --> DisplayView["Parent: Display View
+    in UI Hierarchy"]
     DisplayView --> End
 
     style Start fill:#e1f5ff
