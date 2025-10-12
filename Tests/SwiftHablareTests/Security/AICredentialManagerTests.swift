@@ -154,7 +154,7 @@ final class AICredentialManagerTests: XCTestCase {
 
     func testDeleteCredential_NotFound() async throws {
         // Should not throw when deleting non-existent credential
-        await XCTAssertThrowsErrorAsync(
+        await XCTAssertNoThrowAsync(
             try await manager.delete(providerID: "nonexistent", type: .apiKey)
         )
     }

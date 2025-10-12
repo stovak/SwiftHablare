@@ -251,6 +251,9 @@ final class SecureKeychainManagerTests: XCTestCase {
     }
 
     func testDeleteAllCredentials() throws {
+        // Start with a clean slate
+        try? manager.deleteAllCredentials()
+
         let account1 = "test-all-1-\(UUID().uuidString)"
         let account2 = "test-all-2-\(UUID().uuidString)"
 
@@ -275,11 +278,8 @@ final class SecureKeychainManagerTests: XCTestCase {
         let apiKey = "sk-test1234567890abcdef"
         let oauthToken = "oauth-token-1234567890abcdef"
 
-        // Clean up any existing credentials for this account first
-        try? manager.deleteAPIKey(for: account)
-        try? manager.deleteOAuthToken(for: account)
-
         // Save both API key and OAuth token for same account
+        // Note: saveData already deletes any existing credential before saving
         try manager.saveAPIKey(apiKey, for: account, validate: false)
         try manager.saveOAuthToken(oauthToken, for: account, validate: false)
 

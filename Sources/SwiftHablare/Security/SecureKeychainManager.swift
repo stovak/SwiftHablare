@@ -169,38 +169,88 @@ public final class SecureKeychainManager: Sendable {
             return []
         }
 
+        let suffix = ":\(type.rawValue)"
         return items.compactMap { item in
-            item[kSecAttrAccount as String] as? String
+            guard let uniqueAccount = item[kSecAttrAccount as String] as? String else {
+                return nil
+            }
+            // Strip the type suffix to get the original account name
+            if uniqueAccount.hasSuffix(suffix) {
+                return String(uniqueAccount.dropLast(suffix.count))
+            }
+            return uniqueAccount
         }
     }
 
     /// Delete all credentials
     /// - Throws: AICredentialError if deletion fails
     public func deleteAllCredentials() throws {
-        let query: [String: Any] = [
+        // List all items first, then delete them one by one
+        // This is more reliable than trying to delete in bulk
+        let listQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service
+            kSecAttrService as String: service,
+            kSecReturnAttributes as String: true,
+            kSecMatchLimit as String: kSecMatchLimitAll
         ]
 
-        let status = SecItemDelete(query as CFDictionary)
+        var result: AnyObject?
+        let listStatus = SecItemCopyMatching(listQuery as CFDictionary, &result)
 
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw AICredentialError.keychainError("Unable to delete all credentials (status: \(status))")
+        // If no items found, that's fine
+        guard listStatus == errSecSuccess || listStatus == errSecItemNotFound else {
+            throw AICredentialError.keychainError("Unable to list credentials (status: \(listStatus))")
+        }
+
+        // If no items, we're done
+        guard listStatus == errSecSuccess, let items = result as? [[String: Any]] else {
+            return
+        }
+
+        // Delete each item individually
+        for item in items {
+            guard let account = item[kSecAttrAccount as String] as? String,
+                  let label = item[kSecAttrLabel as String] as? String else {
+                continue
+            }
+
+            var deleteQuery: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: account,
+                kSecAttrLabel as String: label,
+                kSecAttrSynchronizable as String: false
+            ]
+
+            if let accessGroup = item[kSecAttrAccessGroup as String] as? String {
+                deleteQuery[kSecAttrAccessGroup as String] = accessGroup
+            }
+
+            let deleteStatus = SecItemDelete(deleteQuery as CFDictionary)
+            // Ignore individual failures as long as we try to delete everything
+            _ = deleteStatus
         }
     }
 
     // MARK: - Private Helpers
 
-    private func saveData(_ data: Data, for account: String, type: AICredentialType) throws {
-        // Delete any existing credential first
-        try? deleteData(for: account, type: type)
+    /// Create a unique account identifier by combining the account and type
+    /// This is necessary because keychain uniqueness is based on (class, service, account)
+    /// and does not include the label attribute
+    private func makeUniqueAccount(_ account: String, type: AICredentialType) -> String {
+        return "\(account):\(type.rawValue)"
+    }
 
+    private func saveData(_ data: Data, for account: String, type: AICredentialType) throws {
+        let uniqueAccount = makeUniqueAccount(account, type: type)
+
+        // Build the query for this credential
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: data,
+            kSecAttrAccount as String: uniqueAccount,
             kSecAttrLabel as String: type.rawValue,
+            kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrSynchronizable as String: false // Don't sync credentials to iCloud
         ]
@@ -209,19 +259,50 @@ public final class SecureKeychainManager: Sendable {
             query[kSecAttrAccessGroup as String] = accessGroup
         }
 
-        let status = SecItemAdd(query as CFDictionary, nil)
+        // Try to add the item
+        let addStatus = SecItemAdd(query as CFDictionary, nil)
 
-        guard status == errSecSuccess else {
-            throw AICredentialError.keychainError("Unable to save credential (status: \(status))")
+        if addStatus == errSecSuccess {
+            // Successfully added
+            return
+        } else if addStatus == errSecDuplicateItem {
+            // Item exists, update it instead
+            var searchQuery: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: uniqueAccount,
+                kSecAttrLabel as String: type.rawValue,
+                kSecAttrSynchronizable as String: false
+            ]
+
+            if let accessGroup {
+                searchQuery[kSecAttrAccessGroup as String] = accessGroup
+            }
+
+            let updateAttributes: [String: Any] = [
+                kSecValueData as String: data,
+                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            ]
+
+            let updateStatus = SecItemUpdate(searchQuery as CFDictionary, updateAttributes as CFDictionary)
+
+            guard updateStatus == errSecSuccess else {
+                throw AICredentialError.keychainError("Unable to update credential (status: \(updateStatus))")
+            }
+        } else {
+            throw AICredentialError.keychainError("Unable to save credential (status: \(addStatus))")
         }
     }
 
     private func getData(for account: String, type: AICredentialType) throws -> Data {
+        let uniqueAccount = makeUniqueAccount(account, type: type)
+
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
+            kSecAttrAccount as String: uniqueAccount,
             kSecAttrLabel as String: type.rawValue,
+            kSecAttrSynchronizable as String: false,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -245,11 +326,14 @@ public final class SecureKeychainManager: Sendable {
     }
 
     private func deleteData(for account: String, type: AICredentialType) throws {
+        let uniqueAccount = makeUniqueAccount(account, type: type)
+
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrLabel as String: type.rawValue
+            kSecAttrAccount as String: uniqueAccount,
+            kSecAttrLabel as String: type.rawValue,
+            kSecAttrSynchronizable as String: false
         ]
 
         if let accessGroup {
