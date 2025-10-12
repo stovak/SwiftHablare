@@ -14,97 +14,81 @@ The workflow demonstrates:
 
 ---
 
-## Complete Workflow Flowchart
+## Complete Workflow Diagram
 
 ```mermaid
-flowchart TD
-    Start([Parent Requests File Generation]) --> GenID[Broker: Generate Request ID]
+graph TB
+    subgraph Entities["Core Entities"]
+        Parent["Parent Element
+        ━━━━━━━━━━━━━
+        SwiftData Model
+        Initiates generation
+        Stores requestID
+        Displays results"]
 
-    GenID --> CreateStorage["Coordinator: Create Storage Area
-    Requests/{requestID}.guion"]
-    CreateStorage --> InitBundle["Initialize Bundle Structure
-    info.json, Resources/"]
-    InitBundle --> StoreMapping["Broker: Store Mappings
-    requestID → storageArea
-    requestID → parentID"]
-    StoreMapping --> SubmitReq["Broker: Submit Request
-    to AIRequestManager"]
+        Child["Generated File Record
+        ━━━━━━━━━━━━━━━━━━
+        AIGeneratedContent Model
+        TypedDataFileReference
+        Metadata & status
+        Links to Parent"]
 
-    SubmitReq --> ReturnID[Return requestID to Parent]
-    ReturnID --> Execute[Broker: Execute Request]
+        File["Physical File
+        ━━━━━━━━━━━━
+        .guion Bundle
+        Requests/{requestID}.guion/
+        Resources/{UUID}.ext
+        Binary/JSON/Text data"]
+    end
 
-    Execute --> UpdateStatus["RequestManager:
-    Update Status to Executing"]
-    UpdateStatus --> RetrieveStorage["RequestManager:
-    Retrieve Storage Area"]
-    RetrieveStorage --> CallProvider["Provider: API Call
-    with Storage Area Access"]
+    subgraph Actors["System Actors"]
+        Broker["TypedDataBroker
+        Actor"]
+        ReqMgr["AIRequestManager
+        Actor"]
+        Provider["AI Provider
+        Background"]
+        Coordinator["TextPackCoordinator
+        Actor"]
+        DataCoord["AIDataCoordinator
+        Main Actor"]
+    end
 
-    CallProvider --> ReceiveData["Provider: Receive Typed Data
-    + Optional Text"]
-    ReceiveData --> CheckSize{Data Size Check}
+    Parent -->|1. requestFile| Broker
+    Broker -->|2. generate requestID| Broker
+    Broker -->|3. create storage area| Coordinator
+    Coordinator -->|4. create bundle| File
+    Broker -->|5. submit request| ReqMgr
+    ReqMgr -->|6. execute with storageArea| Provider
+    Provider -->|7. API call returns data| Provider
+    Provider -->|8. write large data| Coordinator
+    Coordinator -->|9. write to| File
+    File -->|10. return fileReference| Coordinator
+    Coordinator -->|11. fileReference| ReqMgr
+    ReqMgr -->|12. create response| Child
+    Child -->|13. links to| File
+    ReqMgr -->|14. response with fileRef| Broker
+    Broker -->|15. merge response| DataCoord
+    DataCoord -->|16. persist| Child
+    Child -->|17. associates with| Parent
+    Broker -->|18. notify completion| Parent
 
-    CheckSize -->|Large Data| WriteFile["Coordinator: Write File
-    to storageArea/Resources/{UUID}"]
-    CheckSize -->|Small Data| InMemory[Store Inline in ResponseContent]
+    Parent -.->|19. request display| Broker
+    Broker -.->|20. get view| Provider
+    Provider -.->|21. read if needed| Coordinator
+    Coordinator -.->|22. read from| File
+    File -.->|23. return data| Provider
+    Provider -.->|24. create SwiftUI view| Provider
+    Provider -.->|25. return view| Parent
 
-    WriteFile --> CreateFileRef["Create TypedDataFileReference
-    uniqueID, requestID, bundlePath"]
-    CreateFileRef --> StoreFileRef["Store File Reference
-    in ResponseContent"]
-
-    InMemory --> CreateResponse["Create AIResponseData
-    with requestID"]
-    StoreFileRef --> CreateResponse
-
-    CreateResponse --> ReturnToBroker[Return AIResponseData to Broker]
-    ReturnToBroker --> RetrieveParent["Broker: Retrieve parentID
-    from Mapping"]
-    RetrieveParent --> MergeResponse["DataCoordinator:
-    Merge Response to Parent"]
-
-    MergeResponse --> UpdateSwiftData["SwiftData: Update Parent
-    with File Reference"]
-    UpdateSwiftData --> Persist[SwiftData: Persist Changes]
-    Persist --> Notify["Broker: Notify Parent
-    of Completion"]
-
-    Notify --> DisplayDecision{"Parent Requests
-    Display View?"}
-
-    DisplayDecision -->|Yes| RequestView["Parent: Request Display View
-    from Broker"]
-    DisplayDecision -->|No| End([End])
-
-    RequestView --> ProviderView["Provider: makeTypedDataView
-    fileReference"]
-    ProviderView --> CheckStorage{Storage Type?}
-
-    CheckStorage -->|File-based| ReadFile["Coordinator: Read Resource
-    from fileReference"]
-    CheckStorage -->|In-memory| AccessInline[Access Inline Data]
-
-    ReadFile --> ParseData[Provider: Parse Typed Data]
-    AccessInline --> ParseData
-
-    ParseData --> CreateView["Provider: Create SwiftUI View
-    for Data Type"]
-    CreateView --> ReturnView[Return View to Broker]
-    ReturnView --> DisplayView["Parent: Display View
-    in UI Hierarchy"]
-    DisplayView --> End
-
-    style Start fill:#e1f5ff
-    style GenID fill:#fff4e1
-    style CreateStorage fill:#f0ffe1
-    style CallProvider fill:#ffe1f5
-    style CheckSize fill:#ffebcd
-    style WriteFile fill:#e1ffe1
-    style InMemory fill:#e1ffe1
-    style UpdateSwiftData fill:#ffe1e1
-    style DisplayDecision fill:#ffebcd
-    style CreateView fill:#f5e1ff
-    style End fill:#e1f5ff
+    style Parent fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
+    style Child fill:#ffe1f5,stroke:#cc0066,stroke-width:3px
+    style File fill:#f0ffe1,stroke:#00cc66,stroke-width:3px
+    style Broker fill:#fff4e1,stroke:#cc9900,stroke-width:2px
+    style ReqMgr fill:#fff4e1,stroke:#cc9900,stroke-width:2px
+    style Provider fill:#ffe1e1,stroke:#cc3300,stroke-width:2px
+    style Coordinator fill:#fff4e1,stroke:#cc9900,stroke-width:2px
+    style DataCoord fill:#e1f5ff,stroke:#0066cc,stroke-width:2px
 ```
 
 ---
