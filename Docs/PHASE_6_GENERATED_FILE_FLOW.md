@@ -14,102 +14,74 @@ The workflow demonstrates:
 
 ---
 
-## Complete Workflow Diagram
+## Complete Workflow Flowchart
 
 ```mermaid
-sequenceDiagram
-    participant Parent as Parent Element<br/>(Main Thread)
-    participant Broker as TypedDataBroker<br/>(Actor - Proposed)
-    participant ReqMgr as AIRequestManager<br/>(Actor - Existing)
-    participant Provider as AI Provider<br/>(Background)
-    participant Coordinator as TextPackCoordinator<br/>(Actor - Proposed)
-    participant DataCoord as AIDataCoordinator<br/>(Main Actor - Existing)
-    participant SwiftData as SwiftData Context<br/>(Main Thread)
-    participant Storage as .guion Bundle<br/>(File System)
+flowchart TD
+    Start([Parent Requests File Generation]) --> GenID[Broker: Generate Request ID]
 
-    rect rgb(240, 248, 255)
-        Note over Parent,Storage: Phase 1: Request Initiation & ID Assignment
-        Parent->>+Broker: requestFile(prompt, params, parentID)
-        Broker->>Broker: Generate Request ID (UUID)
-        Broker->>+Coordinator: createRequestStorageArea(requestID)
-        Coordinator->>+Storage: Create .guion bundle at<br/>Requests/{requestID}.guion
-        Storage-->>-Coordinator: Bundle created
-        Coordinator->>Coordinator: Initialize bundle structure<br/>(info.json, Resources/)
-        Coordinator-->>-Broker: StorageAreaReference(bundleURL)
-        Broker->>Broker: Store storage area mapping<br/>(requestID → bundleURL)
-        Broker->>+ReqMgr: submit(AIRequest, provider, storageArea)
-        ReqMgr-->>-Broker: requestID
-        Broker->>Broker: Store request metadata<br/>(requestID → parentID mapping)
-        Broker-->>-Parent: requestID
-        Note over Parent: Parent stores requestID<br/>for later reference
-    end
+    GenID --> CreateStorage[Coordinator: Create Storage Area<br/>Requests/{requestID}.guion]
+    CreateStorage --> InitBundle[Initialize Bundle Structure<br/>info.json, Resources/]
+    InitBundle --> StoreMapping[Broker: Store Mappings<br/>requestID → storageArea<br/>requestID → parentID]
+    StoreMapping --> SubmitReq[Broker: Submit Request<br/>to AIRequestManager]
 
-    rect rgb(255, 250, 240)
-        Note over Parent,Storage: Phase 2: Background API Processing
-        Broker->>+ReqMgr: execute(requestID)
-        activate ReqMgr
-        ReqMgr->>ReqMgr: Update status: executing
-        ReqMgr->>ReqMgr: Retrieve storage area<br/>for request
-        ReqMgr->>+Provider: generate(prompt, parameters, storageArea)<br/>(Background Task)
-        Note over Provider: Make API call<br/>to remote service<br/>Provider has access to<br/>request-specific storage
-        Provider->>Provider: Receive typed data<br/>+ optional text
-        Provider-->>-ReqMgr: ResponseContent<br/>(Sendable)
-        ReqMgr->>ReqMgr: Create AIResponseData<br/>with requestID
-        deactivate ReqMgr
-    end
+    SubmitReq --> ReturnID[Return requestID to Parent]
+    ReturnID --> Execute[Broker: Execute Request]
 
-    rect rgb(240, 255, 240)
-        Note over Parent,Storage: Phase 3: File Storage (if large data)
-        ReqMgr->>ReqMgr: Check data size
-        alt Large Data (requires file storage)
-            ReqMgr->>+Coordinator: writeResource(data, UUID, contentType, storageArea)
-            Coordinator->>Coordinator: Generate unique file ID<br/>(UUID-based)
-            Coordinator->>+Storage: Write to storageArea/Resources/{UUID}.{ext}
-            Note over Storage: File written to request-specific<br/>.guion bundle: Requests/{requestID}.guion
-            Storage-->>-Coordinator: File written
-            Coordinator->>Coordinator: Create TypedDataFileReference<br/>(uniqueID, bundlePath, contentType, size)
-            Coordinator-->>-ReqMgr: TypedDataFileReference
-            ReqMgr->>ReqMgr: Store file reference<br/>in ResponseContent
-        else Small Data (in-memory)
-            ReqMgr->>ReqMgr: Store data directly<br/>in ResponseContent
-        end
-        ReqMgr-->>-Broker: AIResponseData<br/>(with file ref or inline data)
-    end
+    Execute --> UpdateStatus[RequestManager:<br/>Update Status to Executing]
+    UpdateStatus --> RetrieveStorage[RequestManager:<br/>Retrieve Storage Area]
+    RetrieveStorage --> CallProvider[Provider: API Call<br/>with Storage Area Access]
 
-    rect rgb(255, 240, 240)
-        Note over Parent,Storage: Phase 4: SwiftData Persistence
-        Broker->>Broker: Retrieve parentID<br/>from request mapping
-        Broker->>+DataCoord: mergeResponse(responseData, parent, context)
-        DataCoord->>DataCoord: Extract typed data<br/>from response
-        DataCoord->>+SwiftData: Update parent element<br/>with file reference
-        Note over SwiftData: Parent.generatedFileRef = fileReference<br/>Parent.generatedText = additionalText
-        SwiftData-->>-DataCoord: Persisted
-        DataCoord->>DataCoord: Trigger completion callbacks
-        DataCoord-->>-Broker: Merge complete
-        Broker->>Parent: Notify completion<br/>(via callback/observer)
-    end
+    CallProvider --> ReceiveData[Provider: Receive Typed Data<br/>+ Optional Text]
+    ReceiveData --> CheckSize{Data Size Check}
 
-    rect rgb(248, 240, 255)
-        Note over Parent,Storage: Phase 5: Display Request
-        Parent->>+Broker: requestDisplayView(fileReference, providerID)
-        Broker->>+Provider: makeTypedDataView(fileReference)
-        Provider->>Provider: Identify typed data type<br/>from file reference
+    CheckSize -->|Large Data| WriteFile[Coordinator: Write File<br/>to storageArea/Resources/{UUID}]
+    CheckSize -->|Small Data| InMemory[Store Inline in ResponseContent]
 
-        alt File-based storage
-            Provider->>+Coordinator: readResource(fileReference)
-            Coordinator->>+Storage: Read Resources/{UUID}.{ext}
-            Storage-->>-Coordinator: File data
-            Coordinator-->>-Provider: Data
-        else In-memory storage
-            Provider->>Provider: Access inline data
-        end
+    WriteFile --> CreateFileRef[Create TypedDataFileReference<br/>uniqueID, requestID, bundlePath]
+    CreateFileRef --> StoreFileRef[Store File Reference<br/>in ResponseContent]
 
-        Provider->>Provider: Parse typed data<br/>(JSON, binary, etc.)
-        Provider->>Provider: Create SwiftUI view<br/>for data type
-        Provider-->>-Broker: SwiftUI View
-        Broker-->>-Parent: SwiftUI View
-        Parent->>Parent: Display view<br/>in UI hierarchy
-    end
+    InMemory --> CreateResponse[Create AIResponseData<br/>with requestID]
+    StoreFileRef --> CreateResponse
+
+    CreateResponse --> ReturnToBroker[Return AIResponseData to Broker]
+    ReturnToBroker --> RetrieveParent[Broker: Retrieve parentID<br/>from Mapping]
+    RetrieveParent --> MergeResponse[DataCoordinator:<br/>Merge Response to Parent]
+
+    MergeResponse --> UpdateSwiftData[SwiftData: Update Parent<br/>with File Reference]
+    UpdateSwiftData --> Persist[SwiftData: Persist Changes]
+    Persist --> Notify[Broker: Notify Parent<br/>of Completion]
+
+    Notify --> DisplayDecision{Parent Requests<br/>Display View?}
+
+    DisplayDecision -->|Yes| RequestView[Parent: Request Display View<br/>from Broker]
+    DisplayDecision -->|No| End([End])
+
+    RequestView --> ProviderView[Provider: makeTypedDataView<br/>fileReference]
+    ProviderView --> CheckStorage{Storage Type?}
+
+    CheckStorage -->|File-based| ReadFile[Coordinator: Read Resource<br/>from fileReference]
+    CheckStorage -->|In-memory| AccessInline[Access Inline Data]
+
+    ReadFile --> ParseData[Provider: Parse Typed Data]
+    AccessInline --> ParseData
+
+    ParseData --> CreateView[Provider: Create SwiftUI View<br/>for Data Type]
+    CreateView --> ReturnView[Return View to Broker]
+    ReturnView --> DisplayView[Parent: Display View<br/>in UI Hierarchy]
+    DisplayView --> End
+
+    style Start fill:#e1f5ff
+    style GenID fill:#fff4e1
+    style CreateStorage fill:#f0ffe1
+    style CallProvider fill:#ffe1f5
+    style CheckSize fill:#ffebcd
+    style WriteFile fill:#e1ffe1
+    style InMemory fill:#e1ffe1
+    style UpdateSwiftData fill:#ffe1e1
+    style DisplayDecision fill:#ffebcd
+    style CreateView fill:#f5e1ff
+    style End fill:#e1f5ff
 ```
 
 ---
