@@ -61,8 +61,10 @@ public actor AIContentValidator {
     ///   - value: The value to validate
     ///   - constraints: Dictionary of constraint names to string values
     /// - Throws: ``AIServiceError/validationError(_:)`` if validation fails
+    ///
+    /// - Note: This method validates both standard and custom rules.
     public func validate(value: Any, constraints: [String: String]) throws {
-        let result = validateValue(value, constraints: constraints)
+        let result = validateValueWithCustomRules(value, constraints: constraints)
         if case .invalid(let reason) = result {
             throw AIServiceError.validationError(reason)
         }
@@ -74,11 +76,43 @@ public actor AIContentValidator {
     ///   - value: The value to validate
     ///   - constraints: Dictionary of constraint names to string values
     /// - Returns: Validation result
-    public func validateValue(_ value: Any, constraints: [String: String]) -> ValidationResult {
+    ///
+    /// - Note: This method is nonisolated and can be called synchronously from any context.
+    ///         It only validates standard constraints, not custom rules.
+    nonisolated public func validateValue(_ value: Any, constraints: [String: String]) -> ValidationResult {
         for (constraintName, constraintValue) in constraints {
             let result = validateConstraint(value, name: constraintName, value: constraintValue)
             if !result.isValid {
                 return result
+            }
+        }
+        return .valid
+    }
+
+    /// Validates a value including custom rules (actor-isolated).
+    ///
+    /// - Parameters:
+    ///   - value: The value to validate
+    ///   - constraints: Dictionary of constraint names to string values
+    /// - Returns: Validation result
+    public func validateValueWithCustomRules(_ value: Any, constraints: [String: String]) -> ValidationResult {
+        for (constraintName, constraintValue) in constraints {
+            // Check custom rules first
+            if let customRule = customRules[constraintName] {
+                do {
+                    let isValid = try customRule.validate(value)
+                    if !isValid {
+                        return .invalid(reason: customRule.errorMessage)
+                    }
+                } catch {
+                    return .invalid(reason: "Custom rule '\(constraintName)' failed: \(error.localizedDescription)")
+                }
+            } else {
+                // Fall back to standard validation
+                let result = validateConstraint(value, name: constraintName, value: constraintValue)
+                if !result.isValid {
+                    return result
+                }
             }
         }
         return .valid
@@ -101,21 +135,11 @@ public actor AIContentValidator {
     // MARK: - Private Methods
 
     /// Validates a single constraint.
-    private func validateConstraint(_ value: Any, name: String, value constraintValue: String) -> ValidationResult {
-        // Check custom rules first
-        if let customRule = customRules[name] {
-            do {
-                let isValid = try customRule.validate(value)
-                if !isValid {
-                    return .invalid(reason: customRule.errorMessage)
-                }
-                return .valid
-            } catch {
-                return .invalid(reason: "Custom rule '\(name)' failed: \(error.localizedDescription)")
-            }
-        }
-
-        // Standard constraints
+    ///
+    /// Note: This method cannot access customRules directly since it's nonisolated.
+    /// Custom rules validation needs to happen in isolated context.
+    nonisolated private func validateConstraint(_ value: Any, name: String, value constraintValue: String) -> ValidationResult {
+        // Standard constraints only (custom rules not accessible from nonisolated context)
         switch name {
         case "minLength":
             return validateMinLength(value, constraint: constraintValue)
@@ -140,7 +164,7 @@ public actor AIContentValidator {
     }
 
     /// Validates minimum length for strings or data.
-    private func validateMinLength(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateMinLength(_ value: Any, constraint: String) -> ValidationResult {
         guard let minLength = Int(constraint) else {
             return .invalid(reason: "minLength constraint must be a valid integer")
         }
@@ -164,7 +188,7 @@ public actor AIContentValidator {
     }
 
     /// Validates maximum length for strings or data.
-    private func validateMaxLength(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateMaxLength(_ value: Any, constraint: String) -> ValidationResult {
         guard let maxLength = Int(constraint) else {
             return .invalid(reason: "maxLength constraint must be a valid integer")
         }
@@ -188,7 +212,7 @@ public actor AIContentValidator {
     }
 
     /// Validates minimum numeric value.
-    private func validateMinValue(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateMinValue(_ value: Any, constraint: String) -> ValidationResult {
         guard let minValue = Double(constraint) else {
             return .invalid(reason: "minValue constraint must be a valid number")
         }
@@ -212,7 +236,7 @@ public actor AIContentValidator {
     }
 
     /// Validates maximum numeric value.
-    private func validateMaxValue(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateMaxValue(_ value: Any, constraint: String) -> ValidationResult {
         guard let maxValue = Double(constraint) else {
             return .invalid(reason: "maxValue constraint must be a valid number")
         }
@@ -236,7 +260,7 @@ public actor AIContentValidator {
     }
 
     /// Validates pattern matching (regex).
-    private func validatePattern(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validatePattern(_ value: Any, constraint: String) -> ValidationResult {
         let pattern = constraint
 
         guard let stringValue = value as? String else {
@@ -259,7 +283,7 @@ public actor AIContentValidator {
     }
 
     /// Validates against allowed values.
-    private func validateAllowedValues(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateAllowedValues(_ value: Any, constraint: String) -> ValidationResult {
         // Parse comma-separated list of allowed values
         let allowedValues = constraint.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) }
 
@@ -272,7 +296,7 @@ public actor AIContentValidator {
     }
 
     /// Validates format (e.g., email, URL, phone).
-    private func validateFormat(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateFormat(_ value: Any, constraint: String) -> ValidationResult {
         let format = constraint
 
         guard let stringValue = value as? String else {
@@ -292,7 +316,7 @@ public actor AIContentValidator {
     }
 
     /// Validates required constraint.
-    private func validateRequired(_ value: Any, constraint: String) -> ValidationResult {
+    nonisolated private func validateRequired(_ value: Any, constraint: String) -> ValidationResult {
         // Parse boolean from string
         let required = constraint.lowercased() == "true" || constraint == "1"
         guard required else {
@@ -316,7 +340,7 @@ public actor AIContentValidator {
     }
 
     /// Validates email format.
-    private func validateEmail(_ value: String) -> ValidationResult {
+    nonisolated private func validateEmail(_ value: String) -> ValidationResult {
         let emailPattern = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$"
         let regex = try? NSRegularExpression(pattern: emailPattern, options: .caseInsensitive)
         let range = NSRange(value.startIndex..., in: value)
@@ -330,7 +354,7 @@ public actor AIContentValidator {
     }
 
     /// Validates URL format.
-    private func validateURL(_ value: String) -> ValidationResult {
+    nonisolated private func validateURL(_ value: String) -> ValidationResult {
         guard let url = URL(string: value) else {
             return .invalid(reason: "Invalid URL format")
         }
@@ -344,7 +368,7 @@ public actor AIContentValidator {
     }
 
     /// Validates UUID format.
-    private func validateUUID(_ value: String) -> ValidationResult {
+    nonisolated private func validateUUID(_ value: String) -> ValidationResult {
         if UUID(uuidString: value) == nil {
             return .invalid(reason: "Invalid UUID format")
         }

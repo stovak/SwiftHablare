@@ -19,6 +19,7 @@ final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
     var generationDelay: TimeInterval = 0
     var generatedDataResponse: Data = Data("mock response".utf8)
     var generatedPropertyResponse: Any = "mock property value"
+    var generatedContentResponse: ResponseContent = .text("mock response")
 
     // Call tracking
     private(set) var generateCallCount = 0
@@ -43,6 +44,34 @@ final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
     func isConfigured() -> Bool {
         configured
     }
+
+    // MARK: - New API Implementation
+
+    func generate(
+        prompt: String,
+        parameters: [String: Any]
+    ) async -> Result<ResponseContent, AIServiceError> {
+        generateCallCount += 1
+        lastPrompt = prompt
+        lastParameters = parameters
+
+        // Check if provider is configured
+        if !configured {
+            return .failure(.configurationError("Provider is not configured"))
+        }
+
+        if let error = shouldThrowError {
+            return .failure(error)
+        }
+
+        if generationDelay > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(generationDelay * 1_000_000_000))
+        }
+
+        return .success(generatedContentResponse)
+    }
+
+    // MARK: - Legacy API Implementation
 
     func generate(
         prompt: String,
@@ -131,7 +160,9 @@ extension MockAIServiceProvider {
                 ])
             ]
         )
-        provider.generatedDataResponse = Data(repeating: 0, count: 1024) // Mock audio data
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        provider.generatedDataResponse = mockAudioData
+        provider.generatedContentResponse = .audio(mockAudioData, format: .mp3)
         return provider
     }
 
@@ -147,7 +178,9 @@ extension MockAIServiceProvider {
                 ])
             ]
         )
-        provider.generatedDataResponse = Data(repeating: 0, count: 2048) // Mock image data
+        let mockImageData = Data(repeating: 0, count: 2048)
+        provider.generatedDataResponse = mockImageData
+        provider.generatedContentResponse = .image(mockImageData, format: .png)
         return provider
     }
 
