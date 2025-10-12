@@ -9,22 +9,53 @@
 ## ✅ RESOLVED Requirements
 
 ### 1. File Reference Structure ✅
-**Resolution**: File operations abstracted through .guion document interface
-- Files stored in Resources folder with UUID-based unique IDs
-- File references contain unique IDs for retrieval
+**Resolution**: File operations abstracted through .guion document interface with request-specific storage
+- Each request has its own .guion bundle at `Requests/{requestID}.guion/`
+- Files stored in request-specific Resources folder with UUID-based unique IDs
+- File references contain both requestID and file uniqueID for retrieval
 - All I/O through SwiftGuion document interface
 
 **Implementation Pattern**:
 ```swift
 struct TypedDataFileReference: Codable, Sendable {
     let uniqueID: UUID           // Unique identifier for file
-    let bundlePath: URL          // Path to .guion bundle
+    let requestID: UUID          // Associated request ID
+    let bundlePath: URL          // Path to request-specific .guion bundle
+    let relativePath: String     // Relative path: "Resources/{uniqueID}.{ext}"
     let contentType: String      // MIME type
     let sizeBytes: Int64
     let createdAt: Date
 
-    // File stored as: Resources/{uniqueID}.{extension}
+    // Full path to file
+    var fullPath: URL {
+        bundlePath.appendingPathComponent(relativePath)
+    }
 }
+
+struct StorageAreaReference: Codable, Sendable {
+    let requestID: UUID          // Associated request ID
+    let bundleURL: URL           // Path to request-specific .guion bundle
+    let createdAt: Date
+
+    var resourcesDirectory: URL {
+        bundleURL.appendingPathComponent("Resources")
+    }
+}
+```
+
+**Storage Organization**:
+```
+Base Storage Directory/
+└── Requests/
+    ├── {requestID-1}.guion/
+    │   ├── info.json
+    │   └── Resources/
+    │       ├── {fileUUID-1}.png
+    │       └── {fileUUID-2}.json
+    └── {requestID-2}.guion/
+        ├── info.json
+        └── Resources/
+            └── {fileUUID-3}.mp3
 ```
 
 ### 2. Performance Thresholds ✅
@@ -33,6 +64,58 @@ struct TypedDataFileReference: Codable, Sendable {
 - Record metrics for in-memory vs file-based storage
 - Defer threshold decisions until after data collection
 - Quality Gate 6.8 updated to performance measurement instead of threshold enforcement
+
+### 3. TypedDataBroker & Storage Initialization ✅
+**Resolution**: Broker manages request-specific storage areas on initialization
+- Broker establishes base storage directory on init
+- Creates `Requests/` directory structure
+- For each request, creates isolated `.guion` bundle at `Requests/{requestID}.guion/`
+- Maintains mappings: requestID → storageArea, requestID → parentID
+- Passes storage area reference to providers during request execution
+
+**Broker Initialization Pattern**:
+```swift
+actor TypedDataBroker {
+    private let baseStorageURL: URL
+    private let textPackCoordinator: TextPackCoordinator
+    private var storageAreas: [UUID: StorageAreaReference] = [:]
+    private var requestParentMapping: [UUID: UUID] = [:]
+
+    init(baseStorageURL: URL) async throws {
+        self.baseStorageURL = baseStorageURL
+        self.textPackCoordinator = TextPackCoordinator()
+
+        // Create base storage structure
+        let requestsDirectory = baseStorageURL.appendingPathComponent("Requests")
+        try FileManager.default.createDirectory(
+            at: requestsDirectory,
+            withIntermediateDirectories: true
+        )
+    }
+
+    func requestFile(prompt: String, params: [String: Any], parentID: UUID) async throws -> UUID {
+        // 1. Generate request ID
+        let requestID = UUID()
+
+        // 2. Create storage area for this request
+        let storageArea = try await createStorageArea(for: requestID)
+
+        // 3. Store mappings
+        storageAreas[requestID] = storageArea
+        requestParentMapping[requestID] = parentID
+
+        // 4. Submit to request manager with storage area
+        // ... rest of implementation
+        return requestID
+    }
+}
+```
+
+**Benefits**:
+- Provider has access to isolated storage during execution
+- No file name collisions between concurrent requests
+- Atomic cleanup of request data
+- Easy debugging with organized file structure
 
 ---
 
@@ -163,22 +246,31 @@ struct Validated<T: Codable> {
 - [ ] Error handling for bundle operations
 - [ ] Integration with SwiftGuion library API
 
-**Suggested Interface**:
+**Updated Interface** (with request-specific storage):
 ```swift
 actor TextPackCoordinator {
     private var activeBundles: [URL: TextPackBundle] = [:]
 
-    // Bundle lifecycle
-    func createBundle(at url: URL) async throws -> TextPackBundle
-    func openBundle(at url: URL) async throws -> TextPackBundle
-    func closeBundle(at url: URL) async throws
+    // Request-specific storage area management
+    func createRequestBundle(
+        at url: URL,
+        requestID: UUID
+    ) async throws -> StorageAreaReference
 
-    // File operations (using UUID-based naming)
+    func getRequestBundle(
+        for requestID: UUID
+    ) async throws -> TextPackBundle
+
+    func deleteRequestBundle(
+        for requestID: UUID
+    ) async throws
+
+    // File operations within request-specific bundles
     func writeResource(
         data: Data,
         withID id: UUID,
         contentType: String,
-        to bundle: TextPackBundle
+        to storageArea: StorageAreaReference
     ) async throws -> TypedDataFileReference
 
     func readResource(
@@ -192,16 +284,26 @@ actor TextPackCoordinator {
     // Bulk operations
     func writeMultipleResources(
         _ items: [(UUID, Data, String)],
-        to bundle: TextPackBundle
+        to storageArea: StorageAreaReference
     ) async throws -> [TypedDataFileReference]
+}
+
+struct StorageAreaReference: Codable, Sendable {
+    let requestID: UUID
+    let bundleURL: URL
+    let createdAt: Date
+
+    var resourcesDirectory: URL {
+        bundleURL.appendingPathComponent("Resources")
+    }
 }
 ```
 
-**Questions to Resolve**:
-1. Should the actor manage a pool of open bundles or open/close per operation?
-2. How do we handle concurrent writes to the same bundle?
-3. What's the error recovery strategy for corrupted bundles?
-4. How does this integrate with SwiftGuion's existing API?
+**Resolved Questions**:
+1. ✅ **Storage Organization**: Each request gets its own .guion bundle at `Requests/{requestID}.guion/`
+2. ✅ **Concurrent Writes**: Actor isolation ensures thread-safe access; each request writes to isolated bundle
+3. ✅ **Bundle Management**: Coordinator manages active bundles by URL; lazy loading on demand
+4. ✅ **Cleanup**: Request bundles can be deleted atomically via `deleteRequestBundle()`
 
 **Action Required**: Define complete actor interface with SwiftGuion integration
 
@@ -573,8 +675,8 @@ struct MultiTypeConfigurationView: View {
 | 🟡 **HIGH** (Must Define Before/Early) | 2 | Blocking |
 | 🟢 **MEDIUM** (Should Define Before/During) | 5 | Non-blocking |
 | 🔵 **LOW** (Can Define During) | 1 | Non-blocking |
-| ✅ **RESOLVED** | 2 | Complete |
-| **TOTAL** | 13 | |
+| ✅ **RESOLVED** | 3 | Complete |
+| **TOTAL** | 14 | |
 
 ---
 
