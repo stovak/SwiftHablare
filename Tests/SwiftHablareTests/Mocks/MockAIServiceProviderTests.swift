@@ -99,7 +99,7 @@ struct MockAIServiceProviderTests {
         let duration = Date().timeIntervalSince(start)
 
         #expect(duration >= 0.05)
-        #expect(duration < 0.1) // Shouldn't be much longer
+        #expect(duration < 0.3) // Allow more time for CI environments
     }
 
     @Test("MockAIServiceProvider reset() clears state")

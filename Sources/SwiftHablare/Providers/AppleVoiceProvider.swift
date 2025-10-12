@@ -6,9 +6,7 @@
 //
 
 import AVFoundation
-#if canImport(AppKit)
 import AppKit
-#endif
 import Foundation
 
 /// Apple Text-to-Speech implementation of VoiceProvider
@@ -20,7 +18,7 @@ public final class AppleVoiceProvider: VoiceProvider {
     public init() {}
 
     public func isConfigured() -> Bool {
-        // Apple TTS is always available on macOS/iOS
+        // Apple TTS is always available on macOS
         return true
     }
 
@@ -96,11 +94,9 @@ public final class AppleVoiceProvider: VoiceProvider {
     }
 
     public func generateAudio(text: String, voiceId: String) async throws -> Data {
-        // Use AVSpeechSynthesizer.write() on both iOS 13+ and macOS 13+
         return try await generateAudioWithAVSpeechSynthesizer(text: text, voiceId: voiceId)
     }
 
-    @available(iOS 13.0, macOS 13.0, *)
     private func generateAudioWithAVSpeechSynthesizer(text: String, voiceId: String) async throws -> Data {
         // NOTE: AVSpeechSynthesizer.write() is known to crash with buffer issues
         // As a workaround, we'll generate a placeholder audio file

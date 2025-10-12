@@ -23,7 +23,7 @@ import SwiftData
 ///     ]
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum DataStructureCapability: Sendable {
     /// Provider can generate data for a specific model type.
     ///
@@ -93,7 +93,7 @@ public enum DataStructureCapability: Sendable {
 }
 
 /// Describes a provider's capability to generate a specific property.
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct PropertyCapability: Sendable {
     /// The property name (derived from KeyPath).
     public let propertyName: String
@@ -131,7 +131,7 @@ public struct PropertyCapability: Sendable {
 }
 
 /// Constraints for property generation.
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct PropertyConstraints: Sendable {
     /// Minimum length for string properties.
     public let minLength: Int?
@@ -154,7 +154,7 @@ public struct PropertyConstraints: Sendable {
 }
 
 /// Type constraints for protocol-based capabilities.
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum TypeConstraint: Sendable {
     /// Provider can generate values of this Swift type.
     case canGenerate(SwiftType)
@@ -164,7 +164,7 @@ public enum TypeConstraint: Sendable {
 }
 
 /// Swift types that can be generated.
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum SwiftType: String, Sendable {
     case string = "String"
     case int = "Int"

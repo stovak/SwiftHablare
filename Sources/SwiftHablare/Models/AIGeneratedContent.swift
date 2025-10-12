@@ -25,7 +25,7 @@ import SwiftData
 ///     }
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public class AIGeneratedContent {
     /// Unique identifier for this content.
@@ -90,7 +90,7 @@ public class AIGeneratedContent {
 // MARK: - Type-Specific Models
 
 /// Model for AI-generated text content.
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public final class GeneratedText {
     @Attribute(.unique) public var id: UUID
@@ -144,7 +144,7 @@ public final class GeneratedText {
 }
 
 /// Model for AI-generated audio content.
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public final class GeneratedAudio {
     @Attribute(.unique) public var id: UUID
@@ -204,7 +204,7 @@ public final class GeneratedAudio {
 }
 
 /// Model for AI-generated image content.
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public final class GeneratedImage {
     @Attribute(.unique) public var id: UUID
@@ -257,7 +257,7 @@ public final class GeneratedImage {
 }
 
 /// Model for AI-generated video content.
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public final class GeneratedVideo {
     @Attribute(.unique) public var id: UUID
@@ -313,7 +313,7 @@ public final class GeneratedVideo {
 }
 
 /// Model for AI-generated structured data.
-@available(macOS 15.0, iOS 17.0, *)
+
 @Model
 public final class GeneratedStructuredData {
     @Attribute(.unique) public var id: UUID

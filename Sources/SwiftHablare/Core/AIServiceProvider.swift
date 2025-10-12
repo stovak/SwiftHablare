@@ -40,7 +40,7 @@ import SwiftData
 ///     }
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public protocol AIServiceProvider: Sendable {
     // MARK: - Identity
 
@@ -124,7 +124,7 @@ public protocol AIServiceProvider: Sendable {
 
 // MARK: - Default Implementations
 
-@available(macOS 15.0, iOS 17.0, *)
+
 public extension AIServiceProvider {
     /// Default implementation validates that requiresAPIKey implies credentials exist.
     func validateConfiguration() throws {

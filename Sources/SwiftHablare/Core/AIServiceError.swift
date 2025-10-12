@@ -41,7 +41,7 @@ import Foundation
 ///     print("Rate limited. Retry after \(retryAfter ?? 0) seconds")
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum AIServiceError: Error, Sendable {
     // MARK: - Configuration Errors
 
@@ -98,6 +98,9 @@ public enum AIServiceError: Error, Sendable {
     /// Could not convert data to expected type.
     case dataConversionError(String)
 
+    /// Could not bind value to model property.
+    case dataBindingError(String)
+
     // MARK: - Storage Errors
 
     /// SwiftData persistence operation failed.
@@ -105,6 +108,11 @@ public enum AIServiceError: Error, Sendable {
 
     /// Referenced model could not be found.
     case modelNotFound(String)
+
+    // MARK: - Operation Errors
+
+    /// The requested operation is not supported.
+    case unsupportedOperation(String)
 
     // MARK: - Error Information
 
@@ -124,8 +132,10 @@ public enum AIServiceError: Error, Sendable {
              .validationError(let message),
              .unexpectedResponseFormat(let message),
              .dataConversionError(let message),
+             .dataBindingError(let message),
              .persistenceError(let message),
-             .modelNotFound(let message):
+             .modelNotFound(let message),
+             .unsupportedOperation(let message):
             return message
         }
     }
@@ -139,10 +149,12 @@ public enum AIServiceError: Error, Sendable {
             return .network
         case .providerError, .rateLimitExceeded, .authenticationFailed, .invalidRequest:
             return .provider
-        case .validationError, .unexpectedResponseFormat, .dataConversionError:
+        case .validationError, .unexpectedResponseFormat, .dataConversionError, .dataBindingError:
             return .data
         case .persistenceError, .modelNotFound:
             return .storage
+        case .unsupportedOperation:
+            return .operation
         }
     }
 
@@ -153,8 +165,8 @@ public enum AIServiceError: Error, Sendable {
             return true
         case .configurationError, .invalidAPIKey, .missingCredentials,
              .authenticationFailed, .invalidRequest, .validationError,
-             .unexpectedResponseFormat, .dataConversionError,
-             .persistenceError, .modelNotFound, .providerError:
+             .unexpectedResponseFormat, .dataConversionError, .dataBindingError,
+             .persistenceError, .modelNotFound, .providerError, .unsupportedOperation:
             return false
         }
     }
@@ -175,18 +187,19 @@ public enum AIServiceError: Error, Sendable {
 }
 
 /// Error category for classification.
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum ErrorCategory: String, Sendable {
     case configuration
     case network
     case provider
     case data
     case storage
+    case operation
 }
 
 // MARK: - LocalizedError Conformance
 
-@available(macOS 15.0, iOS 17.0, *)
+
 extension AIServiceError: LocalizedError {
     public var localizedDescription: String {
         errorDescription
@@ -220,10 +233,14 @@ extension AIServiceError: LocalizedError {
             return "Response format is unexpected"
         case .dataConversionError:
             return "Could not convert data to expected type"
+        case .dataBindingError:
+            return "Could not bind data to model property"
         case .persistenceError:
             return "Database operation failed"
         case .modelNotFound:
             return "Referenced model does not exist"
+        case .unsupportedOperation:
+            return "Operation is not supported"
         }
     }
 
@@ -244,7 +261,7 @@ extension AIServiceError: LocalizedError {
             return "Verify your API key is correct and has not expired"
         case .invalidRequest:
             return "Check your request parameters and try again"
-        case .validationError, .dataConversionError:
+        case .validationError, .dataConversionError, .dataBindingError:
             return "Verify the data format matches requirements"
         case .unexpectedResponseFormat:
             return "The service may have changed. Check for framework updates"
@@ -254,13 +271,15 @@ extension AIServiceError: LocalizedError {
             return "Ensure the model exists in the database"
         case .providerError:
             return "Check the service status and your configuration"
+        case .unsupportedOperation:
+            return "This operation is not yet implemented"
         }
     }
 }
 
 // MARK: - CustomStringConvertible
 
-@available(macOS 15.0, iOS 17.0, *)
+
 extension AIServiceError: CustomStringConvertible {
     public var description: String {
         "AIServiceError.\(category.rawValue): \(errorDescription)"

@@ -10,9 +10,7 @@ struct AIServiceManagerTests {
 
     /// Creates a fresh manager instance for isolated testing.
     func createManager() -> AIServiceManager {
-        // Note: Cannot use shared instance for tests as it's persistent
-        // For now, we'll test the shared instance with cleanup
-        return AIServiceManager.shared
+        AIServiceManager()
     }
 
     /// Test model for SwiftData integration.
@@ -33,6 +31,7 @@ struct AIServiceManagerTests {
     func testProviderRegistration() async throws {
         let manager = createManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 50_000_000) // 50ms for CI stability
 
         let provider = MockAIServiceProvider.textProvider()
 
@@ -50,6 +49,9 @@ struct AIServiceManagerTests {
     func testMultipleProviderRegistration() async throws {
         let manager = createManager()
         await manager.unregisterAll()
+
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms
 
         let textProvider = MockAIServiceProvider.textProvider()
         let imageProvider = MockAIServiceProvider.imageProvider()
@@ -149,9 +151,12 @@ struct AIServiceManagerTests {
     }
 
     @Test("AIServiceManager unregister() with non-existent ID is safe")
-    func testUnregisterNonExistentProvider() async {
+    func testUnregisterNonExistentProvider() async throws {
         let manager = createManager()
         await manager.unregisterAll()
+
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 10_000_000) // 10ms
 
         // Should not crash or throw
         await manager.unregister(providerID: "non-existent-provider")

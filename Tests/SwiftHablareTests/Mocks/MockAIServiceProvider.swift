@@ -5,7 +5,7 @@ import SwiftData
 /// Mock AI service provider for testing.
 ///
 /// Supports configurable behavior including success, failure, and delay scenarios.
-@available(macOS 15.0, iOS 17.0, *)
+
 final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
     let id: String
     let displayName: String
@@ -53,6 +53,11 @@ final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
         lastPrompt = prompt
         lastParameters = parameters
 
+        // Check if provider is configured
+        if !configured {
+            throw AIServiceError.configurationError("Provider is not configured")
+        }
+
         if let error = shouldThrowError {
             throw error
         }
@@ -98,7 +103,7 @@ final class MockAIServiceProvider: AIServiceProvider, @unchecked Sendable {
 
 // MARK: - Factory Methods
 
-@available(macOS 15.0, iOS 17.0, *)
+
 extension MockAIServiceProvider {
     /// Creates a mock text generation provider.
     static func textProvider(id: String = "mock-text") -> MockAIServiceProvider {

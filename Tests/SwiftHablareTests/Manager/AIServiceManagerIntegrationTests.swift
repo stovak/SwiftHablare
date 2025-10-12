@@ -6,6 +6,12 @@ import Foundation
 @Suite(.serialized)
 struct AIServiceManagerIntegrationTests {
 
+    /// Creates an isolated manager per test to avoid shared-state interference
+    /// across suites that may execute in parallel.
+    private func makeManager() -> AIServiceManager {
+        AIServiceManager()
+    }
+
     // MARK: - Test Model
 
     @Model
@@ -25,8 +31,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Provider lifecycle: register → query → use → unregister")
     func testProviderLifecycle() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // 1. Register
         let provider = MockAIServiceProvider.textProvider()
@@ -55,8 +62,11 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Multiple providers can be registered and queried simultaneously")
     func testMultipleProvidersSimultaneously() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+
+        // Wait for cleanup to complete
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider(id: "provider-1", displayName: "Provider 1", capabilities: [.textGeneration], requiresAPIKey: false),
@@ -85,8 +95,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Provider replacement updates all indices correctly")
     func testProviderReplacementUpdatesIndices() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // Register provider with text capability
         let provider1 = MockAIServiceProvider(
@@ -127,8 +138,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Complex capability query with multiple providers")
     func testComplexCapabilityQuery() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider(id: "text-only", displayName: "Text Only", capabilities: [.textGeneration], requiresAPIKey: false),
@@ -157,8 +169,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Model type query with multiple providers")
     func testModelTypeQuery() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let provider1 = MockAIServiceProvider(
             id: "provider-1",
@@ -205,8 +218,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Empty capability array returns all providers")
     func testEmptyCapabilityArray() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = [
             MockAIServiceProvider.textProvider(),
@@ -223,8 +237,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Query for non-existent capability returns empty array")
     func testNonExistentCapabilityQuery() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         try await manager.register(provider: MockAIServiceProvider.textProvider())
 
@@ -235,9 +250,10 @@ struct AIServiceManagerIntegrationTests {
     }
 
     @Test("Query for non-existent model type returns empty array")
-    func testNonExistentModelTypeQuery() async {
-        let manager = AIServiceManager.shared
+    func testNonExistentModelTypeQuery() async throws {
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         let providers = await manager.providers(forModelType: "NonExistentModel")
         #expect(providers.isEmpty)
@@ -247,8 +263,9 @@ struct AIServiceManagerIntegrationTests {
 
     @Test("Statistics reflect accurate provider state")
     func testStatisticsAccuracy() async throws {
-        let manager = AIServiceManager.shared
+        let manager = makeManager()
         await manager.unregisterAll()
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms for CI stability
 
         // Add diverse providers
         let providers = [
