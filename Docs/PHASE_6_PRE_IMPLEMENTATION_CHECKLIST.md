@@ -181,53 +181,205 @@ public class OpenAITextRequestor: AIRequestor {
 
 ---
 
-### 2. Schema System Type Support
-**Priority**: 🔴 CRITICAL
-**Status**: ⚠️ NEEDS CLARIFICATION
-**Impact**: Type validation system architecture
+### 2. Schema System Type Support ✅
+**Priority**: 🔴 CRITICAL (RESOLVED)
+**Status**: ✅ DEFINED
+**Impact**: Type validation and serialization architecture
 
-**Current State**: Vague support statement
-> "Support for JSON schema, Pydantic-style models, or Swift Codable types"
+**Resolution**: Each typed data type defines its own serialization strategy
 
-**Missing Specifications**:
-- [ ] Which is the PRIMARY system?
-- [ ] How do JSON Schema and Pydantic models convert to Swift?
-- [ ] Are providers required to support all three?
-- [ ] Validation engine for each type
-- [ ] Conversion utilities between formats
+**Key Design Decisions**:
+1. ✅ **No Universal Schema System**: No need for JSON Schema, Pydantic, or universal validation
+2. ✅ **Type-Specific Serialization**: Each `TypedData` type owns its serialization strategy
+3. ✅ **Flexible Format Support**: Types can choose JSON, plist, binary, protobuf, etc.
+4. ✅ **Storage Decision**: Export/save thread decides storage location based on type preferences
 
-**Recommended Approach**:
+**Implementation Pattern**:
 ```swift
-// Primary: Swift Codable (native)
-protocol TypedDataSchema {
-    associatedtype DataType: Codable & Sendable
-    func validate(_ data: Any) throws -> DataType
+/// Protocol for types that can serialize themselves
+public protocol SerializableTypedData: Codable, Sendable {
+    /// Preferred serialization format
+    var preferredFormat: SerializationFormat { get }
+
+    /// Serialize to Data using preferred format
+    func serialize() throws -> Data
+
+    /// Deserialize from Data
+    static func deserialize(from data: Data, format: SerializationFormat) throws -> Self
 }
 
-// Secondary: JSON Schema support
-struct JSONSchemaValidator: TypedDataSchema {
-    let schema: JSONSchema
-    // ... validation implementation
+public enum SerializationFormat: String, Codable {
+    case json           // JSON encoding
+    case plist          // Property list
+    case binary         // Custom binary format
+    case protobuf       // Protocol buffers
+    case messagepack    // MessagePack
+
+    var fileExtension: String {
+        switch self {
+        case .json: return "json"
+        case .plist: return "plist"
+        case .binary: return "bin"
+        case .protobuf: return "pb"
+        case .messagepack: return "msgpack"
+        }
+    }
+
+    var mimeType: String {
+        switch self {
+        case .json: return "application/json"
+        case .plist: return "application/x-plist"
+        case .binary: return "application/octet-stream"
+        case .protobuf: return "application/x-protobuf"
+        case .messagepack: return "application/x-msgpack"
+        }
+    }
 }
 
-// Optional: Pydantic-style via property wrappers
-@propertyWrapper
-struct Validated<T: Codable> {
-    // ... validation decorators
+/// Default implementation using Codable
+extension SerializableTypedData {
+    public var preferredFormat: SerializationFormat { .json }
+
+    public func serialize() throws -> Data {
+        switch preferredFormat {
+        case .json:
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            return try encoder.encode(self)
+
+        case .plist:
+            let encoder = PropertyListEncoder()
+            encoder.outputFormat = .xml
+            return try encoder.encode(self)
+
+        case .binary, .protobuf, .messagepack:
+            // Custom serialization - type implements this
+            fatalError("Type must implement custom serialization for format: \(preferredFormat)")
+        }
+    }
+
+    public static func deserialize(from data: Data, format: SerializationFormat) throws -> Self {
+        switch format {
+        case .json:
+            let decoder = JSONDecoder()
+            return try decoder.decode(Self.self, from: data)
+
+        case .plist:
+            let decoder = PropertyListDecoder()
+            return try decoder.decode(Self.self, from: data)
+
+        case .binary, .protobuf, .messagepack:
+            // Custom deserialization - type implements this
+            fatalError("Type must implement custom deserialization for format: \(format)")
+        }
+    }
 }
 ```
 
-**Questions to Resolve**:
-1. Should we focus on Swift Codable only for Phase 6, defer others to Phase 7?
-2. How complex should JSON Schema support be? (Basic validation or full spec?)
-3. Do we need Pydantic support at all, or is Swift Codable sufficient?
+**Example Usage**:
+```swift
+// Text uses JSON (human-readable, debuggable)
+public struct GeneratedText: SerializableTypedData {
+    let text: String
+    let wordCount: Int
+    let metadata: [String: String]
 
-**Recommendation**:
-- Phase 6: Swift Codable only (native, well-tested)
-- Phase 7+: Add JSON Schema support if community requests it
-- Defer Pydantic: Low priority unless specific use case emerges
+    public var preferredFormat: SerializationFormat { .json }
+}
 
-**Action Required**: Decide on primary schema system and scope for Phase 6
+// Audio metadata uses plist (native Apple format)
+public struct GeneratedAudio: SerializableTypedData {
+    let audioData: Data?  // Actual audio stored separately
+    let format: String
+    let sampleRate: Int
+    let duration: Double
+
+    public var preferredFormat: SerializationFormat { .plist }
+}
+
+// Large structured data uses binary (compact, efficient)
+public struct GeneratedEmbedding: SerializableTypedData {
+    let vectors: [Float]
+    let dimensions: Int
+    let model: String
+
+    public var preferredFormat: SerializationFormat { .binary }
+
+    // Custom binary serialization for efficiency
+    public func serialize() throws -> Data {
+        var data = Data()
+        data.append(contentsOf: withUnsafeBytes(of: dimensions) { Data($0) })
+        data.append(contentsOf: vectors.withUnsafeBytes { Data($0) })
+        // ... encode model string
+        return data
+    }
+
+    public static func deserialize(from data: Data, format: SerializationFormat) throws -> Self {
+        // Custom binary deserialization
+        // ...
+    }
+}
+```
+
+**Benefits**:
+- **Type Autonomy**: Each type knows how to serialize itself
+- **Format Flexibility**: JSON for text, binary for embeddings, plist for metadata
+- **Performance**: Types can optimize their own serialization
+- **No Dependencies**: No need for external schema libraries
+- **Swift Native**: Uses standard Codable where possible
+- **Extensible**: Easy to add new formats (protobuf, msgpack, etc.)
+
+**Storage Integration**:
+```swift
+// TextPackCoordinator handles storage
+actor TextPackCoordinator {
+    func writeTypedData<T: SerializableTypedData>(
+        _ data: T,
+        withID id: UUID,
+        to storageArea: StorageAreaReference
+    ) async throws -> TypedDataFileReference {
+        // Type decides format
+        let format = data.preferredFormat
+        let serialized = try data.serialize()
+
+        // Write with appropriate extension
+        let filename = "\(id.uuidString).\(format.fileExtension)"
+        let fileURL = storageArea.resourcesDirectory.appendingPathComponent(filename)
+
+        try serialized.write(to: fileURL)
+
+        return TypedDataFileReference(
+            uniqueID: id,
+            requestID: storageArea.requestID,
+            bundlePath: storageArea.bundleURL,
+            relativePath: "Resources/\(filename)",
+            contentType: format.mimeType,
+            sizeBytes: Int64(serialized.count),
+            createdAt: Date()
+        )
+    }
+
+    func readTypedData<T: SerializableTypedData>(
+        from reference: TypedDataFileReference,
+        as type: T.Type
+    ) async throws -> T {
+        let data = try Data(contentsOf: reference.fullPath)
+
+        // Infer format from file extension
+        let format = SerializationFormat.from(extension: reference.relativePath)
+
+        return try T.deserialize(from: data, format: format)
+    }
+}
+```
+
+**Validation**:
+- Types validate themselves during deserialization
+- Codable provides automatic validation
+- Custom types can implement additional validation in their deserialize method
+- No separate schema validation layer needed
+
+**See Also**: `PHASE_6_API_REQUESTOR_PROTOCOL.md` for integration with AIRequestor protocol
 
 ---
 
@@ -671,11 +823,11 @@ struct MultiTypeConfigurationView: View {
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| 🔴 **CRITICAL** (Must Define Before) | 2 | Blocking |
+| 🔴 **CRITICAL** (Must Define Before) | 1 | Blocking |
 | 🟡 **HIGH** (Must Define Before/Early) | 2 | Blocking |
 | 🟢 **MEDIUM** (Should Define Before/During) | 5 | Non-blocking |
 | 🔵 **LOW** (Can Define During) | 1 | Non-blocking |
-| ✅ **RESOLVED** | 4 | Complete |
+| ✅ **RESOLVED** | 5 | Complete |
 | **TOTAL** | 14 | |
 
 ---
