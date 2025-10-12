@@ -35,14 +35,7 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
     }
 
     private func setupAudioSession() {
-        do {
-            #if os(iOS)
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
-            #endif
-        } catch {
-            print("Failed to setup audio session: \(error)")
-        }
+        // macOS doesn't require AVAudioSession setup
     }
 
     /// Play audio from an AudioFile model

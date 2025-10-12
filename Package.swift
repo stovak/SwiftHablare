@@ -5,8 +5,7 @@ import PackageDescription
 let package = Package(
     name: "SwiftHablare",
     platforms: [
-        .macOS(.v15),
-        .iOS(.v17)
+        .macOS("26.0")
     ],
     products: [
         .library(

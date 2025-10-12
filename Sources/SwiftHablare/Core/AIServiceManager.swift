@@ -29,7 +29,7 @@ import SwiftData
 ///     let result = try await openai.generate(prompt: "Hello", parameters: [:], context: context)
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public actor AIServiceManager {
 
     // MARK: - Singleton

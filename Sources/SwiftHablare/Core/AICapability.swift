@@ -14,7 +14,6 @@ import Foundation
 ///     // Use provider for image generation
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
 public enum AICapability: Sendable, Codable {
     /// Plain text generation (articles, stories, responses, etc.)
     case textGeneration
@@ -132,7 +131,6 @@ public enum AICapability: Sendable, Codable {
 
 // MARK: - Equatable
 
-@available(macOS 15.0, iOS 17.0, *)
 extension AICapability: Equatable {
     public static func == (lhs: AICapability, rhs: AICapability) -> Bool {
         switch (lhs, rhs) {
@@ -156,7 +154,6 @@ extension AICapability: Equatable {
 
 // MARK: - Hashable
 
-@available(macOS 15.0, iOS 17.0, *)
 extension AICapability: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {

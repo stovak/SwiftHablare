@@ -20,7 +20,7 @@ import CryptoKit
 /// let response = try await provider.generate(...)
 /// await cache.set(response, providerId: "openai", prompt: "Hello", parameters: [:])
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public actor AIResponseCache {
 
     // MARK: - Types

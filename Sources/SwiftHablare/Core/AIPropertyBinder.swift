@@ -18,7 +18,7 @@ import SwiftData
 ///     context: modelContext
 /// )
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct AIPropertyBinder: Sendable {
 
     // MARK: - Initialization

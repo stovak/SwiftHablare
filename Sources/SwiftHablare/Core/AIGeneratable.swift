@@ -24,7 +24,7 @@ import SwiftData
 ///     }
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public protocol AIGeneratable: PersistentModel {
     /// Declares which properties can be AI-generated and how.
     static var aiGenerationSchema: AIGenerationSchema { get }
@@ -33,7 +33,7 @@ public protocol AIGeneratable: PersistentModel {
 /// Describes how AI generation works for a model.
 ///
 /// Built using a result builder for clean, declarative syntax.
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct AIGenerationSchema: Sendable {
     /// The property specifications for AI generation.
     public let properties: [AIPropertySpec]
@@ -48,7 +48,7 @@ public struct AIGenerationSchema: Sendable {
 }
 
 /// Specification for how a property should be AI-generated.
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct AIPropertySpec: Sendable {
     /// The property name (derived from KeyPath).
     public let propertyName: String
@@ -144,7 +144,7 @@ public struct AIPropertySpec: Sendable {
 }
 
 /// Type alias for transformation functions.
-@available(macOS 15.0, iOS 17.0, *)
+
 public typealias TransformFunction = @Sendable (Any, Any) throws -> Any
 
 /// Creates an AI property specification from a KeyPath with an explicit property name.
@@ -162,7 +162,7 @@ public typealias TransformFunction = @Sendable (Any, Any) throws -> Any
 ///     .providers(["openai", "anthropic"])
 ///     .constraints(minLength: 10, maxLength: 100)
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>, name: String) -> AIPropertySpec {
     return AIPropertySpec(propertyName: name)
 }
@@ -170,7 +170,7 @@ public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>, name: String) -> AIProper
 // MARK: - Result Builder
 
 /// Result builder for constructing AIGenerationSchema.
-@available(macOS 15.0, iOS 17.0, *)
+
 @resultBuilder
 public struct AIGenerationSchemaBuilder {
     public static func buildBlock(_ components: AIPropertySpec...) -> [AIPropertySpec] {

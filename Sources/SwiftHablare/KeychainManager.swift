@@ -8,7 +8,7 @@
 import Foundation
 import Security
 
-/// Secure storage manager for API keys using macOS/iOS Keychain
+/// Secure storage manager for API keys using macOS Keychain
 public final class KeychainManager: Sendable {
     public static let shared = KeychainManager()
 

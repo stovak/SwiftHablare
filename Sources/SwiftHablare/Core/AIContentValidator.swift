@@ -17,7 +17,7 @@ import SwiftData
 ///     constraints: ["minLength": 100, "maxLength": 5000]
 /// )
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public actor AIContentValidator {
 
     // MARK: - Types

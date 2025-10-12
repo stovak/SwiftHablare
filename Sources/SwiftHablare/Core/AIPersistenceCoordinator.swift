@@ -39,7 +39,7 @@ private struct UncheckedSendableBox: @unchecked Sendable {
 ///     context: modelContext
 /// )
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public struct AIPersistenceCoordinator: Sendable {
 
     // MARK: - Properties

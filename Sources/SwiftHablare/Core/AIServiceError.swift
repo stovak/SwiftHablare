@@ -41,7 +41,7 @@ import Foundation
 ///     print("Rate limited. Retry after \(retryAfter ?? 0) seconds")
 /// }
 /// ```
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum AIServiceError: Error, Sendable {
     // MARK: - Configuration Errors
 
@@ -187,7 +187,7 @@ public enum AIServiceError: Error, Sendable {
 }
 
 /// Error category for classification.
-@available(macOS 15.0, iOS 17.0, *)
+
 public enum ErrorCategory: String, Sendable {
     case configuration
     case network
@@ -199,7 +199,7 @@ public enum ErrorCategory: String, Sendable {
 
 // MARK: - LocalizedError Conformance
 
-@available(macOS 15.0, iOS 17.0, *)
+
 extension AIServiceError: LocalizedError {
     public var localizedDescription: String {
         errorDescription
@@ -279,7 +279,7 @@ extension AIServiceError: LocalizedError {
 
 // MARK: - CustomStringConvertible
 
-@available(macOS 15.0, iOS 17.0, *)
+
 extension AIServiceError: CustomStringConvertible {
     public var description: String {
         "AIServiceError.\(category.rawValue): \(errorDescription)"
