@@ -33,9 +33,8 @@ jobs:
       - name: Run tests
         run: |
           # Run functional tests (exclude performance tests) and capture output
-          # Note: --enable-code-coverage enables stricter runtime concurrency checks
-          # which conflict with @unchecked Sendable ModelContext wrapper pattern
-          swift test --skip 'AIServiceManagerPerformanceTests' 2>&1 | tee test-output.log
+          # Run tests sequentially to avoid ModelContext concurrency issues
+          swift test --parallel --skip 'AIServiceManagerPerformanceTests' --num-workers 1 2>&1 | tee test-output.log
 
           # Capture exit code
           TEST_EXIT_CODE=${PIPESTATUS[0]}
