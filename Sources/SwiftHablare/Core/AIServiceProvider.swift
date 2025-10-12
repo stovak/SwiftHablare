@@ -93,6 +93,40 @@ public protocol AIServiceProvider: Sendable {
     /// `.audio` for TTS providers, `.image` for image generators).
     var responseType: ResponseContent.ContentType { get }
 
+    // MARK: - API Requestors (Phase 6)
+
+    /// Returns all available requestors offered by this provider.
+    ///
+    /// **Phase 6**: API Requestor pattern where one requestor = one file type.
+    ///
+    /// Each requestor is an independent request interface that generates exactly one
+    /// type of data. A provider can offer multiple requestors across different categories.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// // OpenAI offers three requestors
+    /// func availableRequestors() -> [any AIRequestor] {
+    ///     [
+    ///         OpenAITextRequestor(provider: self),      // Text generation
+    ///         OpenAIImageRequestor(provider: self),     // Image generation
+    ///         OpenAIEmbeddingRequestor(provider: self)  // Embeddings
+    ///     ]
+    /// }
+    ///
+    /// // ElevenLabs offers one requestor
+    /// func availableRequestors() -> [any AIRequestor] {
+    ///     [ElevenLabsAudioRequestor(provider: self)]
+    /// }
+    /// ```
+    ///
+    /// - Returns: Array of requestor instances (may be empty for Phase 5 providers)
+    ///
+    /// - Note: During Phase 6 migration, Phase 5 providers will return an empty array
+    ///         and continue to use the `generate()` method.
+    @available(macOS 15.0, iOS 17.0, *)
+    func availableRequestors() -> [any AIRequestor]
+
     // MARK: - Generation (New API)
 
     /// Generates data based on a prompt and parameters.
@@ -164,6 +198,17 @@ public extension AIServiceProvider {
         if requiresAPIKey && !isConfigured() {
             throw AIServiceError.configurationError("API key required but not configured for provider '\(id)'")
         }
+    }
+
+    /// Default implementation returns an empty array.
+    ///
+    /// **Phase 5 providers** (not yet migrated) will use this default.
+    /// **Phase 6 providers** should override this to return their requestors.
+    ///
+    /// - Returns: Empty array (Phase 5 compatibility)
+    @available(macOS 15.0, iOS 17.0, *)
+    func availableRequestors() -> [any AIRequestor] {
+        return []
     }
 
     /// Default implementation of the new generate method that calls the legacy method.
