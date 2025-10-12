@@ -30,10 +30,11 @@ jobs:
           rm -rf ~/Library/Application\ Support/default.store*
           rm -rf ~/Library/Application\ Support/*.store
 
-      - name: Run tests with coverage
+      - name: Run tests
         run: |
           # Run functional tests (exclude performance tests) and capture output
-          swift test --enable-code-coverage --skip 'AIServiceManagerPerformanceTests' 2>&1 | tee test-output.log
+          # Run tests sequentially to avoid ModelContext concurrency issues
+          swift test --parallel --skip 'AIServiceManagerPerformanceTests' --num-workers 1 2>&1 | tee test-output.log
 
           # Capture exit code
           TEST_EXIT_CODE=${PIPESTATUS[0]}
