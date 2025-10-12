@@ -294,6 +294,19 @@ extension ElevenLabsProvider {
     }
 }
 
+// MARK: - Phase 6 Requestor Support
+
+@available(macOS 15.0, iOS 17.0, *)
+extension ElevenLabsProvider {
+
+    /// Returns available audio requestors for ElevenLabs.
+    public func availableRequestors() -> [any AIRequestor] {
+        return [
+            ElevenLabsAudioRequestor(provider: self)
+        ]
+    }
+}
+
 // MARK: - Factory Methods
 
 @available(macOS 15.0, iOS 17.0, *)
