@@ -82,6 +82,9 @@ See [PHASE_4_COMPLETION_REPORT.md](Docs/PHASE_4_COMPLETION_REPORT.md) for Phase 
 
 ### Next: Phase 6
 - **API Requestor pattern**: Standardized interface for requesting typed data from AI providers
+- **Provider types**: Generic categories (Audio, Text, Image, Video) - not "voice provider"
+- **Configuration widgets**: Each requestor provides UI for request parameters (voice selection, prompts, etc.)
+- **Multi-type provider support**: Providers that return multiple types offer type selection + dynamic configuration
 - Typed return data support with schema validation
 - Type-safe data extraction from AI responses
 - Error handling for missing/invalid typed data

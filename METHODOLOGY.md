@@ -622,6 +622,18 @@ Each phase follows this structure:
 
 **API Requestor Definition**: An API Requestor is a request-based interface to a local or remote AI system provider. Individual provider implementations provide a standardized interface for requesting typed data from AI-generated sources.
 
+**Provider Types**: Generic provider categories based on output type:
+- Audio Provider (e.g., ElevenLabs, Apple TTS) - not "voice provider"
+- Text Provider (e.g., OpenAI, Anthropic)
+- Image Provider (e.g., DALL-E, Midjourney)
+- Video Provider, etc.
+
+**Configuration Widget Pattern**: Each API Requestor must provide a configuration widget for request parameters:
+- Audio Provider: voice selection, audio parameters
+- Image Provider: prompt input, style parameters
+- Text Provider: model selection, temperature, etc.
+- Multi-type Providers: type selection + type-specific configuration
+
 **UI Component Pattern**: Three-view pattern for displaying AI responses:
 1. **List View**: Filterable list of all responses
 2. **Detail View**: Individual response detail display
@@ -641,6 +653,11 @@ Each phase follows this structure:
 - [ ] Type conversion and validation middleware
 - [ ] TextPack coordinator actor: Thread-safe coordination for TextPack bundle modifications
 - [ ] API Requestor protocol: Standardized interface for requesting typed data from AI providers
+- [ ] Configuration widget requirement: Each API requestor must provide a SwiftUI configuration widget
+  - Audio providers: voice selection, audio format, speed, pitch, etc.
+  - Image providers: prompt input, size, style, quality parameters
+  - Text providers: model selection, temperature, max tokens, system prompts
+  - Multi-type providers: type selection dropdown + dynamic type-specific configuration
 - [ ] SwiftData model requirements: Each API requestor must provide its own SwiftData table/model for storing typed data
 - [ ] SwiftUI display requirements: Three-view pattern implementation (list, detail, combined)
   - Filterable list view of all AI responses
@@ -668,12 +685,18 @@ Each phase follows this structure:
 - [ ] Error handling patterns for type mismatches
 - [ ] API Requestor protocol guide: standardized interface for requesting typed data
 - [ ] Provider implementation guide: implementing API Requestor interface for specific providers
+- [ ] Provider naming conventions: use generic output type (Audio Provider, not Voice Provider)
+- [ ] Configuration widget guide: creating request configuration UI for each provider type
+  - Audio provider configuration examples (voice selection, parameters)
+  - Image provider configuration examples (prompt input, generation parameters)
+  - Text provider configuration examples (model, temperature, tokens)
+  - Multi-type provider configuration with dynamic type-specific widgets
 - [ ] SwiftData model creation guide for typed data storage
 - [ ] Three-view pattern guide: implementing list, detail, and combined views
   - Filterable list view implementation and filtering patterns
   - Detail view layout and data binding
   - Combined view with click-to-reveal interaction patterns
-- [ ] Complete example: defining API requestor with model and three-view UI
+- [ ] Complete example: defining API requestor with configuration widget, model, and three-view UI
 - [ ] Concurrency patterns: background request → background file write → file reference to main → SwiftData persistence
 - [ ] Actor-based coordination pattern for thread-safe TextPack bundle modifications
 - [ ] File write workflow: write on background thread, only pass file reference to main thread
@@ -717,6 +740,11 @@ Each phase follows this structure:
 - [ ] Partial data handling
 - [ ] API Requestor protocol conformance and interface
 - [ ] API Requestor standardized request/response flow
+- [ ] Configuration widget interface and state management
+  - Audio provider configuration widget (voice selection, parameters)
+  - Image provider configuration widget (prompt input, parameters)
+  - Text provider configuration widget (model, temperature, tokens)
+  - Multi-type provider type selection and dynamic configuration
 - [ ] Sendable protocol conformance verification
 - [ ] Thread safety of typed data objects
 - [ ] File storage threshold logic
@@ -741,13 +769,18 @@ Each phase follows this structure:
 - [ ] Multiple typed requests in batch
 - [ ] Type validation across different providers
 - [ ] API Requestor protocol conformance across different providers
+- [ ] Configuration widget integration with request flow
+  - Audio provider: voice selection flows to request
+  - Image provider: prompt input flows to request
+  - Text provider: configuration flows to request
+  - Multi-type provider: type selection changes available configuration
 - [ ] SwiftData model persistence for typed data
 - [ ] Three-view pattern UI rendering:
   - Filterable list view displays all responses correctly
   - Detail view displays individual response correctly
   - Combined view click-to-reveal interaction works correctly
   - Filtering functionality works across all data types
-- [ ] Complete flow: API requestor request → validate → persist → three-view display
+- [ ] Complete flow: configuration widget → API requestor request → validate → persist → three-view display
 - [ ] Background thread request execution (verify never on main thread)
 - [ ] Main thread SwiftData writes (verify persistence only on main thread)
 - [ ] Sendable data transfer between threads (file references only, not large data)
