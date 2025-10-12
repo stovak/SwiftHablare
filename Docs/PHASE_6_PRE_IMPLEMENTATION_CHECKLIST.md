@@ -383,81 +383,200 @@ actor TextPackCoordinator {
 
 ---
 
-### 3. TextPack Coordinator Actor Interface
-**Priority**: 🔴 CRITICAL
-**Status**: ⚠️ NEEDS DEFINITION
-**Impact**: Thread-safe file operations
+### 3. TextPack Coordinator / Document Integration ✅
+**Priority**: 🔴 CRITICAL (RESOLVED)
+**Status**: ✅ DEFINED
+**Impact**: File operations and document management
 
-**Current State**: General requirement
-> "Use actor or appropriate synchronization for thread-safe TextPack bundle modifications"
+**Resolution**: Document-based approach - the TextPack document owns file operations
 
-**Missing Specifications**:
-- [ ] Actor name and complete interface
-- [ ] Methods for creating/reading/updating/deleting from bundles
-- [ ] Thread-safe queue management
-- [ ] Error handling for bundle operations
-- [ ] Integration with SwiftGuion library API
+**Key Design Decisions**:
+1. ✅ **Document is the .guion Bundle**: The app operates on the actual TextPack document
+2. ✅ **No Separate Coordinator Actor**: Document itself manages file operations (thread-safe via SwiftGuion)
+3. ✅ **File Broker Pattern**: TypedDataBroker queries and returns file info on save
+4. ✅ **Document Controls Storage**: Document decides what to do with files it receives
 
-**Updated Interface** (with request-specific storage):
+**Implementation Pattern**:
 ```swift
-actor TextPackCoordinator {
-    private var activeBundles: [URL: TextPackBundle] = [:]
+/// The main document (SwiftUI Document-based app)
+class HablareDocument: ReferenceFileDocument {
+    static var readableContentTypes: [UTType] { [.guionBundle] }
 
-    // Request-specific storage area management
-    func createRequestBundle(
-        at url: URL,
-        requestID: UUID
-    ) async throws -> StorageAreaReference
+    /// The .guion bundle this document represents
+    private var bundle: TextPackBundle
 
-    func getRequestBundle(
-        for requestID: UUID
-    ) async throws -> TextPackBundle
+    /// File broker for managing generated files
+    private let fileBroker: TypedDataBroker
 
-    func deleteRequestBundle(
-        for requestID: UUID
-    ) async throws
+    init() {
+        self.bundle = TextPackBundle()
+        self.fileBroker = TypedDataBroker(documentBundle: bundle)
+    }
 
-    // File operations within request-specific bundles
-    func writeResource(
-        data: Data,
-        withID id: UUID,
-        contentType: String,
-        to storageArea: StorageAreaReference
-    ) async throws -> TypedDataFileReference
+    // MARK: - Document Save
 
-    func readResource(
-        from reference: TypedDataFileReference
-    ) async throws -> Data
+    func snapshot(contentType: UTType) throws -> Data {
+        // Ask file broker for all attached files
+        let attachedFiles = await fileBroker.getAttachedFiles()
 
-    func deleteResource(
-        _ reference: TypedDataFileReference
-    ) async throws
+        // Write each file to document bundle
+        for attachment in attachedFiles {
+            try bundle.writeResource(
+                attachment.data,
+                at: attachment.path,
+                metadata: attachment.metadata
+            )
+        }
 
-    // Bulk operations
-    func writeMultipleResources(
-        _ items: [(UUID, Data, String)],
-        to storageArea: StorageAreaReference
-    ) async throws -> [TypedDataFileReference]
+        // Return document snapshot
+        return try bundle.serialize()
+    }
+
+    func fileWrapper(snapshot: Data, configuration: WriteConfiguration) throws -> FileWrapper {
+        // SwiftGuion handles .guion bundle structure
+        return try bundle.fileWrapper()
+    }
 }
 
-struct StorageAreaReference: Codable, Sendable {
-    let requestID: UUID
-    let bundleURL: URL
+/// TypedDataBroker provides file attachment interface
+actor TypedDataBroker {
+    private weak var documentBundle: TextPackBundle?
+    private var fileAttachments: [UUID: FileAttachment] = [:]
+
+    /// Query files attached to specific parent IDs
+    func getAttachedFiles(forParents parentIDs: [UUID]? = nil) -> [FileAttachment] {
+        if let parentIDs = parentIDs {
+            return fileAttachments.values.filter { parentIDs.contains($0.parentID) }
+        }
+        return Array(fileAttachments.values)
+    }
+
+    /// Register a generated file attachment
+    func attachFile(
+        _ data: Data,
+        serializedObject: any SerializableTypedData,
+        path: String,
+        parentID: UUID,
+        requestID: UUID
+    ) {
+        let attachment = FileAttachment(
+            id: UUID(),
+            data: data,
+            serializedObject: serializedObject,
+            path: path,
+            parentID: parentID,
+            requestID: requestID,
+            createdAt: Date()
+        )
+        fileAttachments[attachment.id] = attachment
+    }
+
+    /// Remove attachments for a parent
+    func removeAttachments(forParent parentID: UUID) {
+        fileAttachments = fileAttachments.filter { $0.value.parentID != parentID }
+    }
+}
+
+/// File attachment returned to document
+struct FileAttachment: Sendable {
+    let id: UUID
+    let data: Data                          // Serialized typed data
+    let serializedObject: any SerializableTypedData  // Original object
+    let path: String                        // Relative path in bundle
+    let parentID: UUID                      // Parent element that owns this
+    let requestID: UUID                     // Original request
     let createdAt: Date
 
-    var resourcesDirectory: URL {
-        bundleURL.appendingPathComponent("Resources")
+    var metadata: [String: String] {
+        [
+            "parentID": parentID.uuidString,
+            "requestID": requestID.uuidString,
+            "createdAt": createdAt.ISO8601Format()
+        ]
     }
 }
 ```
 
-**Resolved Questions**:
-1. ✅ **Storage Organization**: Each request gets its own .guion bundle at `Requests/{requestID}.guion/`
-2. ✅ **Concurrent Writes**: Actor isolation ensures thread-safe access; each request writes to isolated bundle
-3. ✅ **Bundle Management**: Coordinator manages active bundles by URL; lazy loading on demand
-4. ✅ **Cleanup**: Request bundles can be deleted atomically via `deleteRequestBundle()`
+**Document Save Flow**:
+```swift
+// User triggers Save in document
+document.save() {
+    // 1. Document asks broker for attached files
+    let files = await fileBroker.getAttachedFiles()
 
-**Action Required**: Define complete actor interface with SwiftGuion integration
+    // 2. Broker returns file info for all parent IDs
+    // - File data (serialized)
+    // - Path in bundle (e.g., "Resources/{parentID}/{requestID}.json")
+    // - Metadata (parentID, requestID, timestamps)
+
+    // 3. Document writes files to .guion bundle
+    for file in files {
+        try bundle.writeResource(file.data, at: file.path)
+    }
+
+    // 4. SwiftGuion serializes the complete bundle
+    return try bundle.fileWrapper()
+}
+```
+
+**File Organization in .guion Bundle**:
+```
+MyProject.guion/
+├── info.json                          # Bundle metadata
+├── text.md or text.html               # Main document content
+└── Resources/
+    ├── {parentID-1}/
+    │   ├── {requestID-1}.json         # Generated text metadata
+    │   ├── {requestID-2}.png          # Generated image
+    │   └── {requestID-3}.json         # Image metadata
+    └── {parentID-2}/
+        ├── {requestID-4}.mp3          # Generated audio
+        └── {requestID-4}.plist        # Audio metadata
+```
+
+**Broker Query Interface**:
+```swift
+actor TypedDataBroker {
+
+    /// Get all attachments (for full document save)
+    func getAttachedFiles() -> [FileAttachment] {
+        Array(fileAttachments.values)
+    }
+
+    /// Get attachments for specific parent(s)
+    func getAttachedFiles(forParents parentIDs: [UUID]) -> [FileAttachment] {
+        fileAttachments.values.filter { parentIDs.contains($0.parentID) }
+    }
+
+    /// Get attachments for a specific request
+    func getAttachedFiles(forRequest requestID: UUID) -> [FileAttachment] {
+        fileAttachments.values.filter { $0.requestID == requestID }
+    }
+
+    /// Check if parent has attachments
+    func hasAttachments(forParent parentID: UUID) -> Bool {
+        fileAttachments.values.contains { $0.parentID == parentID }
+    }
+}
+```
+
+**Benefits**:
+- **Document-Centric**: Natural fit with SwiftUI document architecture
+- **SwiftGuion Integration**: Document uses SwiftGuion for .guion operations (thread-safe)
+- **Simple Interface**: Broker provides query API, document decides storage
+- **No Separate Coordinator**: Document IS the coordinator for its bundle
+- **Flexible Storage**: Document can organize files however it wants
+- **Atomic Saves**: All file writes happen during document save
+- **Parent-Based Organization**: Files grouped by parent element for easy management
+
+**SwiftGuion Thread Safety**:
+- SwiftGuion's TextPackBundle is already designed for thread-safe operations
+- Document can safely write from save operation
+- No additional actor isolation needed beyond broker
+
+**See Also**:
+- `PHASE_6_GENERATED_FILE_FLOW.md` for complete workflow
+- SwiftGuion library: https://github.com/intrusive-memory/SwiftGuion
 
 ---
 
@@ -823,11 +942,11 @@ struct MultiTypeConfigurationView: View {
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| 🔴 **CRITICAL** (Must Define Before) | 1 | Blocking |
+| 🔴 **CRITICAL** (Must Define Before) | 0 | ✅ ALL RESOLVED |
 | 🟡 **HIGH** (Must Define Before/Early) | 2 | Blocking |
 | 🟢 **MEDIUM** (Should Define Before/During) | 5 | Non-blocking |
 | 🔵 **LOW** (Can Define During) | 1 | Non-blocking |
-| ✅ **RESOLVED** | 5 | Complete |
+| ✅ **RESOLVED** | 6 | Complete |
 | **TOTAL** | 14 | |
 
 ---
