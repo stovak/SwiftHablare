@@ -139,20 +139,30 @@ public actor AIRateLimiter {
         waitQueue.removeAll()
     }
 
+    /// Statistics about the rate limiter.
+    public struct Statistics: Sendable {
+        public let availableTokens: Int
+        public let maxRequests: Int
+        public let timeWindowSeconds: TimeInterval
+        public let refillRate: Double
+        public let queueLength: Int
+        public let estimatedWaitTime: TimeInterval
+    }
+
     /// Returns statistics about the rate limiter.
     ///
-    /// - Returns: Dictionary with statistics
-    public func statistics() -> [String: Any] {
+    /// - Returns: Statistics about the rate limiter
+    public func statistics() -> Statistics {
         refillTokens()
 
-        return [
-            "available_tokens": tokens,
-            "max_requests": maxRequests,
-            "time_window_seconds": timeWindow,
-            "refill_rate": refillRate,
-            "queue_length": waitQueue.count,
-            "estimated_wait_time": estimatedWaitTime()
-        ]
+        return Statistics(
+            availableTokens: tokens,
+            maxRequests: maxRequests,
+            timeWindowSeconds: timeWindow,
+            refillRate: refillRate,
+            queueLength: waitQueue.count,
+            estimatedWaitTime: estimatedWaitTime()
+        )
     }
 }
 

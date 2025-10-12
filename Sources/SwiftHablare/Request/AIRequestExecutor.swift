@@ -1,6 +1,14 @@
 import Foundation
 import SwiftData
 
+// MARK: - ModelContext Sendable Wrapper
+
+/// Unsafe wrapper to allow ModelContext to cross actor boundaries.
+/// This is safe when the context is only used within a single task.
+fileprivate struct UnsafeModelContextWrapper: @unchecked Sendable {
+    let context: ModelContext
+}
+
 /// Executes AI service requests with support for rate limiting, caching, and error recovery.
 ///
 /// `AIRequestExecutor` is the primary interface for making requests to AI service providers.
@@ -88,10 +96,12 @@ public actor AIRequestExecutor {
         await limiter.waitForPermission()
 
         // Execute with retry logic
+        // Note: ModelContext crossing is safe here as it stays within the same task
+        let wrapper = UnsafeModelContextWrapper(context: context)
         let response = try await executeWithRetry(
             request: request,
             provider: provider,
-            context: context,
+            contextWrapper: wrapper,
             retryConfig: retryConfig,
             defaultTimeout: defaultTimeout
         )
@@ -146,21 +156,23 @@ public actor AIRequestExecutor {
     /// - Parameters:
     ///   - request: The request to execute
     ///   - provider: The provider to use
-    ///   - context: SwiftData model context
+    ///   - contextWrapper: Wrapped ModelContext for safe cross-actor use
     /// - Returns: The AI response
     /// - Throws: `AIServiceError` if all retry attempts fail
     ///
-    /// - Note: This method is nonisolated to work around ModelContext not being Sendable in Swift 6.
-    ///         The ModelContext should only be used within the calling task's isolation domain.
+    /// - Note: ModelContext is not Sendable but is safe here as it stays within the same task.
+    ///         The nonisolated attribute is required because we pass ModelContext to
+    ///         non-isolated protocol methods. This is safe as the context is never shared across tasks.
     nonisolated private func executeWithRetry(
         request: AIRequest,
         provider: any AIServiceProvider,
-        context: ModelContext,
+        contextWrapper: UnsafeModelContextWrapper,
         retryConfig: RetryConfiguration,
         defaultTimeout: TimeInterval
     ) async throws -> AIResponse {
         var lastError: Error?
         var attemptNumber = 0
+        let context = contextWrapper.context
 
         while attemptNumber <= retryConfig.maxRetries {
             do {
@@ -369,21 +381,26 @@ public actor AIRequestExecutor {
         await cache.clear()
     }
 
+    /// Statistics about the executor.
+    public struct Statistics: Sendable {
+        public let cacheStats: [String: Int]
+        public let rateLimiterCount: Int
+        public let maxRetries: Int
+        public let baseDelay: TimeInterval
+        public let maxDelay: TimeInterval
+    }
+
     /// Returns statistics about the executor.
     ///
-    /// - Returns: Dictionary with statistics
-    public func statistics() async -> [String: Any] {
-        var stats: [String: Any] = [:]
-
-        stats["cache"] = await cache.statistics()
-        stats["rate_limiters"] = rateLimiters.count
-        stats["retry_config"] = [
-            "max_retries": retryConfig.maxRetries,
-            "base_delay": retryConfig.baseDelay,
-            "max_delay": retryConfig.maxDelay
-        ]
-
-        return stats
+    /// - Returns: Statistics about the executor
+    public func statistics() async -> Statistics {
+        return Statistics(
+            cacheStats: await cache.statistics(),
+            rateLimiterCount: rateLimiters.count,
+            maxRetries: retryConfig.maxRetries,
+            baseDelay: retryConfig.baseDelay,
+            maxDelay: retryConfig.maxDelay
+        )
     }
 }
 
