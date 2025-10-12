@@ -76,8 +76,13 @@ open class BaseHTTPProvider: @unchecked Sendable {
             throw AIServiceError.configurationError("Failed to encode request body: \(error.localizedDescription)")
         }
 
-        // Execute request
-        let (data, response) = try await urlSession.data(for: request)
+        // Execute request with error mapping
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await urlSession.data(for: request)
+        } catch {
+            throw mapURLError(error)
+        }
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -135,8 +140,13 @@ open class BaseHTTPProvider: @unchecked Sendable {
             request.setValue(value, forHTTPHeaderField: key)
         }
 
-        // Execute request
-        let (data, response) = try await urlSession.data(for: request)
+        // Execute request with error mapping
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await urlSession.data(for: request)
+        } catch {
+            throw mapURLError(error)
+        }
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -155,5 +165,53 @@ open class BaseHTTPProvider: @unchecked Sendable {
         } catch {
             throw AIServiceError.dataConversionError("Failed to decode response: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Error Mapping
+
+    /// Maps URLError to AIServiceError for consistent error handling.
+    ///
+    /// This ensures that all network errors are presented using the framework's
+    /// unified error model, regardless of the underlying URLSession error.
+    ///
+    /// - Parameter error: The error thrown by URLSession
+    /// - Returns: Mapped AIServiceError
+    private func mapURLError(_ error: Error) -> AIServiceError {
+        // If it's already an AIServiceError, pass it through
+        if let aiError = error as? AIServiceError {
+            return aiError
+        }
+
+        // Map URLError codes to AIServiceError
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return .timeout("Request timed out after \(timeout) seconds")
+
+            case .notConnectedToInternet, .networkConnectionLost:
+                return .connectionFailed("No internet connection available")
+
+            case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+                return .connectionFailed("Cannot connect to server: \(urlError.localizedDescription)")
+
+            case .secureConnectionFailed, .serverCertificateUntrusted, .clientCertificateRejected:
+                return .connectionFailed("Secure connection failed: \(urlError.localizedDescription)")
+
+            case .cancelled:
+                return .networkError("Request was cancelled")
+
+            case .badURL, .unsupportedURL:
+                return .configurationError("Invalid URL: \(urlError.localizedDescription)")
+
+            case .dataNotAllowed, .internationalRoamingOff:
+                return .connectionFailed("Data connection not available: \(urlError.localizedDescription)")
+
+            default:
+                return .networkError("Network error: \(urlError.localizedDescription) (code: \(urlError.code.rawValue))")
+            }
+        }
+
+        // For any other error type, wrap as network error
+        return .networkError("Network request failed: \(error.localizedDescription)")
     }
 }
