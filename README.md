@@ -93,7 +93,9 @@ See [PHASE_4_COMPLETION_REPORT.md](Docs/PHASE_4_COMPLETION_REPORT.md) for Phase 
 - Concurrency architecture: background requests, main thread persistence, Sendable protocol
 - Large data file storage in .guion TextPack bundles (TextBundle format) to prevent main thread blocking
 - **SwiftGuion integration**: Uses SwiftGuion library (https://github.com/intrusive-memory/SwiftGuion) as native format
+- **File abstraction**: All file operations through .guion document interface with UUID-based unique IDs
 - **Provider-specific storage**: Individual providers control data structure within .guion bundles
+- **Performance measurement**: Records metrics for in-memory vs file-based storage (thresholds TBD)
 
 ## Requirements
 

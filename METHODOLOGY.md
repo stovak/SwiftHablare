@@ -673,9 +673,11 @@ Each phase follows this structure:
 - [ ] File write coordination: Use actor or appropriate synchronization for thread-safe TextPack bundle modifications
 - [ ] File reference transfer: Only small file references/paths transferred between threads, not large data payloads
 - [ ] File storage format: .guion is a TextPack file (compressed TextBundle format per https://textbundle.org)
-- [ ] File storage location: Large typed data files stored inside the Resources folder of the .guion TextPack bundle
+- [ ] **File storage abstraction**: All file read/write operations abstracted through .guion document interface
+- [ ] **Unique ID file storage**: Files stored in Resources folder with unique IDs (UUID-based naming)
+- [ ] **File reference structure**: File references contain unique ID for retrieval from .guion Resources folder
 - [ ] File references: Large data stored as file references in the typed data Sendable object
-- [ ] Performance threshold: Define and enforce size limits for in-memory vs file-based data storage
+- [ ] **Performance measurement**: Record performance metrics for in-memory vs file-based storage (thresholds TBD)
 - [ ] TextPack compliance: Follow TextBundle/TextPack specification for .guion file structure
 - [ ] Workflow pattern: background request → background file write → file reference to main → SwiftData persistence
 - [ ] **SwiftGuion integration**: Use SwiftGuion library (https://github.com/intrusive-memory/SwiftGuion) as the native format for TextPack bundles
@@ -704,10 +706,13 @@ Each phase follows this structure:
 - [ ] File write workflow: write on background thread, only pass file reference to main thread
 - [ ] TextPack/TextBundle specification guide for .guion file format (https://textbundle.org)
 - [ ] SwiftGuion library integration guide (https://github.com/intrusive-memory/SwiftGuion)
+- [ ] **File abstraction pattern**: using .guion document interface for all file operations
+- [ ] **Unique ID file storage**: generating and managing UUID-based file names in Resources folder
+- [ ] **File reference pattern**: creating and resolving file references with unique IDs
 - [ ] Provider-specific storage patterns: how providers structure their data within .guion bundles
 - [ ] File storage patterns: writing large data to Resources folder inside .guion TextPack from background threads
 - [ ] TextPack creation and manipulation: creating/updating .guion compressed bundles with thread safety using SwiftGuion
-- [ ] Performance guidelines: determining data size thresholds for file vs in-memory storage
+- [ ] **Performance measurement guide**: recording metrics for in-memory vs file-based storage (thresholds deferred)
 - [ ] Memory optimization: avoiding large data transfer between threads
 - [ ] Inline API documentation (100% coverage)
 
@@ -751,10 +756,13 @@ Each phase follows this structure:
   - Multi-type provider type selection and dynamic configuration
 - [ ] Sendable protocol conformance verification
 - [ ] Thread safety of typed data objects
-- [ ] File storage threshold logic
+- [ ] **Performance metrics recording**: measure and log performance for various data sizes (no threshold enforcement yet)
 - [ ] TextPack (.guion) creation and structure validation using SwiftGuion
 - [ ] SwiftGuion library integration and API usage
-- [ ] File path generation for Resources folder inside .guion TextPack
+- [ ] **.guion document abstraction**: all file operations through document interface
+- [ ] **Unique ID generation**: UUID-based file naming in Resources folder
+- [ ] **File reference with unique ID**: creating file references containing unique IDs
+- [ ] **File reference resolution**: retrieving files from Resources folder by unique ID
 - [ ] TextPack compression/decompression (TextBundle specification via SwiftGuion)
 - [ ] File reference creation and resolution within TextPack bundles
 - [ ] Provider-specific data storage patterns within .guion bundles
@@ -794,10 +802,12 @@ Each phase follows this structure:
 - [ ] Actor-based TextPack coordinator for concurrent bundle modifications using SwiftGuion
 - [ ] Thread-safe TextPack bundle creation and modification workflows with SwiftGuion
 - [ ] SwiftGuion integration in production workflows
+- [ ] **.guion document abstraction in workflows**: all file operations via document interface
+- [ ] **Unique ID file storage workflow**: write with UUID, retrieve by UUID from Resources folder
 - [ ] Provider-specific data storage within .guion bundles using SwiftGuion API
 - [ ] Writing files to Resources folder inside .guion TextPack from background threads using SwiftGuion
-- [ ] File reference creation on background thread, transfer to main thread
-- [ ] File reference retrieval and loading from TextPack bundles via SwiftGuion
+- [ ] **File reference with unique ID workflow**: create on background, transfer to main, resolve by ID
+- [ ] File reference retrieval and loading from TextPack bundles via SwiftGuion using unique IDs
 - [ ] TextPack compression/decompression in production workflows via SwiftGuion
 - [ ] Concurrent file writes to different TextPack bundles using SwiftGuion thread-safe API
 - [ ] Memory efficiency: no large data payload transfer between threads
@@ -823,12 +833,15 @@ Each phase follows this structure:
 - [ ] Background thread file write performance (large data to TextPack)
 - [ ] TextPack creation/modification performance on background threads
 - [ ] TextPack compression performance (per TextBundle specification)
-- [ ] File I/O performance for large data (Resources folder in .guion TextPack)
+- [ ] **File I/O performance measurement**: record metrics for various data sizes (1KB, 10KB, 100KB, 1MB, 10MB, 100MB)
+- [ ] **UUID generation overhead**: measure performance impact of unique ID creation
+- [ ] **.guion document abstraction overhead**: measure performance cost vs direct file I/O
 - [ ] TextPack decompression and file access performance
+- [ ] **File retrieval by unique ID performance**: measure lookup time in Resources folder
 - [ ] Actor coordination overhead for TextPack bundle access
 - [ ] Thread switching overhead (background → main, file reference only)
 - [ ] Concurrent file write throughput (multiple background threads, different bundles)
-- [ ] Memory usage: in-memory vs TextPack file-based storage comparison
+- [ ] **Performance comparison recording**: in-memory vs TextPack file-based storage (thresholds TBD after data collection)
 - [ ] Memory efficiency: file reference transfer vs large data transfer between threads
 
 #### Provider Integration Tests
