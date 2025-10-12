@@ -613,7 +613,96 @@ Each phase follows this structure:
 
 ---
 
-## Phase 6: User Interface Components
+## Phase 6: Typed Return Data
+
+**Duration**: 3-4 weeks
+**Goal**: Implement typed return data support with schema validation
+
+### Deliverables
+
+#### Core Implementation
+- [ ] Typed response schema system
+- [ ] Request-level type specification (specify expected return type per request)
+- [ ] Schema validation for returned data
+- [ ] Type-safe data extraction from provider responses
+- [ ] Error handling for missing typed data
+- [ ] Error handling for invalid/malformed typed data
+- [ ] Support for JSON schema, Pydantic-style models, or Swift Codable types
+- [ ] Provider capability declarations for supported return types
+- [ ] Type conversion and validation middleware
+
+#### Documentation
+- [ ] Typed return data guide
+- [ ] Schema definition examples
+- [ ] Error handling patterns for type mismatches
+- [ ] Provider implementation guide for typed responses
+- [ ] Inline API documentation (100% coverage)
+
+#### Testing
+- [ ] Unit tests for schema validation
+- [ ] Type conversion tests
+- [ ] Error handling tests (missing/invalid data)
+- [ ] Provider integration tests with typed responses
+- [ ] Edge case testing (partial data, nested types, arrays)
+
+### Quality Gates
+
+| Gate | Requirement | Measurement | Pass Criteria |
+|------|-------------|-------------|---------------|
+| **QG-6.1** | Type system completeness | Code review | All typed return requirements implemented |
+| **QG-6.2** | Test coverage | Coverage report | ≥90% coverage on type system |
+| **QG-6.3** | Schema validation | Unit tests | Invalid schemas rejected correctly |
+| **QG-6.4** | Error handling | Error tests | Clear errors for type mismatches |
+| **QG-6.5** | Provider integration | Integration tests | Providers support typed responses |
+| **QG-6.6** | Performance | Benchmarks | Type validation <5ms overhead |
+
+### Testing Requirements
+
+#### Unit Tests (Coverage Target: ≥90%)
+- [ ] Schema definition and validation
+- [ ] Type registration and lookup
+- [ ] Type conversion (JSON → Swift types)
+- [ ] Nested type handling
+- [ ] Array and optional type handling
+- [ ] Schema validation errors
+- [ ] Type mismatch detection
+- [ ] Partial data handling
+
+#### Integration Tests
+- [ ] Request with typed response specification
+- [ ] Provider returns typed data successfully
+- [ ] Provider returns invalid data (error case)
+- [ ] Provider returns partial data (error case)
+- [ ] Multiple typed requests in batch
+- [ ] Type validation across different providers
+
+#### Error Handling Tests
+- [ ] Missing required fields in response
+- [ ] Wrong data type in response field
+- [ ] Null value for non-optional field
+- [ ] Extra unexpected fields (should be allowed)
+- [ ] Nested type validation errors
+- [ ] Array type validation errors
+- [ ] Clear, actionable error messages
+
+#### Performance Tests
+- [ ] Schema validation overhead (target: <5ms)
+- [ ] Type conversion overhead (target: <10ms)
+- [ ] Complex nested type handling
+- [ ] Large array type validation
+- [ ] Memory usage for type validation
+
+#### Provider Integration Tests
+- [ ] OpenAI with typed responses (structured outputs)
+- [ ] Anthropic with typed responses
+- [ ] Custom providers with typed responses
+- [ ] Type capability declarations
+
+**Requirements Covered**: New requirements for typed return data system
+
+---
+
+## Phase 7: User Interface Components
 
 **Duration**: 4-5 weeks
 **Goal**: Implement SwiftUI components for configuration and generation
@@ -643,12 +732,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-6.1** | UI completeness | Code review | All REQ-5.x implemented |
-| **QG-6.2** | Test coverage | Coverage report | ≥80% on UI components |
-| **QG-6.3** | Accessibility | VoiceOver tests | All components accessible |
-| **QG-6.4** | Visual QA | Manual testing | UI matches HIG guidelines |
-| **QG-6.5** | Dark mode | Visual tests | All components support dark mode |
-| **QG-6.6** | Layout | Responsive tests | Works on various screen sizes |
+| **QG-7.1** | UI completeness | Code review | All REQ-5.x implemented |
+| **QG-7.2** | Test coverage | Coverage report | ≥80% on UI components |
+| **QG-7.3** | Accessibility | VoiceOver tests | All components accessible |
+| **QG-7.4** | Visual QA | Manual testing | UI matches HIG guidelines |
+| **QG-7.5** | Dark mode | Visual tests | All components support dark mode |
+| **QG-7.6** | Layout | Responsive tests | Works on various screen sizes |
 
 ### Testing Requirements
 
@@ -714,7 +803,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 7: Sample Applications
+## Phase 8: Sample Applications
 
 **Duration**: 2-3 weeks
 **Goal**: Create comprehensive sample applications demonstrating framework usage
@@ -758,11 +847,11 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-7S.1** | All examples build | Build tests | Clean builds on all platforms |
-| **QG-7S.2** | Examples run successfully | Manual testing | No crashes, expected behavior |
-| **QG-7S.3** | Code quality | Code review | Follows best practices |
-| **QG-7S.4** | Documentation | Completeness check | Each example has README and comments |
-| **QG-7S.5** | Usability | External review | 3+ developers can follow examples |
+| **QG-8.1** | All examples build | Build tests | Clean builds on all platforms |
+| **QG-8.2** | Examples run successfully | Manual testing | No crashes, expected behavior |
+| **QG-8.3** | Code quality | Code review | Follows best practices |
+| **QG-8.4** | Documentation | Completeness check | Each example has README and comments |
+| **QG-8.5** | Usability | External review | 3+ developers can follow examples |
 
 ### Testing Requirements
 
@@ -794,7 +883,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 8: Documentation and Templates
+## Phase 9: Documentation and Templates
 
 **Duration**: 3-4 weeks
 **Goal**: Complete all documentation and developer resources
@@ -830,12 +919,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-7.1** | Documentation completeness | Manual review | All REQ-13.x sections complete |
-| **QG-7.2** | Template functionality | AI builder test | AI creates working provider from template |
-| **QG-7.3** | Example correctness | Automated tests | All examples compile and run |
-| **QG-7.4** | Link validity | Link checker | No broken links |
-| **QG-7.5** | Clarity | External review | Feedback from 3+ external reviewers |
-| **QG-7.6** | Search functionality | DocC tests | Search returns relevant results |
+| **QG-9.1** | Documentation completeness | Manual review | All REQ-13.x sections complete |
+| **QG-9.2** | Template functionality | AI builder test | AI creates working provider from template |
+| **QG-9.3** | Example correctness | Automated tests | All examples compile and run |
+| **QG-9.4** | Link validity | Link checker | No broken links |
+| **QG-9.5** | Clarity | External review | Feedback from 3+ external reviewers |
+| **QG-9.6** | Search functionality | DocC tests | Search returns relevant results |
 
 ### Testing Requirements
 
@@ -897,7 +986,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 9: Integration and System Testing
+## Phase 10: Integration and System Testing
 
 **Duration**: 2-3 weeks
 **Goal**: End-to-end testing and system validation
@@ -922,12 +1011,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-8.1** | Overall code coverage | Coverage report | ≥80% overall |
-| **QG-8.2** | Integration tests pass | Test results | 100% pass rate |
-| **QG-8.3** | Performance benchmarks | Benchmark results | Meet all targets |
-| **QG-8.4** | No memory leaks | Instruments | Zero leaks detected |
-| **QG-8.5** | Thread safety | TSAN | No data races |
-| **QG-8.6** | Stress tests pass | Stress results | System remains stable |
+| **QG-10.1** | Overall code coverage | Coverage report | ≥80% overall |
+| **QG-10.2** | Integration tests pass | Test results | 100% pass rate |
+| **QG-10.3** | Performance benchmarks | Benchmark results | Meet all targets |
+| **QG-10.4** | No memory leaks | Instruments | Zero leaks detected |
+| **QG-10.5** | Thread safety | TSAN | No data races |
+| **QG-10.6** | Stress tests pass | Stress results | System remains stable |
 
 ### Testing Requirements
 
@@ -1028,7 +1117,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 10: Beta Release and Community Validation
+## Phase 11: Beta Release and Community Validation
 
 **Duration**: 4-6 weeks
 **Goal**: Community testing and feedback incorporation
@@ -1053,12 +1142,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-9.1** | Beta stability | Crash reports | <1% crash rate |
-| **QG-9.2** | Community adoption | Download count | 50+ beta users |
-| **QG-9.3** | Feedback quality | Survey responses | 20+ detailed feedback responses |
-| **QG-9.4** | Provider contributions | PR count | 2+ community provider PRs |
-| **QG-9.5** | Documentation satisfaction | Survey | ≥4.0/5.0 average rating |
-| **QG-9.6** | Critical bugs | Issue count | Zero critical bugs |
+| **QG-11.1** | Beta stability | Crash reports | <1% crash rate |
+| **QG-11.2** | Community adoption | Download count | 50+ beta users |
+| **QG-11.3** | Feedback quality | Survey responses | 20+ detailed feedback responses |
+| **QG-11.4** | Provider contributions | PR count | 2+ community provider PRs |
+| **QG-11.5** | Documentation satisfaction | Survey | ≥4.0/5.0 average rating |
+| **QG-11.6** | Critical bugs | Issue count | Zero critical bugs |
 
 ### Testing Requirements
 
@@ -1116,7 +1205,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 11: Release Preparation
+## Phase 12: Release Preparation
 
 **Duration**: 2-3 weeks
 **Goal**: Final polishing and v2.0 release
@@ -1147,12 +1236,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-10.1** | Zero critical bugs | Issue tracker | No P0/critical issues open |
-| **QG-10.2** | Documentation complete | Manual review | All REQ-13.x satisfied |
-| **QG-10.3** | Performance targets met | Benchmarks | All targets achieved |
-| **QG-10.4** | GitHub artifacts | Checklist | All Phase 1-2 artifacts complete |
-| **QG-10.5** | Success criteria | Success criteria review | 16/18 criteria met |
-| **QG-10.6** | Legal review | Legal checklist | Licenses, attributions correct |
+| **QG-12.1** | Zero critical bugs | Issue tracker | No P0/critical issues open |
+| **QG-12.2** | Documentation complete | Manual review | All REQ-13.x satisfied |
+| **QG-12.3** | Performance targets met | Benchmarks | All targets achieved |
+| **QG-12.4** | GitHub artifacts | Checklist | All Phase 1-2 artifacts complete |
+| **QG-12.5** | Success criteria | Success criteria review | 16/18 criteria met |
+| **QG-12.6** | Legal review | Legal checklist | Licenses, attributions correct |
 
 ### Testing Requirements
 
@@ -1233,17 +1322,18 @@ These activities run throughout all phases:
 | **Phase 2** | REQ-2.1.x, 2.2.x, 2.3.x | ≥90% | 7 gates | ✅ Complete (92%) |
 | **Phase 3** | REQ-3.1.x (partial), 3.2.x (partial), 3.3.x | ≥85% | 9 gates | ✅ Complete (89%) |
 | **Phase 4** | REQ-4.1.x, 4.2.x | ≥95% | 5 gates | ✅ Complete (96%) |
-| **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider |
-| **Phase 6** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates |
-| **Phase 7** | REQ-13.5.3 (Sample apps) | N/A | 5 gates |
-| **Phase 8** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates |
-| **Phase 9** | REQ-7.x, 8.x, 10.x, 11.x | ≥80% overall | 6 gates |
-| **Phase 10** | REQ-9.x, Success Criteria | N/A | 6 gates |
-| **Phase 11** | All requirements | Final validation | 6 gates |
+| **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider | ✅ Complete |
+| **Phase 6** | Typed Return Data | ≥90% | 6 gates | 📋 Planned |
+| **Phase 7** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates | 📋 Planned |
+| **Phase 8** | REQ-13.5.3 (Sample apps) | N/A | 5 gates | 📋 Planned |
+| **Phase 9** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates | 📋 Planned |
+| **Phase 10** | REQ-7.x, 8.x, 10.x, 11.x | ≥80% overall | 6 gates | 📋 Planned |
+| **Phase 11** | REQ-9.x, Success Criteria | N/A | 6 gates | 📋 Planned |
+| **Phase 12** | All requirements | Final validation | 6 gates | 📋 Planned |
 
 **Total Requirements**: 200+ individual requirements
-**Total Quality Gates**: 65+ gates
-**Estimated Total Duration**: 34-47 weeks (8.5-12 months)
+**Total Quality Gates**: 71+ gates
+**Estimated Total Duration**: 37-51 weeks (9.25-12.75 months)
 
 ---
 
@@ -1355,17 +1445,19 @@ Phase 5A (Text Providers) ───→ Requires Phases 1-4
     ↓                               │
 Phase 5B (Audio Providers) ───→ Requires Phases 1-4
     ↓                               │
-Phase 6 (UI Components) ←───────────┘
+Phase 6 (Typed Return Data) ←───────┤
+    ↓                               │
+Phase 7 (UI Components) ←───────────┘
     ↓
-Phase 7 (Sample Applications) ← All previous phases
+Phase 8 (Sample Applications) ← All previous phases
     ↓
-Phase 8 (Documentation) ← All previous phases
+Phase 9 (Documentation) ← All previous phases
     ↓
-Phase 9 (Integration Testing) ← All implementation phases
+Phase 10 (Integration Testing) ← All implementation phases
     ↓
-Phase 10 (Beta Release)
+Phase 11 (Beta Release)
     ↓
-Phase 11 (Release)
+Phase 12 (Release)
 ```
 
 ---
