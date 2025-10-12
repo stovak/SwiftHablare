@@ -81,12 +81,12 @@ See [PHASE_5_COMPLETION_REPORT.md](Docs/PHASE_5_COMPLETION_REPORT.md) for the de
 See [PHASE_4_COMPLETION_REPORT.md](Docs/PHASE_4_COMPLETION_REPORT.md) for Phase 4 security layer details.
 
 ### Next: Phase 6
-- Typed return data support
-- Schema-based response validation
-- Type-safe data extraction
+- **API Requestor pattern**: Standardized interface for requesting typed data from AI providers
+- Typed return data support with schema validation
+- Type-safe data extraction from AI responses
 - Error handling for missing/invalid typed data
 - SwiftData models for typed data storage (per requestor)
-- SwiftUI view components for displaying typed data (per requestor)
+- **Three-view UI pattern**: List view (filterable), Detail view, and Combined view (click-to-reveal)
 - Concurrency architecture: background requests, main thread persistence, Sendable protocol
 - Large data file storage in .guion TextPack bundles (TextBundle format) to prevent main thread blocking
 

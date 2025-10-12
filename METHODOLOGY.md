@@ -618,6 +618,15 @@ Each phase follows this structure:
 **Duration**: 3-4 weeks
 **Goal**: Implement typed return data support with schema validation
 
+### Overview
+
+**API Requestor Definition**: An API Requestor is a request-based interface to a local or remote AI system provider. Individual provider implementations provide a standardized interface for requesting typed data from AI-generated sources.
+
+**UI Component Pattern**: Three-view pattern for displaying AI responses:
+1. **List View**: Filterable list of all responses
+2. **Detail View**: Individual response detail display
+3. **Combined View**: List with click-to-reveal detail functionality
+
 ### Deliverables
 
 #### Core Implementation
@@ -631,8 +640,12 @@ Each phase follows this structure:
 - [ ] Provider capability declarations for supported return types
 - [ ] Type conversion and validation middleware
 - [ ] TextPack coordinator actor: Thread-safe coordination for TextPack bundle modifications
-- [ ] SwiftData model requirements: Each AI requestor must provide its own SwiftData table/model for storing typed data
-- [ ] SwiftUI display requirements: Each AI requestor must provide a SwiftUI view component that can display its typed data
+- [ ] API Requestor protocol: Standardized interface for requesting typed data from AI providers
+- [ ] SwiftData model requirements: Each API requestor must provide its own SwiftData table/model for storing typed data
+- [ ] SwiftUI display requirements: Three-view pattern implementation (list, detail, combined)
+  - Filterable list view of all AI responses
+  - Detail view for individual AI response display
+  - Combined view with click-to-reveal detail functionality
 
 #### Concurrency and Performance Requirements
 - [ ] Request execution: All AI requests must execute on background threads (never on main thread)
@@ -653,10 +666,14 @@ Each phase follows this structure:
 - [ ] Typed return data guide
 - [ ] Schema definition examples
 - [ ] Error handling patterns for type mismatches
-- [ ] Provider implementation guide for typed responses
+- [ ] API Requestor protocol guide: standardized interface for requesting typed data
+- [ ] Provider implementation guide: implementing API Requestor interface for specific providers
 - [ ] SwiftData model creation guide for typed data storage
-- [ ] SwiftUI view component guide for displaying typed data
-- [ ] Complete example: defining requestor with model and view
+- [ ] Three-view pattern guide: implementing list, detail, and combined views
+  - Filterable list view implementation and filtering patterns
+  - Detail view layout and data binding
+  - Combined view with click-to-reveal interaction patterns
+- [ ] Complete example: defining API requestor with model and three-view UI
 - [ ] Concurrency patterns: background request → background file write → file reference to main → SwiftData persistence
 - [ ] Actor-based coordination pattern for thread-safe TextPack bundle modifications
 - [ ] File write workflow: write on background thread, only pass file reference to main thread
@@ -698,6 +715,8 @@ Each phase follows this structure:
 - [ ] Schema validation errors
 - [ ] Type mismatch detection
 - [ ] Partial data handling
+- [ ] API Requestor protocol conformance and interface
+- [ ] API Requestor standardized request/response flow
 - [ ] Sendable protocol conformance verification
 - [ ] Thread safety of typed data objects
 - [ ] File storage threshold logic
@@ -709,6 +728,10 @@ Each phase follows this structure:
 - [ ] Background thread file write operations (verify no main thread blocking)
 - [ ] File reference Sendable object creation (small payload only)
 - [ ] Memory usage: file reference vs full data payload transfer
+- [ ] Three-view pattern components:
+  - List view filtering logic
+  - Detail view data binding
+  - Combined view state management and click-to-reveal logic
 
 #### Integration Tests
 - [ ] Request with typed response specification
@@ -717,9 +740,14 @@ Each phase follows this structure:
 - [ ] Provider returns partial data (error case)
 - [ ] Multiple typed requests in batch
 - [ ] Type validation across different providers
+- [ ] API Requestor protocol conformance across different providers
 - [ ] SwiftData model persistence for typed data
-- [ ] SwiftUI view component rendering of typed data
-- [ ] Complete flow: request → validate → persist → display
+- [ ] Three-view pattern UI rendering:
+  - Filterable list view displays all responses correctly
+  - Detail view displays individual response correctly
+  - Combined view click-to-reveal interaction works correctly
+  - Filtering functionality works across all data types
+- [ ] Complete flow: API requestor request → validate → persist → three-view display
 - [ ] Background thread request execution (verify never on main thread)
 - [ ] Main thread SwiftData writes (verify persistence only on main thread)
 - [ ] Sendable data transfer between threads (file references only, not large data)
