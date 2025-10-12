@@ -92,6 +92,8 @@ See [PHASE_4_COMPLETION_REPORT.md](Docs/PHASE_4_COMPLETION_REPORT.md) for Phase 
 - **Three-view UI pattern**: List view (filterable), Detail view, and Combined view (click-to-reveal)
 - Concurrency architecture: background requests, main thread persistence, Sendable protocol
 - Large data file storage in .guion TextPack bundles (TextBundle format) to prevent main thread blocking
+- **SwiftGuion integration**: Uses SwiftGuion library (https://github.com/intrusive-memory/SwiftGuion) as native format
+- **Provider-specific storage**: Individual providers control data structure within .guion bundles
 
 ## Requirements
 

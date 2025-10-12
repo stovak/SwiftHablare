@@ -678,6 +678,8 @@ Each phase follows this structure:
 - [ ] Performance threshold: Define and enforce size limits for in-memory vs file-based data storage
 - [ ] TextPack compliance: Follow TextBundle/TextPack specification for .guion file structure
 - [ ] Workflow pattern: background request → background file write → file reference to main → SwiftData persistence
+- [ ] **SwiftGuion integration**: Use SwiftGuion library (https://github.com/intrusive-memory/SwiftGuion) as the native format for TextPack bundles
+- [ ] **Provider-specific storage**: Individual providers decide how their data is stored within the .guion TextPack bundle structure
 
 #### Documentation
 - [ ] Typed return data guide
@@ -701,8 +703,10 @@ Each phase follows this structure:
 - [ ] Actor-based coordination pattern for thread-safe TextPack bundle modifications
 - [ ] File write workflow: write on background thread, only pass file reference to main thread
 - [ ] TextPack/TextBundle specification guide for .guion file format (https://textbundle.org)
+- [ ] SwiftGuion library integration guide (https://github.com/intrusive-memory/SwiftGuion)
+- [ ] Provider-specific storage patterns: how providers structure their data within .guion bundles
 - [ ] File storage patterns: writing large data to Resources folder inside .guion TextPack from background threads
-- [ ] TextPack creation and manipulation: creating/updating .guion compressed bundles with thread safety
+- [ ] TextPack creation and manipulation: creating/updating .guion compressed bundles with thread safety using SwiftGuion
 - [ ] Performance guidelines: determining data size thresholds for file vs in-memory storage
 - [ ] Memory optimization: avoiding large data transfer between threads
 - [ ] Inline API documentation (100% coverage)
@@ -748,11 +752,13 @@ Each phase follows this structure:
 - [ ] Sendable protocol conformance verification
 - [ ] Thread safety of typed data objects
 - [ ] File storage threshold logic
-- [ ] TextPack (.guion) creation and structure validation
+- [ ] TextPack (.guion) creation and structure validation using SwiftGuion
+- [ ] SwiftGuion library integration and API usage
 - [ ] File path generation for Resources folder inside .guion TextPack
-- [ ] TextPack compression/decompression (TextBundle specification)
+- [ ] TextPack compression/decompression (TextBundle specification via SwiftGuion)
 - [ ] File reference creation and resolution within TextPack bundles
-- [ ] Actor-based TextPack coordinator for thread-safe bundle modifications
+- [ ] Provider-specific data storage patterns within .guion bundles
+- [ ] Actor-based TextPack coordinator for thread-safe bundle modifications with SwiftGuion
 - [ ] Background thread file write operations (verify no main thread blocking)
 - [ ] File reference Sendable object creation (small payload only)
 - [ ] Memory usage: file reference vs full data payload transfer
@@ -785,13 +791,15 @@ Each phase follows this structure:
 - [ ] Main thread SwiftData writes (verify persistence only on main thread)
 - [ ] Sendable data transfer between threads (file references only, not large data)
 - [ ] Large data file writes on background threads (verify no large data on main thread)
-- [ ] Actor-based TextPack coordinator for concurrent bundle modifications
-- [ ] Thread-safe TextPack bundle creation and modification workflows
-- [ ] Writing files to Resources folder inside .guion TextPack from background threads
+- [ ] Actor-based TextPack coordinator for concurrent bundle modifications using SwiftGuion
+- [ ] Thread-safe TextPack bundle creation and modification workflows with SwiftGuion
+- [ ] SwiftGuion integration in production workflows
+- [ ] Provider-specific data storage within .guion bundles using SwiftGuion API
+- [ ] Writing files to Resources folder inside .guion TextPack from background threads using SwiftGuion
 - [ ] File reference creation on background thread, transfer to main thread
-- [ ] File reference retrieval and loading from TextPack bundles
-- [ ] TextPack compression/decompression in production workflows
-- [ ] Concurrent file writes to different TextPack bundles
+- [ ] File reference retrieval and loading from TextPack bundles via SwiftGuion
+- [ ] TextPack compression/decompression in production workflows via SwiftGuion
+- [ ] Concurrent file writes to different TextPack bundles using SwiftGuion thread-safe API
 - [ ] Memory efficiency: no large data payload transfer between threads
 - [ ] Complete workflow: background request → background file write → file ref to main → SwiftData persist
 
