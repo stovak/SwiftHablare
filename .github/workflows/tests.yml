@@ -31,6 +31,9 @@ jobs:
           rm -rf ~/Library/Application\ Support/*.store
 
       - name: Run tests with coverage
+        env:
+          SWIFT_DETERMINISTIC_HASHING: 1
+          SWIFT_RUNTIME_ENABLE_ACTOR_DATA_RACE_DETECTION: 0
         run: |
           # Run functional tests (exclude performance tests) and capture output
           swift test --enable-code-coverage --skip 'AIServiceManagerPerformanceTests' 2>&1 | tee test-output.log

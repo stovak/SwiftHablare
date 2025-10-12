@@ -25,9 +25,6 @@ let package = Package(
             dependencies: [
                 "SwiftHablare",
                 .product(name: "SwiftFijos", package: "SwiftFijos")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-actor-data-race-checks"])
             ]
         ),
     ]
