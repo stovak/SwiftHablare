@@ -615,8 +615,10 @@ Each phase follows this structure:
 
 ## Phase 6: Typed Return Data
 
-**Duration**: 3-4 weeks
-**Goal**: Implement typed return data support with schema validation
+**Duration**: 4-5 weeks (updated from 3-4 weeks to include provider refactoring)
+**Goal**: Implement typed return data support with schema validation and API Requestor pattern
+
+**⚠️ IMPORTANT**: This phase requires refactoring all Phase 5 providers from monolithic architecture to API Requestor pattern. See `/Docs/PHASE_6_PROVIDER_REFACTORING_PLAN.md` for detailed refactoring plan.
 
 ### Overview
 
@@ -641,8 +643,26 @@ Each phase follows this structure:
 
 ### Deliverables
 
+#### Provider Refactoring (New)
+- [ ] Refactor OpenAI provider to requestor pattern (OpenAITextRequestor)
+- [ ] Refactor Anthropic provider to requestor pattern (AnthropicTextRequestor)
+- [ ] Refactor Apple Intelligence provider to requestor pattern (AppleIntelligenceTextRequestor)
+- [ ] Refactor ElevenLabs provider to requestor pattern (ElevenLabsAudioRequestor)
+- [ ] Add `availableRequestors()` method to all Phase 5 providers
+- [ ] Maintain backward compatibility with Phase 5 `generate()` API
+- [ ] Create shared TypedData structures (GeneratedText, GeneratedAudio)
+- [ ] Create shared SwiftData models (GeneratedTextRecord, GeneratedAudioRecord)
+- [ ] All Phase 5 tests still pass after refactoring
+
 #### Core Implementation
-- [ ] Typed response schema system
+- [ ] AIRequestor protocol with associated types (TypedData, ResponseModel, Configuration)
+- [ ] SerializableTypedData protocol with type-specific serialization
+- [ ] ProviderCategory enum (text, audio, image, video, etc.)
+- [ ] OutputFileType struct with MIME types and file extensions
+- [ ] StorageAreaReference struct for request-specific storage
+- [ ] TypedDataFileReference struct for file references
+- [ ] TypedDataBroker actor for request coordination
+- [ ] Typed response schema system (via SerializableTypedData)
 - [ ] Request-level type specification (specify expected return type per request)
 - [ ] Schema validation for returned data
 - [ ] Type-safe data extraction from provider responses
@@ -735,20 +755,34 @@ Each phase follows this structure:
 | **QG-6.6** | Performance | Benchmarks | Type validation <5ms overhead |
 | **QG-6.7** | Concurrency compliance | Thread safety tests | Requests on background, file writes on background, SwiftData persistence on main, all data Sendable |
 | **QG-6.8** | Large data handling | Performance tests | Large data written to filesystem on background thread, only file references transferred to main |
+| **QG-6.9** | Provider refactoring | Code review + tests | All Phase 5 providers migrated to requestor pattern |
+| **QG-6.10** | Backward compatibility | Regression tests | All Phase 5 tests still pass |
+| **QG-6.11** | Requestor coverage | Coverage report | ≥85% test coverage per requestor |
 
 ### Testing Requirements
 
 #### Unit Tests (Coverage Target: ≥90%)
-- [ ] Schema definition and validation
-- [ ] Type registration and lookup
-- [ ] Type conversion (JSON → Swift types)
+- [ ] **Requestor refactoring tests (new)**:
+  - [ ] OpenAITextRequestor initialization and configuration
+  - [ ] AnthropicTextRequestor initialization and configuration
+  - [ ] AppleIntelligenceTextRequestor initialization and configuration
+  - [ ] ElevenLabsAudioRequestor initialization and configuration
+  - [ ] Each requestor's `request()` method execution
+  - [ ] Each requestor's `makeResponseModel()` method
+  - [ ] Backward compatibility: Phase 5 `generate()` still works
+  - [ ] Provider `availableRequestors()` returns correct requestors
+- [ ] Schema definition and validation (SerializableTypedData)
+- [ ] Type registration and lookup (ProviderCategory)
+- [ ] Type conversion (serialization/deserialization)
 - [ ] Nested type handling
 - [ ] Array and optional type handling
-- [ ] Schema validation errors
+- [ ] Schema validation errors (TypedDataError)
 - [ ] Type mismatch detection
 - [ ] Partial data handling
 - [ ] API Requestor protocol conformance and interface
 - [ ] API Requestor standardized request/response flow
+- [ ] StorageAreaReference creation and management
+- [ ] TypedDataFileReference creation and resolution
 - [ ] Configuration widget interface and state management
   - Audio provider configuration widget (voice selection, parameters)
   - Image provider configuration widget (prompt input, parameters)
@@ -1475,7 +1509,7 @@ These activities run throughout all phases:
 | **Phase 3** | REQ-3.1.x (partial), 3.2.x (partial), 3.3.x | ≥85% | 9 gates | ✅ Complete (89%) |
 | **Phase 4** | REQ-4.1.x, 4.2.x | ≥95% | 5 gates | ✅ Complete (96%) |
 | **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider | ✅ Complete |
-| **Phase 6** | Typed Return Data | ≥90% | 8 gates | 📋 Planned |
+| **Phase 6** | Typed Return Data + Provider Refactoring | ≥90% | 11 gates | 📋 Planned |
 | **Phase 7** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates | 📋 Planned |
 | **Phase 8** | REQ-13.5.3 (Sample apps) | N/A | 5 gates | 📋 Planned |
 | **Phase 9** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates | 📋 Planned |
@@ -1484,8 +1518,8 @@ These activities run throughout all phases:
 | **Phase 12** | All requirements | Final validation | 6 gates | 📋 Planned |
 
 **Total Requirements**: 200+ individual requirements
-**Total Quality Gates**: 73+ gates
-**Estimated Total Duration**: 37-51 weeks (9.25-12.75 months)
+**Total Quality Gates**: 76 gates (updated from 73 to include 3 new Phase 6 gates)
+**Estimated Total Duration**: 38-52 weeks (9.5-13 months) - Updated to reflect Phase 6 extension
 
 ---
 
@@ -1516,9 +1550,11 @@ These activities run throughout all phases:
 | Phase 3 | Rate limiting too restrictive | Medium | Configurable rate limits |
 | Phase 4 | Keychain integration complexity | Medium | Early security review |
 | Phase 5 | Provider API instability | High | Mock providers for testing |
-| Phase 6 | UI complexity | Medium | Incremental component building |
-| Phase 7 | Documentation inadequacy | High | External reviews, AI testing |
-| Phase 9 | Low beta adoption | Medium | Active outreach, incentives |
+| Phase 6 | Provider refactoring breaks Phase 5 | High | Backward compatibility tests, gradual migration |
+| Phase 6 | File storage complexity (SwiftGuion) | Medium | Early prototype, comprehensive tests |
+| Phase 7 | UI complexity | Medium | Incremental component building |
+| Phase 8 | Documentation inadequacy | High | External reviews, AI testing |
+| Phase 10 | Low beta adoption | Medium | Active outreach, incentives |
 
 ---
 
@@ -1614,7 +1650,8 @@ Phase 12 (Release)
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-10-11
-**Next Review**: After Phase 0 completion
+**Document Version**: 1.1
+**Last Updated**: 2025-10-12
+**Changes**: Updated Phase 6 duration (4-5 weeks), added provider refactoring requirements, added 3 new quality gates
+**Next Review**: Before Phase 6 implementation begins
 
