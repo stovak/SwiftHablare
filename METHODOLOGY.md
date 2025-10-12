@@ -613,7 +613,248 @@ Each phase follows this structure:
 
 ---
 
-## Phase 6: User Interface Components
+## Phase 6: Typed Return Data
+
+**Duration**: 3-4 weeks
+**Goal**: Implement typed return data support with schema validation
+
+### Overview
+
+**API Requestor Definition**: An API Requestor is a request-based interface to a local or remote AI system provider. Individual provider implementations provide a standardized interface for requesting typed data from AI-generated sources.
+
+**Provider Types**: Generic provider categories based on output type:
+- Audio Provider (e.g., ElevenLabs, Apple TTS) - not "voice provider"
+- Text Provider (e.g., OpenAI, Anthropic)
+- Image Provider (e.g., DALL-E, Midjourney)
+- Video Provider, etc.
+
+**Configuration Widget Pattern**: Each API Requestor must provide a configuration widget for request parameters:
+- Audio Provider: voice selection, audio parameters
+- Image Provider: prompt input, style parameters
+- Text Provider: model selection, temperature, etc.
+- Multi-type Providers: type selection + type-specific configuration
+
+**UI Component Pattern**: Three-view pattern for displaying AI responses:
+1. **List View**: Filterable list of all responses
+2. **Detail View**: Individual response detail display
+3. **Combined View**: List with click-to-reveal detail functionality
+
+### Deliverables
+
+#### Core Implementation
+- [ ] Typed response schema system
+- [ ] Request-level type specification (specify expected return type per request)
+- [ ] Schema validation for returned data
+- [ ] Type-safe data extraction from provider responses
+- [ ] Error handling for missing typed data
+- [ ] Error handling for invalid/malformed typed data
+- [ ] Support for JSON schema, Pydantic-style models, or Swift Codable types
+- [ ] Provider capability declarations for supported return types
+- [ ] Type conversion and validation middleware
+- [ ] TextPack coordinator actor: Thread-safe coordination for TextPack bundle modifications
+- [ ] API Requestor protocol: Standardized interface for requesting typed data from AI providers
+- [ ] Configuration widget requirement: Each API requestor must provide a SwiftUI configuration widget
+  - Audio providers: voice selection, audio format, speed, pitch, etc.
+  - Image providers: prompt input, size, style, quality parameters
+  - Text providers: model selection, temperature, max tokens, system prompts
+  - Multi-type providers: type selection dropdown + dynamic type-specific configuration
+- [ ] SwiftData model requirements: Each API requestor must provide its own SwiftData table/model for storing typed data
+- [ ] SwiftUI display requirements: Three-view pattern implementation (list, detail, combined)
+  - Filterable list view of all AI responses
+  - Detail view for individual AI response display
+  - Combined view with click-to-reveal detail functionality
+
+#### Concurrency and Performance Requirements
+- [ ] Request execution: All AI requests must execute on background threads (never on main thread)
+- [ ] Response persistence: All SwiftData writes must occur on the main thread
+- [ ] Thread communication: Use Sendable protocol for all data passed between background and main threads
+- [ ] Large data handling: Typed data exceeding main thread performance threshold must be written to filesystem
+- [ ] File write location: Large data file writes must occur on background threads (never transfer large data to main thread)
+- [ ] File write coordination: Use actor or appropriate synchronization for thread-safe TextPack bundle modifications
+- [ ] File reference transfer: Only small file references/paths transferred between threads, not large data payloads
+- [ ] File storage format: .guion is a TextPack file (compressed TextBundle format per https://textbundle.org)
+- [ ] **File storage abstraction**: All file read/write operations abstracted through .guion document interface
+- [ ] **Unique ID file storage**: Files stored in Resources folder with unique IDs (UUID-based naming)
+- [ ] **File reference structure**: File references contain unique ID for retrieval from .guion Resources folder
+- [ ] File references: Large data stored as file references in the typed data Sendable object
+- [ ] **Performance measurement**: Record performance metrics for in-memory vs file-based storage (thresholds TBD)
+- [ ] TextPack compliance: Follow TextBundle/TextPack specification for .guion file structure
+- [ ] Workflow pattern: background request → background file write → file reference to main → SwiftData persistence
+- [ ] **SwiftGuion integration**: Use SwiftGuion library (https://github.com/intrusive-memory/SwiftGuion) as the native format for TextPack bundles
+- [ ] **Provider-specific storage**: Individual providers decide how their data is stored within the .guion TextPack bundle structure
+
+#### Documentation
+- [ ] Typed return data guide
+- [ ] Schema definition examples
+- [ ] Error handling patterns for type mismatches
+- [ ] API Requestor protocol guide: standardized interface for requesting typed data
+- [ ] Provider implementation guide: implementing API Requestor interface for specific providers
+- [ ] Provider naming conventions: use generic output type (Audio Provider, not Voice Provider)
+- [ ] Configuration widget guide: creating request configuration UI for each provider type
+  - Audio provider configuration examples (voice selection, parameters)
+  - Image provider configuration examples (prompt input, generation parameters)
+  - Text provider configuration examples (model, temperature, tokens)
+  - Multi-type provider configuration with dynamic type-specific widgets
+- [ ] SwiftData model creation guide for typed data storage
+- [ ] Three-view pattern guide: implementing list, detail, and combined views
+  - Filterable list view implementation and filtering patterns
+  - Detail view layout and data binding
+  - Combined view with click-to-reveal interaction patterns
+- [ ] Complete example: defining API requestor with configuration widget, model, and three-view UI
+- [ ] Concurrency patterns: background request → background file write → file reference to main → SwiftData persistence
+- [ ] Actor-based coordination pattern for thread-safe TextPack bundle modifications
+- [ ] File write workflow: write on background thread, only pass file reference to main thread
+- [ ] TextPack/TextBundle specification guide for .guion file format (https://textbundle.org)
+- [ ] SwiftGuion library integration guide (https://github.com/intrusive-memory/SwiftGuion)
+- [ ] **File abstraction pattern**: using .guion document interface for all file operations
+- [ ] **Unique ID file storage**: generating and managing UUID-based file names in Resources folder
+- [ ] **File reference pattern**: creating and resolving file references with unique IDs
+- [ ] Provider-specific storage patterns: how providers structure their data within .guion bundles
+- [ ] File storage patterns: writing large data to Resources folder inside .guion TextPack from background threads
+- [ ] TextPack creation and manipulation: creating/updating .guion compressed bundles with thread safety using SwiftGuion
+- [ ] **Performance measurement guide**: recording metrics for in-memory vs file-based storage (thresholds deferred)
+- [ ] Memory optimization: avoiding large data transfer between threads
+- [ ] Inline API documentation (100% coverage)
+
+#### Testing
+- [ ] Unit tests for schema validation
+- [ ] Type conversion tests
+- [ ] Error handling tests (missing/invalid data)
+- [ ] Provider integration tests with typed responses
+- [ ] Edge case testing (partial data, nested types, arrays)
+
+### Quality Gates
+
+| Gate | Requirement | Measurement | Pass Criteria |
+|------|-------------|-------------|---------------|
+| **QG-6.1** | Type system completeness | Code review | All typed return requirements implemented |
+| **QG-6.2** | Test coverage | Coverage report | ≥90% coverage on type system |
+| **QG-6.3** | Schema validation | Unit tests | Invalid schemas rejected correctly |
+| **QG-6.4** | Error handling | Error tests | Clear errors for type mismatches |
+| **QG-6.5** | Provider integration | Integration tests | Providers support typed responses |
+| **QG-6.6** | Performance | Benchmarks | Type validation <5ms overhead |
+| **QG-6.7** | Concurrency compliance | Thread safety tests | Requests on background, file writes on background, SwiftData persistence on main, all data Sendable |
+| **QG-6.8** | Large data handling | Performance tests | Large data written to filesystem on background thread, only file references transferred to main |
+
+### Testing Requirements
+
+#### Unit Tests (Coverage Target: ≥90%)
+- [ ] Schema definition and validation
+- [ ] Type registration and lookup
+- [ ] Type conversion (JSON → Swift types)
+- [ ] Nested type handling
+- [ ] Array and optional type handling
+- [ ] Schema validation errors
+- [ ] Type mismatch detection
+- [ ] Partial data handling
+- [ ] API Requestor protocol conformance and interface
+- [ ] API Requestor standardized request/response flow
+- [ ] Configuration widget interface and state management
+  - Audio provider configuration widget (voice selection, parameters)
+  - Image provider configuration widget (prompt input, parameters)
+  - Text provider configuration widget (model, temperature, tokens)
+  - Multi-type provider type selection and dynamic configuration
+- [ ] Sendable protocol conformance verification
+- [ ] Thread safety of typed data objects
+- [ ] **Performance metrics recording**: measure and log performance for various data sizes (no threshold enforcement yet)
+- [ ] TextPack (.guion) creation and structure validation using SwiftGuion
+- [ ] SwiftGuion library integration and API usage
+- [ ] **.guion document abstraction**: all file operations through document interface
+- [ ] **Unique ID generation**: UUID-based file naming in Resources folder
+- [ ] **File reference with unique ID**: creating file references containing unique IDs
+- [ ] **File reference resolution**: retrieving files from Resources folder by unique ID
+- [ ] TextPack compression/decompression (TextBundle specification via SwiftGuion)
+- [ ] File reference creation and resolution within TextPack bundles
+- [ ] Provider-specific data storage patterns within .guion bundles
+- [ ] Actor-based TextPack coordinator for thread-safe bundle modifications with SwiftGuion
+- [ ] Background thread file write operations (verify no main thread blocking)
+- [ ] File reference Sendable object creation (small payload only)
+- [ ] Memory usage: file reference vs full data payload transfer
+- [ ] Three-view pattern components:
+  - List view filtering logic
+  - Detail view data binding
+  - Combined view state management and click-to-reveal logic
+
+#### Integration Tests
+- [ ] Request with typed response specification
+- [ ] Provider returns typed data successfully
+- [ ] Provider returns invalid data (error case)
+- [ ] Provider returns partial data (error case)
+- [ ] Multiple typed requests in batch
+- [ ] Type validation across different providers
+- [ ] API Requestor protocol conformance across different providers
+- [ ] Configuration widget integration with request flow
+  - Audio provider: voice selection flows to request
+  - Image provider: prompt input flows to request
+  - Text provider: configuration flows to request
+  - Multi-type provider: type selection changes available configuration
+- [ ] SwiftData model persistence for typed data
+- [ ] Three-view pattern UI rendering:
+  - Filterable list view displays all responses correctly
+  - Detail view displays individual response correctly
+  - Combined view click-to-reveal interaction works correctly
+  - Filtering functionality works across all data types
+- [ ] Complete flow: configuration widget → API requestor request → validate → persist → three-view display
+- [ ] Background thread request execution (verify never on main thread)
+- [ ] Main thread SwiftData writes (verify persistence only on main thread)
+- [ ] Sendable data transfer between threads (file references only, not large data)
+- [ ] Large data file writes on background threads (verify no large data on main thread)
+- [ ] Actor-based TextPack coordinator for concurrent bundle modifications using SwiftGuion
+- [ ] Thread-safe TextPack bundle creation and modification workflows with SwiftGuion
+- [ ] SwiftGuion integration in production workflows
+- [ ] **.guion document abstraction in workflows**: all file operations via document interface
+- [ ] **Unique ID file storage workflow**: write with UUID, retrieve by UUID from Resources folder
+- [ ] Provider-specific data storage within .guion bundles using SwiftGuion API
+- [ ] Writing files to Resources folder inside .guion TextPack from background threads using SwiftGuion
+- [ ] **File reference with unique ID workflow**: create on background, transfer to main, resolve by ID
+- [ ] File reference retrieval and loading from TextPack bundles via SwiftGuion using unique IDs
+- [ ] TextPack compression/decompression in production workflows via SwiftGuion
+- [ ] Concurrent file writes to different TextPack bundles using SwiftGuion thread-safe API
+- [ ] Memory efficiency: no large data payload transfer between threads
+- [ ] Complete workflow: background request → background file write → file ref to main → SwiftData persist
+
+#### Error Handling Tests
+- [ ] Missing required fields in response
+- [ ] Wrong data type in response field
+- [ ] Null value for non-optional field
+- [ ] Extra unexpected fields (should be allowed)
+- [ ] Nested type validation errors
+- [ ] Array type validation errors
+- [ ] Clear, actionable error messages
+
+#### Performance Tests
+- [ ] Schema validation overhead (target: <5ms)
+- [ ] Type conversion overhead (target: <10ms)
+- [ ] Complex nested type handling
+- [ ] Large array type validation
+- [ ] Memory usage for type validation
+- [ ] Main thread blocking prevention (verify no blocking during background requests or file writes)
+- [ ] SwiftData write performance on main thread (file references only)
+- [ ] Background thread file write performance (large data to TextPack)
+- [ ] TextPack creation/modification performance on background threads
+- [ ] TextPack compression performance (per TextBundle specification)
+- [ ] **File I/O performance measurement**: record metrics for various data sizes (1KB, 10KB, 100KB, 1MB, 10MB, 100MB)
+- [ ] **UUID generation overhead**: measure performance impact of unique ID creation
+- [ ] **.guion document abstraction overhead**: measure performance cost vs direct file I/O
+- [ ] TextPack decompression and file access performance
+- [ ] **File retrieval by unique ID performance**: measure lookup time in Resources folder
+- [ ] Actor coordination overhead for TextPack bundle access
+- [ ] Thread switching overhead (background → main, file reference only)
+- [ ] Concurrent file write throughput (multiple background threads, different bundles)
+- [ ] **Performance comparison recording**: in-memory vs TextPack file-based storage (thresholds TBD after data collection)
+- [ ] Memory efficiency: file reference transfer vs large data transfer between threads
+
+#### Provider Integration Tests
+- [ ] OpenAI with typed responses (structured outputs)
+- [ ] Anthropic with typed responses
+- [ ] Custom providers with typed responses
+- [ ] Type capability declarations
+
+**Requirements Covered**: New requirements for typed return data system
+
+---
+
+## Phase 7: User Interface Components
 
 **Duration**: 4-5 weeks
 **Goal**: Implement SwiftUI components for configuration and generation
@@ -643,12 +884,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-6.1** | UI completeness | Code review | All REQ-5.x implemented |
-| **QG-6.2** | Test coverage | Coverage report | ≥80% on UI components |
-| **QG-6.3** | Accessibility | VoiceOver tests | All components accessible |
-| **QG-6.4** | Visual QA | Manual testing | UI matches HIG guidelines |
-| **QG-6.5** | Dark mode | Visual tests | All components support dark mode |
-| **QG-6.6** | Layout | Responsive tests | Works on various screen sizes |
+| **QG-7.1** | UI completeness | Code review | All REQ-5.x implemented |
+| **QG-7.2** | Test coverage | Coverage report | ≥80% on UI components |
+| **QG-7.3** | Accessibility | VoiceOver tests | All components accessible |
+| **QG-7.4** | Visual QA | Manual testing | UI matches HIG guidelines |
+| **QG-7.5** | Dark mode | Visual tests | All components support dark mode |
+| **QG-7.6** | Layout | Responsive tests | Works on various screen sizes |
 
 ### Testing Requirements
 
@@ -714,7 +955,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 7: Sample Applications
+## Phase 8: Sample Applications
 
 **Duration**: 2-3 weeks
 **Goal**: Create comprehensive sample applications demonstrating framework usage
@@ -758,11 +999,11 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-7S.1** | All examples build | Build tests | Clean builds on all platforms |
-| **QG-7S.2** | Examples run successfully | Manual testing | No crashes, expected behavior |
-| **QG-7S.3** | Code quality | Code review | Follows best practices |
-| **QG-7S.4** | Documentation | Completeness check | Each example has README and comments |
-| **QG-7S.5** | Usability | External review | 3+ developers can follow examples |
+| **QG-8.1** | All examples build | Build tests | Clean builds on all platforms |
+| **QG-8.2** | Examples run successfully | Manual testing | No crashes, expected behavior |
+| **QG-8.3** | Code quality | Code review | Follows best practices |
+| **QG-8.4** | Documentation | Completeness check | Each example has README and comments |
+| **QG-8.5** | Usability | External review | 3+ developers can follow examples |
 
 ### Testing Requirements
 
@@ -794,7 +1035,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 8: Documentation and Templates
+## Phase 9: Documentation and Templates
 
 **Duration**: 3-4 weeks
 **Goal**: Complete all documentation and developer resources
@@ -830,12 +1071,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-7.1** | Documentation completeness | Manual review | All REQ-13.x sections complete |
-| **QG-7.2** | Template functionality | AI builder test | AI creates working provider from template |
-| **QG-7.3** | Example correctness | Automated tests | All examples compile and run |
-| **QG-7.4** | Link validity | Link checker | No broken links |
-| **QG-7.5** | Clarity | External review | Feedback from 3+ external reviewers |
-| **QG-7.6** | Search functionality | DocC tests | Search returns relevant results |
+| **QG-9.1** | Documentation completeness | Manual review | All REQ-13.x sections complete |
+| **QG-9.2** | Template functionality | AI builder test | AI creates working provider from template |
+| **QG-9.3** | Example correctness | Automated tests | All examples compile and run |
+| **QG-9.4** | Link validity | Link checker | No broken links |
+| **QG-9.5** | Clarity | External review | Feedback from 3+ external reviewers |
+| **QG-9.6** | Search functionality | DocC tests | Search returns relevant results |
 
 ### Testing Requirements
 
@@ -897,7 +1138,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 9: Integration and System Testing
+## Phase 10: Integration and System Testing
 
 **Duration**: 2-3 weeks
 **Goal**: End-to-end testing and system validation
@@ -922,12 +1163,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-8.1** | Overall code coverage | Coverage report | ≥80% overall |
-| **QG-8.2** | Integration tests pass | Test results | 100% pass rate |
-| **QG-8.3** | Performance benchmarks | Benchmark results | Meet all targets |
-| **QG-8.4** | No memory leaks | Instruments | Zero leaks detected |
-| **QG-8.5** | Thread safety | TSAN | No data races |
-| **QG-8.6** | Stress tests pass | Stress results | System remains stable |
+| **QG-10.1** | Overall code coverage | Coverage report | ≥80% overall |
+| **QG-10.2** | Integration tests pass | Test results | 100% pass rate |
+| **QG-10.3** | Performance benchmarks | Benchmark results | Meet all targets |
+| **QG-10.4** | No memory leaks | Instruments | Zero leaks detected |
+| **QG-10.5** | Thread safety | TSAN | No data races |
+| **QG-10.6** | Stress tests pass | Stress results | System remains stable |
 
 ### Testing Requirements
 
@@ -1028,7 +1269,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 10: Beta Release and Community Validation
+## Phase 11: Beta Release and Community Validation
 
 **Duration**: 4-6 weeks
 **Goal**: Community testing and feedback incorporation
@@ -1053,12 +1294,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-9.1** | Beta stability | Crash reports | <1% crash rate |
-| **QG-9.2** | Community adoption | Download count | 50+ beta users |
-| **QG-9.3** | Feedback quality | Survey responses | 20+ detailed feedback responses |
-| **QG-9.4** | Provider contributions | PR count | 2+ community provider PRs |
-| **QG-9.5** | Documentation satisfaction | Survey | ≥4.0/5.0 average rating |
-| **QG-9.6** | Critical bugs | Issue count | Zero critical bugs |
+| **QG-11.1** | Beta stability | Crash reports | <1% crash rate |
+| **QG-11.2** | Community adoption | Download count | 50+ beta users |
+| **QG-11.3** | Feedback quality | Survey responses | 20+ detailed feedback responses |
+| **QG-11.4** | Provider contributions | PR count | 2+ community provider PRs |
+| **QG-11.5** | Documentation satisfaction | Survey | ≥4.0/5.0 average rating |
+| **QG-11.6** | Critical bugs | Issue count | Zero critical bugs |
 
 ### Testing Requirements
 
@@ -1116,7 +1357,7 @@ Each phase follows this structure:
 
 ---
 
-## Phase 11: Release Preparation
+## Phase 12: Release Preparation
 
 **Duration**: 2-3 weeks
 **Goal**: Final polishing and v2.0 release
@@ -1147,12 +1388,12 @@ Each phase follows this structure:
 
 | Gate | Requirement | Measurement | Pass Criteria |
 |------|-------------|-------------|---------------|
-| **QG-10.1** | Zero critical bugs | Issue tracker | No P0/critical issues open |
-| **QG-10.2** | Documentation complete | Manual review | All REQ-13.x satisfied |
-| **QG-10.3** | Performance targets met | Benchmarks | All targets achieved |
-| **QG-10.4** | GitHub artifacts | Checklist | All Phase 1-2 artifacts complete |
-| **QG-10.5** | Success criteria | Success criteria review | 16/18 criteria met |
-| **QG-10.6** | Legal review | Legal checklist | Licenses, attributions correct |
+| **QG-12.1** | Zero critical bugs | Issue tracker | No P0/critical issues open |
+| **QG-12.2** | Documentation complete | Manual review | All REQ-13.x satisfied |
+| **QG-12.3** | Performance targets met | Benchmarks | All targets achieved |
+| **QG-12.4** | GitHub artifacts | Checklist | All Phase 1-2 artifacts complete |
+| **QG-12.5** | Success criteria | Success criteria review | 16/18 criteria met |
+| **QG-12.6** | Legal review | Legal checklist | Licenses, attributions correct |
 
 ### Testing Requirements
 
@@ -1233,17 +1474,18 @@ These activities run throughout all phases:
 | **Phase 2** | REQ-2.1.x, 2.2.x, 2.3.x | ≥90% | 7 gates | ✅ Complete (92%) |
 | **Phase 3** | REQ-3.1.x (partial), 3.2.x (partial), 3.3.x | ≥85% | 9 gates | ✅ Complete (89%) |
 | **Phase 4** | REQ-4.1.x, 4.2.x | ≥95% | 5 gates | ✅ Complete (96%) |
-| **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider |
-| **Phase 6** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates |
-| **Phase 7** | REQ-13.5.3 (Sample apps) | N/A | 5 gates |
-| **Phase 8** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates |
-| **Phase 9** | REQ-7.x, 8.x, 10.x, 11.x | ≥80% overall | 6 gates |
-| **Phase 10** | REQ-9.x, Success Criteria | N/A | 6 gates |
-| **Phase 11** | All requirements | Final validation | 6 gates |
+| **Phase 5** | Default Providers, REQ-PROVIDER-x | ≥85% each | 5 gates per provider | ✅ Complete |
+| **Phase 6** | Typed Return Data | ≥90% | 8 gates | 📋 Planned |
+| **Phase 7** | REQ-5.1.x, 5.2.x, 5.3.x, 5.4.x | ≥80% | 6 gates | 📋 Planned |
+| **Phase 8** | REQ-13.5.3 (Sample apps) | N/A | 5 gates | 📋 Planned |
+| **Phase 9** | REQ-13.x, REQ-14.1.x, 14.10.x | 100% examples | 6 gates | 📋 Planned |
+| **Phase 10** | REQ-7.x, 8.x, 10.x, 11.x | ≥80% overall | 6 gates | 📋 Planned |
+| **Phase 11** | REQ-9.x, Success Criteria | N/A | 6 gates | 📋 Planned |
+| **Phase 12** | All requirements | Final validation | 6 gates | 📋 Planned |
 
 **Total Requirements**: 200+ individual requirements
-**Total Quality Gates**: 65+ gates
-**Estimated Total Duration**: 34-47 weeks (8.5-12 months)
+**Total Quality Gates**: 73+ gates
+**Estimated Total Duration**: 37-51 weeks (9.25-12.75 months)
 
 ---
 
@@ -1355,17 +1597,19 @@ Phase 5A (Text Providers) ───→ Requires Phases 1-4
     ↓                               │
 Phase 5B (Audio Providers) ───→ Requires Phases 1-4
     ↓                               │
-Phase 6 (UI Components) ←───────────┘
+Phase 6 (Typed Return Data) ←───────┤
+    ↓                               │
+Phase 7 (UI Components) ←───────────┘
     ↓
-Phase 7 (Sample Applications) ← All previous phases
+Phase 8 (Sample Applications) ← All previous phases
     ↓
-Phase 8 (Documentation) ← All previous phases
+Phase 9 (Documentation) ← All previous phases
     ↓
-Phase 9 (Integration Testing) ← All implementation phases
+Phase 10 (Integration Testing) ← All implementation phases
     ↓
-Phase 10 (Beta Release)
+Phase 11 (Beta Release)
     ↓
-Phase 11 (Release)
+Phase 12 (Release)
 ```
 
 ---
