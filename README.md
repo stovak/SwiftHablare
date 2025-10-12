@@ -88,7 +88,7 @@ See [PHASE_4_COMPLETION_REPORT.md](Docs/PHASE_4_COMPLETION_REPORT.md) for Phase 
 - SwiftData models for typed data storage (per requestor)
 - SwiftUI view components for displaying typed data (per requestor)
 - Concurrency architecture: background requests, main thread persistence, Sendable protocol
-- Large data file storage in Resources/.guion to prevent main thread blocking
+- Large data file storage in .guion TextPack bundles (TextBundle format) to prevent main thread blocking
 
 ## Requirements
 

@@ -638,9 +638,11 @@ Each phase follows this structure:
 - [ ] Response persistence: All SwiftData writes must occur on the main thread
 - [ ] Thread communication: Use Sendable protocol for all data passed between background and main threads
 - [ ] Large data handling: Typed data exceeding main thread performance threshold must be written to filesystem
-- [ ] File storage location: Large data files stored in Resources/.guion directory structure
+- [ ] File storage format: .guion is a TextPack file (compressed TextBundle format per https://textbundle.org)
+- [ ] File storage location: Large typed data files stored inside the Resources folder of the .guion TextPack bundle
 - [ ] File references: Large data stored as file references in the typed data Sendable object
 - [ ] Performance threshold: Define and enforce size limits for in-memory vs file-based data storage
+- [ ] TextPack compliance: Follow TextBundle/TextPack specification for .guion file structure
 
 #### Documentation
 - [ ] Typed return data guide
@@ -651,7 +653,9 @@ Each phase follows this structure:
 - [ ] SwiftUI view component guide for displaying typed data
 - [ ] Complete example: defining requestor with model and view
 - [ ] Concurrency patterns: background request → Sendable transfer → main thread persistence
-- [ ] File storage patterns: when and how to store large data in Resources/.guion
+- [ ] TextPack/TextBundle specification guide for .guion file format (https://textbundle.org)
+- [ ] File storage patterns: writing large data to Resources folder inside .guion TextPack
+- [ ] TextPack creation and manipulation: creating/updating .guion compressed bundles
 - [ ] Performance guidelines: determining data size thresholds for file vs in-memory storage
 - [ ] Inline API documentation (100% coverage)
 
@@ -689,8 +693,10 @@ Each phase follows this structure:
 - [ ] Sendable protocol conformance verification
 - [ ] Thread safety of typed data objects
 - [ ] File storage threshold logic
-- [ ] File path generation for Resources/.guion
-- [ ] File reference creation and resolution
+- [ ] TextPack (.guion) creation and structure validation
+- [ ] File path generation for Resources folder inside .guion TextPack
+- [ ] TextPack compression/decompression (TextBundle specification)
+- [ ] File reference creation and resolution within TextPack bundles
 
 #### Integration Tests
 - [ ] Request with typed response specification
@@ -705,8 +711,11 @@ Each phase follows this structure:
 - [ ] Background thread request execution (verify never on main thread)
 - [ ] Main thread SwiftData writes (verify persistence only on main thread)
 - [ ] Sendable data transfer between threads
-- [ ] Large data file storage to Resources/.guion
-- [ ] File reference retrieval and loading
+- [ ] Large data file storage to .guion TextPack bundles
+- [ ] TextPack bundle creation and modification workflows
+- [ ] Writing files to Resources folder inside .guion TextPack
+- [ ] File reference retrieval and loading from TextPack bundles
+- [ ] TextPack compression/decompression in production workflows
 - [ ] Concurrent request handling with proper thread isolation
 
 #### Error Handling Tests
@@ -726,10 +735,13 @@ Each phase follows this structure:
 - [ ] Memory usage for type validation
 - [ ] Main thread blocking prevention (verify no blocking during background requests)
 - [ ] SwiftData write performance on main thread
-- [ ] File I/O performance for large data (Resources/.guion)
+- [ ] TextPack creation/modification performance
+- [ ] TextPack compression performance (per TextBundle specification)
+- [ ] File I/O performance for large data (Resources folder in .guion TextPack)
+- [ ] TextPack decompression and file access performance
 - [ ] Thread switching overhead (background → main)
 - [ ] Concurrent request throughput with proper thread isolation
-- [ ] Memory usage: in-memory vs file-based storage comparison
+- [ ] Memory usage: in-memory vs TextPack file-based storage comparison
 
 #### Provider Integration Tests
 - [ ] OpenAI with typed responses (structured outputs)
