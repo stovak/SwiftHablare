@@ -16,7 +16,7 @@ struct BaseHTTPProviderTests {
 
     /// Concrete implementation of BaseHTTPProvider for testing
     @available(macOS 15.0, iOS 17.0, *)
-    final class TestHTTPProvider: BaseHTTPProvider {
+    final class TestHTTPProvider: BaseHTTPProvider, @unchecked Sendable {
         init() {
             super.init(baseURL: "https://test.example.com")
         }
