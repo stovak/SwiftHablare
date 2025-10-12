@@ -160,9 +160,37 @@ public final class ElevenLabsAudioRequestor: AIRequestor, @unchecked Sendable {
                 return .failure(.unexpectedResponseFormat("Unknown audio format: \(audioContent.format.rawValue)"))
             }
 
+            // Determine if we should store as file based on size threshold
+            let audioData = audioContent.data
+            let shouldStoreAsFile = outputFileType.shouldStoreAsFile(estimatedSize: Int64(audioData.count))
+
+            // Storage decision: write to file if data exceeds threshold
+            let storedAudioData: Data?
+            if shouldStoreAsFile {
+                // Write to storage area and return nil audioData
+                do {
+                    // Create storage directory if needed
+                    try storageArea.createDirectoryIfNeeded()
+
+                    // Write audio to file
+                    let fileURL = storageArea.defaultDataFileURL(extension: audioFormat.fileExtension)
+                    try audioData.write(to: fileURL)
+
+                    // Nil out audioData since it's now file-stored
+                    storedAudioData = nil
+                } catch {
+                    return .failure(.persistenceError(
+                        "Failed to write audio to storage: \(error.localizedDescription)"
+                    ))
+                }
+            } else {
+                // Store in-memory for small audio
+                storedAudioData = audioData
+            }
+
             // Create typed data
             let typedData = GeneratedAudioData(
-                audioData: audioContent.data,
+                audioData: storedAudioData,
                 format: audioFormat,
                 durationSeconds: nil, // ElevenLabs doesn't provide this in response
                 sampleRate: nil,

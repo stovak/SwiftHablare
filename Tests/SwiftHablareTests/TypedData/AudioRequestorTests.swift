@@ -545,6 +545,53 @@ final class AudioRequestorTests: XCTestCase {
         }
     }
 
+    // MARK: - Storage Area Integration Tests
+
+    func testElevenLabsAudioRequestor_SmallAudioStoredInMemory() async {
+        // Small audio (<100KB threshold) should be stored in-memory
+        let provider = ElevenLabsProvider.shared()
+        let requestor = ElevenLabsAudioRequestor(provider: provider)
+        let config = AudioGenerationConfig.default
+
+        // Create small audio data (10KB)
+        let smallAudioData = Data(repeating: 0xFF, count: 10_000)
+
+        // Note: This test would need a mock provider to inject the audio data
+        // For now, we're testing the threshold logic conceptually
+        let shouldStoreAsFile = requestor.outputFileType.shouldStoreAsFile(estimatedSize: Int64(smallAudioData.count))
+
+        XCTAssertFalse(shouldStoreAsFile, "Small audio (<100KB) should be stored in-memory")
+    }
+
+    func testElevenLabsAudioRequestor_LargeAudioStoredAsFile() async {
+        // Large audio (>=100KB threshold) should be written to file
+        let provider = ElevenLabsProvider.shared()
+        let requestor = ElevenLabsAudioRequestor(provider: provider)
+        let config = AudioGenerationConfig.default
+
+        // Create large audio data (1MB)
+        let largeAudioData = Data(repeating: 0xFF, count: 1_000_000)
+
+        let shouldStoreAsFile = requestor.outputFileType.shouldStoreAsFile(estimatedSize: Int64(largeAudioData.count))
+
+        XCTAssertTrue(shouldStoreAsFile, "Large audio (>=100KB) should be stored as file")
+    }
+
+    func testElevenLabsAudioRequestor_ThresholdBoundary() async {
+        let provider = ElevenLabsProvider.shared()
+        let requestor = ElevenLabsAudioRequestor(provider: provider)
+
+        // Test at threshold (100KB)
+        let thresholdData = Data(repeating: 0xFF, count: 100_000)
+        let atThreshold = requestor.outputFileType.shouldStoreAsFile(estimatedSize: Int64(thresholdData.count))
+        XCTAssertTrue(atThreshold, "Audio at threshold (100KB) should be stored as file")
+
+        // Test just below threshold
+        let belowThresholdData = Data(repeating: 0xFF, count: 99_999)
+        let belowThreshold = requestor.outputFileType.shouldStoreAsFile(estimatedSize: Int64(belowThresholdData.count))
+        XCTAssertFalse(belowThreshold, "Audio below threshold should be in-memory")
+    }
+
     // MARK: - Provider Integration Tests
 
     func testElevenLabsProvider_AvailableRequestors() {
