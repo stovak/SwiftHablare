@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import CryptoKit
 
 /// Reference to typed data stored as a file in a `.guion` bundle.
 ///
@@ -135,7 +136,7 @@ public struct TypedDataFileReference: Codable, Sendable, Equatable, Hashable {
 
     /// Optional checksum for integrity verification
     ///
-    /// MD5 or SHA-256 hash of file contents.
+    /// SHA-256 hash of file contents (64 hex characters).
     /// Used to verify file hasn't been corrupted or modified.
     public let checksum: String?
 
@@ -275,16 +276,16 @@ public struct TypedDataFileReference: Codable, Sendable, Equatable, Hashable {
 
     // MARK: - Integrity Verification
 
-    /// Generates MD5 checksum of file contents
+    /// Generates SHA-256 checksum of file contents
     ///
     /// Thread-safe: Can be called from any thread.
     ///
     /// - Parameter storageArea: Storage area where the file is located
-    /// - Returns: MD5 checksum as hex string
+    /// - Returns: SHA-256 checksum as hex string (64 characters)
     /// - Throws: File system or hashing errors
     public func generateChecksum(in storageArea: StorageAreaReference) throws -> String {
         let data = try readData(from: storageArea)
-        return data.md5Hash
+        return data.sha256Hash
     }
 
     /// Verifies that the file checksum matches the stored checksum
@@ -319,7 +320,7 @@ extension TypedDataFileReference {
     ///   - fileName: Name of the file
     ///   - data: File data (used to calculate size)
     ///   - mimeType: MIME type of the file
-    ///   - includeChecksum: Whether to calculate MD5 checksum
+    ///   - includeChecksum: Whether to calculate SHA-256 checksum
     /// - Returns: File reference with calculated metadata
     public static func from(
         requestID: UUID,
@@ -334,7 +335,7 @@ extension TypedDataFileReference {
             fileSize: Int64(data.count),
             mimeType: mimeType,
             createdAt: Date(),
-            checksum: includeChecksum ? data.md5Hash : nil
+            checksum: includeChecksum ? data.sha256Hash : nil
         )
     }
 
@@ -346,7 +347,7 @@ extension TypedDataFileReference {
     ///   - requestID: Request ID that owns this file
     ///   - fileURL: URL to the existing file
     ///   - mimeType: MIME type of the file
-    ///   - includeChecksum: Whether to calculate MD5 checksum
+    ///   - includeChecksum: Whether to calculate SHA-256 checksum
     /// - Returns: File reference with metadata from disk
     /// - Throws: File system errors if file cannot be read
     public static func from(
@@ -368,7 +369,7 @@ extension TypedDataFileReference {
         let checksum: String?
         if includeChecksum {
             let data = try Data(contentsOf: fileURL)
-            checksum = data.md5Hash
+            checksum = data.sha256Hash
         } else {
             checksum = nil
         }
@@ -397,13 +398,14 @@ extension TypedDataFileReference: CustomStringConvertible {
 
 @available(macOS 15.0, iOS 17.0, *)
 extension Data {
-    /// Calculates MD5 hash of data
+    /// Calculates SHA-256 hash of data
     ///
-    /// - Returns: MD5 hash as hex string
-    fileprivate var md5Hash: String {
-        // Import CryptoKit for MD5 hashing
-        // For now, use a simple implementation
-        // TODO: Implement proper MD5 hashing in Phase 6C
-        return String(format: "%02x", self.hashValue)
+    /// Uses CryptoKit for secure, deterministic hashing suitable for
+    /// file integrity verification.
+    ///
+    /// - Returns: SHA-256 hash as hex string (64 characters)
+    fileprivate var sha256Hash: String {
+        let digest = SHA256.hash(data: self)
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
