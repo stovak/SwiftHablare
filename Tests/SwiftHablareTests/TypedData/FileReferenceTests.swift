@@ -466,17 +466,22 @@ final class TypedDataFileReferenceTests: XCTestCase {
 
     func testEquality() {
         let requestID = UUID()
+        let createdAt = Date()
         let fileRef1 = TypedDataFileReference(
             requestID: requestID,
             fileName: "data.json",
             fileSize: 1024,
-            mimeType: "application/json"
+            mimeType: "application/json",
+            createdAt: createdAt,
+            checksum: "abc123"
         )
         let fileRef2 = TypedDataFileReference(
             requestID: requestID,
             fileName: "data.json",
             fileSize: 1024,
-            mimeType: "application/json"
+            mimeType: "application/json",
+            createdAt: createdAt,
+            checksum: "abc123"
         )
 
         XCTAssertEqual(fileRef1, fileRef2)
