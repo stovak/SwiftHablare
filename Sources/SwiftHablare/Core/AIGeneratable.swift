@@ -147,24 +147,61 @@ public struct AIPropertySpec: Sendable {
 @available(macOS 15.0, iOS 17.0, *)
 public typealias TransformFunction = @Sendable (Any, Any) throws -> Any
 
-/// Creates an AI property specification from a KeyPath with an explicit property name.
+/// Creates an AI property specification from a KeyPath.
 ///
 /// - Parameters:
 ///   - keyPath: The KeyPath to the property (used for type safety)
-///   - name: The explicit property name (e.g., "title", "description")
-///
-/// - Note: Swift does not provide a reliable way to extract property names from KeyPaths at runtime,
-///         so an explicit name parameter is required for reliable property identification.
+///   - name: An optional explicit property name. If omitted, the name is inferred from the KeyPath.
 ///
 /// ## Example
 /// ```swift
-/// AIProperty(\Article.title, name: "title")
+/// AIProperty(\Article.title)
 ///     .providers(["openai", "anthropic"])
 ///     .constraints(minLength: 10, maxLength: 100)
 /// ```
 @available(macOS 15.0, iOS 17.0, *)
-public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>, name: String) -> AIPropertySpec {
-    return AIPropertySpec(propertyName: name)
+public func AIProperty<T, V>(_ keyPath: KeyPath<T, V>, name: String? = nil) -> AIPropertySpec {
+    let resolvedName: String
+    if let explicitName = name, !explicitName.isEmpty {
+        resolvedName = explicitName
+    } else if let inferredName = inferPropertyName(from: keyPath) {
+        resolvedName = inferredName
+    } else {
+        preconditionFailure("Unable to infer property name from key path: \(keyPath)")
+    }
+
+    return AIPropertySpec(propertyName: resolvedName)
+}
+
+@available(macOS 15.0, iOS 17.0, *)
+private func inferPropertyName<T, V>(from keyPath: KeyPath<T, V>) -> String? {
+    let description = String(describing: keyPath)
+    guard let lastComponent = description.split(separator: ".").last else {
+        return nil
+    }
+
+    let trimmed = lastComponent.trimmingCharacters(in: CharacterSet(charactersIn: "\\"))
+    return trimmed.isEmpty ? nil : trimmed
+}
+
+@available(macOS 15.0, iOS 17.0, *)
+public extension AIGeneratable {
+    /// Convenience helper that allows calling ``AIProperty(_:_:)`` using a KeyPath relative to `Self`.
+    ///
+    /// This mirrors the natural SwiftData style of referencing properties within a model's
+    /// ``AIGenerationSchema`` declaration:
+    ///
+    /// ```swift
+    /// static var aiGenerationSchema: AIGenerationSchema {
+    ///     AIGenerationSchema {
+    ///         Self.AIProperty(\.title)
+    ///             .providers(["openai"])
+    ///     }
+    /// }
+    /// ```
+    static func AIProperty<V>(_ keyPath: KeyPath<Self, V>, name: String? = nil) -> AIPropertySpec {
+        SwiftHablare.AIProperty(keyPath, name: name)
+    }
 }
 
 // MARK: - Result Builder
