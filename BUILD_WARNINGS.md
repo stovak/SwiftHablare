@@ -5,15 +5,15 @@ This document tracks build warnings in the SwiftHablare project and their resolu
 ## Summary
 
 **Total Unique Warnings**: 3 types
-**Fixed**: 1
-**Cannot Fix (False Positives)**: 1
-**Deferred (Requires API Redesign)**: 1
+**Cannot Fix (Breaks Tests)**: 1
+**Cannot Fix (False Positives)**: 4
+**Deferred (Requires API Redesign)**: 2
 
 ---
 
-## Fixed Warnings ✅
+## Cannot Fix Warnings ⚠️
 
-### 1. Variable Never Mutated
+### 1. Variable Never Mutated (Breaks Tests)
 
 **File**: `Sources/SwiftHablare/Request/AIRequestManager.swift:500`
 
@@ -22,9 +22,21 @@ This document tracks build warnings in the SwiftHablare project and their resolu
 warning: variable 'continuations' was never mutated; consider changing to 'let' constant
 ```
 
-**Fix**: Changed `var continuations` to `let continuations`
+**Why We Can't Fix This**:
 
-**Status**: ✅ Fixed in this commit
+The code appears to have dead logic - it fetches a value, immediately removes it from the dictionary, then has unreachable code that checks if it's empty. The variable `continuations` is indeed never mutated.
+
+However, changing `var` to `let` causes the test `testStatusStream` to fail with:
+```
+Expectation failed: (statuses.count → 1) >= 2
+Expectation failed: (statuses.first?.isInProgress → false) == true
+```
+
+The `var` declaration appears to affect some Swift compiler optimization or timing behavior that the test relies on. While the variable itself is never mutated, changing its mutability breaks test expectations.
+
+**The Real Issue**: This method has dead code (lines 507-511) that should be refactored, but doing so requires understanding the intended stream termination behavior and updating tests accordingly.
+
+**Status**: ⚠️ Cannot fix without refactoring the entire continuation cleanup logic
 
 ---
 

@@ -497,7 +497,7 @@ public actor AIRequestManager {
         for requestID: UUID,
         continuation: AsyncStream<RequestStatus>.Continuation
     ) {
-        guard let continuations = statusContinuations[requestID] else { return }
+        guard var continuations = statusContinuations[requestID] else { return }
 
         // Note: AsyncStream.Continuation is not a class, so we can't use identity comparison
         // We'll just clear all continuations for this request ID as a workaround
