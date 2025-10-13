@@ -101,19 +101,26 @@ public final class OpenAIEmbeddingRequestor: AIRequestor, @unchecked Sendable {
 
         // Validate dimensions if specified
         if let dimensions = config.dimensions {
-            let maxDims = model.defaultDimensions
-
-            // Ada 002 does not support custom dimensions
-            if model == .textEmbeddingAda002 {
+            // Check if model supports custom dimensions
+            guard model.supportsCustomDimensions else {
                 throw AIServiceError.configurationError(
                     "Model \(model.rawValue) does not support custom dimensions"
                 )
             }
 
-            // Validate dimension range for embedding-3 models
-            guard dimensions > 0 && dimensions <= maxDims else {
+            // Get valid dimension range
+            guard let minDims = model.minimumDimensions else {
                 throw AIServiceError.configurationError(
-                    "Dimensions must be between 1 and \(maxDims) for model \(model.rawValue)"
+                    "Model \(model.rawValue) minimum dimensions not defined"
+                )
+            }
+            let maxDims = model.defaultDimensions
+
+            // Validate dimension range matches API requirements
+            guard dimensions >= minDims && dimensions <= maxDims else {
+                throw AIServiceError.configurationError(
+                    "Dimensions must be between \(minDims) and \(maxDims) for model \(model.rawValue). " +
+                    "Provided: \(dimensions)"
                 )
             }
         }
