@@ -538,6 +538,82 @@ final class EmbeddingRequestorTests: XCTestCase {
         }
     }
 
+    func testOpenAIEmbeddingRequestor_ValidateConfiguration_DimensionsTooSmall() {
+        let provider = OpenAIProvider.shared()
+
+        // Test text-embedding-3-small (min: 512)
+        let smallRequestor = OpenAIEmbeddingRequestor(
+            provider: provider,
+            model: .textEmbedding3Small
+        )
+
+        let configTooSmall = EmbeddingConfig(
+            model: .textEmbedding3Small,
+            dimensions: 256 // Below minimum of 512
+        )
+
+        XCTAssertThrowsError(try smallRequestor.validateConfiguration(configTooSmall)) { error in
+            guard let serviceError = error as? AIServiceError,
+                  case .configurationError(let message) = serviceError else {
+                XCTFail("Expected configurationError")
+                return
+            }
+            XCTAssertTrue(message.contains("512"), "Error should mention minimum of 512")
+            XCTAssertTrue(message.contains("1536"), "Error should mention maximum of 1536")
+        }
+
+        // Test text-embedding-3-large (min: 256)
+        let largeRequestor = OpenAIEmbeddingRequestor(
+            provider: provider,
+            model: .textEmbedding3Large
+        )
+
+        let configTooSmallForLarge = EmbeddingConfig(
+            model: .textEmbedding3Large,
+            dimensions: 100 // Below minimum of 256
+        )
+
+        XCTAssertThrowsError(try largeRequestor.validateConfiguration(configTooSmallForLarge)) { error in
+            guard let serviceError = error as? AIServiceError,
+                  case .configurationError(let message) = serviceError else {
+                XCTFail("Expected configurationError")
+                return
+            }
+            XCTAssertTrue(message.contains("256"), "Error should mention minimum of 256")
+            XCTAssertTrue(message.contains("3072"), "Error should mention maximum of 3072")
+        }
+    }
+
+    func testOpenAIEmbeddingRequestor_ValidateConfiguration_ValidMinimumDimensions() {
+        let provider = OpenAIProvider.shared()
+
+        // Test text-embedding-3-small at minimum (512)
+        let smallRequestor = OpenAIEmbeddingRequestor(
+            provider: provider,
+            model: .textEmbedding3Small
+        )
+
+        let configAtMin = EmbeddingConfig(
+            model: .textEmbedding3Small,
+            dimensions: 512 // Exactly at minimum
+        )
+
+        XCTAssertNoThrow(try smallRequestor.validateConfiguration(configAtMin))
+
+        // Test text-embedding-3-large at minimum (256)
+        let largeRequestor = OpenAIEmbeddingRequestor(
+            provider: provider,
+            model: .textEmbedding3Large
+        )
+
+        let configAtMinLarge = EmbeddingConfig(
+            model: .textEmbedding3Large,
+            dimensions: 256 // Exactly at minimum
+        )
+
+        XCTAssertNoThrow(try largeRequestor.validateConfiguration(configAtMinLarge))
+    }
+
     func testOpenAIEmbeddingRequestor_ValidateConfiguration_Ada002NoDimensions() {
         let provider = OpenAIProvider.shared()
         let requestor = OpenAIEmbeddingRequestor(

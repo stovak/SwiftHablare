@@ -288,6 +288,27 @@ public struct EmbeddingConfig: Codable, Sendable {
             }
         }
 
+        /// Minimum allowed dimensions for custom dimension support
+        ///
+        /// - text-embedding-3-small: 512
+        /// - text-embedding-3-large: 256
+        /// - text-embedding-ada-002: N/A (does not support custom dimensions)
+        public var minimumDimensions: Int? {
+            switch self {
+            case .textEmbedding3Small: return 512
+            case .textEmbedding3Large: return 256
+            case .textEmbeddingAda002: return nil
+            }
+        }
+
+        /// Whether this model supports custom dimensions
+        public var supportsCustomDimensions: Bool {
+            switch self {
+            case .textEmbedding3Small, .textEmbedding3Large: return true
+            case .textEmbeddingAda002: return false
+            }
+        }
+
         /// Approximate cost per 1M tokens (USD)
         public var costPer1MTokens: Double {
             switch self {
