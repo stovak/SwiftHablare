@@ -27,8 +27,8 @@ struct OpenAIProviderTests {
         let provider = OpenAIProvider()
 
         #expect(provider.capabilities.contains(.textGeneration))
+        #expect(provider.capabilities.contains(.imageGeneration))
         #expect(provider.capabilities.contains(.embeddings))
-        #expect(!provider.capabilities.contains(.imageGeneration))
     }
 
     @Test("Provider response type is text")

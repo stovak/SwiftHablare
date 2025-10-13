@@ -469,8 +469,16 @@ final class TextRequestorTests: XCTestCase {
         let provider = OpenAIProvider.shared()
         let requestors = provider.availableRequestors()
 
-        XCTAssertEqual(requestors.count, 3)
-        XCTAssertTrue(requestors.allSatisfy { $0.category == .text })
+        // OpenAI now provides 3 text requestors + 2 image requestors = 5 total
+        XCTAssertEqual(requestors.count, 5)
+
+        // Count by category
+        let textRequestors = requestors.filter { $0.category == .text }
+        let imageRequestors = requestors.filter { $0.category == .image }
+
+        XCTAssertEqual(textRequestors.count, 3)
+        XCTAssertEqual(imageRequestors.count, 2)
+
         XCTAssertTrue(requestors.allSatisfy { $0.providerID == "openai" })
     }
 
