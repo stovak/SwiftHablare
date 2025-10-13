@@ -6,6 +6,22 @@ import SwiftData
 @available(macOS 15.0, iOS 17.0, *)
 final class ElevenLabsProviderTests: XCTestCase {
 
+    // Helper to store a valid test API key for tests that need credentials
+    private func storeValidTestAPIKey() async throws {
+        try await AICredentialManager.shared.store(
+            credential: AICredential(providerID: "elevenlabs", type: .apiKey, name: "Test API Key"),
+            value: SecureString("12345678901234567890123456789012")  // 32 chars
+        )
+    }
+
+    // Helper to clean up test API key
+    private func cleanupTestAPIKey() async {
+        try? await AICredentialManager.shared.delete(
+            providerID: "elevenlabs",
+            type: .apiKey
+        )
+    }
+
     // MARK: - Identity Tests
 
     func testIdentity() {
@@ -102,7 +118,16 @@ final class ElevenLabsProviderTests: XCTestCase {
 
     func testGenerate_FailsWithShortAPIKey() async {
         let provider = ElevenLabsProvider()
-        
+        // Store a short API key (less than 32 characters)
+        do {
+            try await AICredentialManager.shared.store(
+                credential: AICredential(providerID: "elevenlabs", type: .apiKey, name: "Short Test Key"),
+                value: SecureString("short-key-123")
+            )
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         let result = await provider.generate(prompt: "Hello world", parameters: [:])
 
@@ -116,12 +141,26 @@ final class ElevenLabsProviderTests: XCTestCase {
                 XCTFail("Expected invalidAPIKey error, got \(error)")
             }
         }
+
+        // Clean up
+        try? await AICredentialManager.shared.delete(
+            providerID: "elevenlabs",
+            type: .apiKey
+        )
     }
 
     func testGenerate_AcceptsValidAPIKey() async {
         let provider = ElevenLabsProvider()
         // Valid 32-character API key
-        
+        do {
+            try await AICredentialManager.shared.store(
+                credential: AICredential(providerID: "elevenlabs", type: .apiKey, name: "Valid Test Key"),
+                value: SecureString("12345678901234567890123456789012")  // 32 chars
+            )
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         // This will fail with network error since we don't have a real API, but it should pass validation
         let result = await provider.generate(prompt: "Hello world", parameters: [:])
@@ -138,12 +177,26 @@ final class ElevenLabsProviderTests: XCTestCase {
             }
             // Any other error (network, etc.) is expected
         }
+
+        // Clean up
+        try? await AICredentialManager.shared.delete(
+            providerID: "elevenlabs",
+            type: .apiKey
+        )
     }
 
     func testGenerate_AcceptsTestAPIKey() async {
         let provider = ElevenLabsProvider()
         // Test keys with "test-" prefix are allowed
-        
+        do {
+            try await AICredentialManager.shared.store(
+                credential: AICredential(providerID: "elevenlabs", type: .apiKey, name: "Test Prefix Key"),
+                value: SecureString("test-key-for-testing")
+            )
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         // This will fail with network error, but should pass validation
         let result = await provider.generate(prompt: "Hello world", parameters: [:])
@@ -159,11 +212,23 @@ final class ElevenLabsProviderTests: XCTestCase {
                 XCTFail("Should not fail with invalid API key")
             }
         }
+
+        // Clean up
+        try? await AICredentialManager.shared.delete(
+            providerID: "elevenlabs",
+            type: .apiKey
+        )
     }
 
     func testGenerate_UsesDefaultParameters() async {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         // Call without custom parameters - will use defaults
         // We're just testing that it doesn't crash
@@ -177,11 +242,20 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Should fail with some error (network, etc.)
             XCTAssertNotNil(error)
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     func testGenerate_UsesCustomParameters() async {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         let parameters: [String: Any] = [
             "voice_id": "custom-voice-123",
@@ -201,6 +275,9 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Should fail with some error (network, etc.)
             XCTAssertNotNil(error)
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     // MARK: - Available Requestors Tests
@@ -218,7 +295,13 @@ final class ElevenLabsProviderTests: XCTestCase {
 
     func testLegacyGenerate_ConvertsResultToData() async throws {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         let container = try TestHelpers.testContainer(for: GeneratedText.self)
         let context = ModelContext(container)
@@ -235,6 +318,9 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Expected to fail with network error
             XCTAssertNotNil(error)
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     // Note: testLegacyGenerateProperty removed due to SwiftData @Model scope limitations in test functions
@@ -309,7 +395,13 @@ final class ElevenLabsProviderTests: XCTestCase {
 
     func testGenerate_EmptyPrompt() async {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         let result = await provider.generate(prompt: "", parameters: [:])
 
@@ -321,11 +413,20 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Expected to fail with some error
             break
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     func testGenerate_VeryLongPrompt() async {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         let longPrompt = String(repeating: "Hello world. ", count: 1000)
         let result = await provider.generate(prompt: longPrompt, parameters: [:])
@@ -337,11 +438,20 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Expected to fail
             break
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     func testGenerate_InvalidVoiceIDType() async {
         let provider = ElevenLabsProvider()
-        
+
+        do {
+            try await storeValidTestAPIKey()
+        } catch {
+            XCTFail("Failed to store test API key: \(error)")
+            return
+        }
 
         // Pass wrong type for voice_id - should handle gracefully
         let parameters: [String: Any] = [
@@ -357,6 +467,9 @@ final class ElevenLabsProviderTests: XCTestCase {
             // Should handle type mismatch gracefully
             break
         }
+
+        // Clean up
+        await cleanupTestAPIKey()
     }
 
     // Note: testGenerate_CredentialManagerError removed - can't mock actor-based credential manager
