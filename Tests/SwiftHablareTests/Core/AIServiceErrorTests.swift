@@ -206,4 +206,163 @@ struct AIServiceErrorTests {
             #expect(msg1 != msg3)
         }
     }
+
+    // MARK: - Localized Descriptions for All Error Types
+
+    @Test("All error types have proper failureReason")
+    func testAllFailureReasons() {
+        let errors: [(AIServiceError, String)] = [
+            (.invalidAPIKey("test"), "invalid or has been revoked"),
+            (.missingCredentials("test"), "not available"),
+            (.networkError("test"), "failed"),
+            (.timeout("test"), "timed out"),
+            (.connectionFailed("test"), "connect to service"),
+            (.providerError("test"), "returned an error"),
+            (.rateLimitExceeded("test"), "exceeded"),
+            (.authenticationFailed("test"), "failed"),
+            (.invalidRequest("test"), "invalid"),
+            (.validationError("test"), "validation failed"),
+            (.unexpectedResponseFormat("test"), "unexpected"),
+            (.dataConversionError("test"), "convert data"),
+            (.dataBindingError("test"), "bind data"),
+            (.persistenceError("test"), "operation failed"),
+            (.modelNotFound("test"), "does not exist"),
+            (.unsupportedOperation("test"), "not supported")
+        ]
+
+        for (error, expectedPhrase) in errors {
+            let reason = error.failureReason
+            #expect(reason != nil, "Error \(error) should have failureReason")
+            #expect(reason!.lowercased().contains(expectedPhrase.lowercased()),
+                   "Expected \(error) to contain '\(expectedPhrase)' in reason: \(reason!)")
+        }
+    }
+
+    @Test("All error types have proper recoverySuggestion")
+    func testAllRecoverySuggestions() {
+        let errors: [(AIServiceError, String)] = [
+            (.configurationError("test"), "configuration"),
+            (.timeout("test"), "longer than expected"),
+            (.networkError("test"), "connection"),
+            (.connectionFailed("test"), "connection"),
+            (.rateLimitExceeded("test"), "moment"),
+            (.authenticationFailed("test"), "API key"),
+            (.invalidRequest("test"), "parameters"),
+            (.validationError("test"), "format"),
+            (.unexpectedResponseFormat("test"), "service may have changed"),
+            (.persistenceError("test"), "storage"),
+            (.modelNotFound("test"), "exists in the database"),
+            (.unsupportedOperation("test"), "not yet implemented")
+        ]
+
+        for (error, expectedPhrase) in errors {
+            let suggestion = error.recoverySuggestion
+            #expect(suggestion != nil, "Error \(error) should have recoverySuggestion")
+            #expect(suggestion!.lowercased().contains(expectedPhrase.lowercased()),
+                   "Expected \(error) to contain '\(expectedPhrase)' in suggestion: \(suggestion!)")
+        }
+    }
+
+    @Test("Rate limit error includes retry time in recovery suggestion")
+    func testRateLimitRecoverySuggestionWithRetryTime() {
+        let error = AIServiceError.rateLimitExceeded("test", retryAfter: 120)
+        let suggestion = error.recoverySuggestion
+
+        #expect(suggestion != nil)
+        #expect(suggestion!.contains("120"))
+    }
+
+    // MARK: - Additional Error Type Coverage
+
+    @Test("invalidAPIKey error has correct properties")
+    func testInvalidAPIKeyError() {
+        let error = AIServiceError.invalidAPIKey("Key rejected")
+
+        #expect(error.errorDescription == "Key rejected")
+        #expect(error.category == .configuration)
+        #expect(error.isRecoverable == false)
+        #expect(error.failureReason!.contains("invalid"))
+    }
+
+    @Test("missingCredentials error has correct properties")
+    func testMissingCredentialsError() {
+        let error = AIServiceError.missingCredentials("No API key")
+
+        #expect(error.errorDescription == "No API key")
+        #expect(error.category == .configuration)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("connectionFailed error has correct properties")
+    func testConnectionFailedError() {
+        let error = AIServiceError.connectionFailed("Cannot reach server")
+
+        #expect(error.errorDescription == "Cannot reach server")
+        #expect(error.category == .network)
+        #expect(error.isRecoverable == true)
+        #expect(error.retryDelay == 5.0)
+    }
+
+    @Test("authenticationFailed error has correct properties")
+    func testAuthenticationFailedError() {
+        let error = AIServiceError.authenticationFailed("Invalid credentials")
+
+        #expect(error.errorDescription == "Invalid credentials")
+        #expect(error.category == .provider)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("invalidRequest error has correct properties")
+    func testInvalidRequestError() {
+        let error = AIServiceError.invalidRequest("Bad parameters")
+
+        #expect(error.errorDescription == "Bad parameters")
+        #expect(error.category == .provider)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("unexpectedResponseFormat error has correct properties")
+    func testUnexpectedResponseFormatError() {
+        let error = AIServiceError.unexpectedResponseFormat("Wrong format")
+
+        #expect(error.errorDescription == "Wrong format")
+        #expect(error.category == .data)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("dataConversionError error has correct properties")
+    func testDataConversionError() {
+        let error = AIServiceError.dataConversionError("Cannot convert")
+
+        #expect(error.errorDescription == "Cannot convert")
+        #expect(error.category == .data)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("dataBindingError error has correct properties")
+    func testDataBindingError() {
+        let error = AIServiceError.dataBindingError("Cannot bind")
+
+        #expect(error.errorDescription == "Cannot bind")
+        #expect(error.category == .data)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("modelNotFound error has correct properties")
+    func testModelNotFoundError() {
+        let error = AIServiceError.modelNotFound("Model missing")
+
+        #expect(error.errorDescription == "Model missing")
+        #expect(error.category == .storage)
+        #expect(error.isRecoverable == false)
+    }
+
+    @Test("unsupportedOperation error has correct properties")
+    func testUnsupportedOperationError() {
+        let error = AIServiceError.unsupportedOperation("Not implemented")
+
+        #expect(error.errorDescription == "Not implemented")
+        #expect(error.category == .operation)
+        #expect(error.isRecoverable == false)
+    }
 }
