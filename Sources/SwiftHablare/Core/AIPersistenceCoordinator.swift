@@ -124,16 +124,43 @@ public struct AIPersistenceCoordinator: Sendable {
             }
         }
 
-        // 2. Generate content
+        // 2. Generate content using the new Result-based API
         // Convert parameters to [String: Any] for provider compatibility
         let anyParameters: [String: Any] = parameters.reduce(into: [:]) { result, pair in
             result[pair.key] = pair.value
         }
-        let generatedValue = try await provider.generate(
+        let result = await provider.generate(
             prompt: prompt,
-            parameters: anyParameters,
-            context: context
+            parameters: anyParameters
         )
+
+        // Handle the result
+        let responseContent: ResponseContent
+        switch result {
+        case .success(let content):
+            responseContent = content
+        case .failure(let error):
+            throw error
+        }
+
+        // Extract the generated value from ResponseContent
+        let generatedValue: Any
+        switch responseContent {
+        case .text(let text):
+            generatedValue = text
+        case .data(let data):
+            generatedValue = data
+        case .image(let imageData, format: _):
+            // Extract just the data, ignore format for now
+            generatedValue = imageData
+        case .audio(let audioData, format: _):
+            // Extract just the data, ignore format for now
+            generatedValue = audioData
+        case .structured(let dict):
+            // Convert SendableValue dictionary to Any dictionary
+            let anyDict = dict.mapValues { convertSendableValueToAny($0) }
+            generatedValue = anyDict
+        }
 
         // 3. Apply transformation if provided
         let transformedValue: Any
@@ -247,5 +274,27 @@ public struct AIPersistenceCoordinator: Sendable {
     /// - Parameter rule: The validation rule
     public func registerValidationRule(_ rule: AIContentValidator.ValidationRule) async {
         await validator.registerRule(rule)
+    }
+}
+
+// MARK: - Helper Functions
+
+/// Converts a SendableValue to Any for compatibility with legacy code.
+private func convertSendableValueToAny(_ value: SendableValue) -> Any {
+    switch value {
+    case .string(let s):
+        return s
+    case .int(let i):
+        return i
+    case .double(let d):
+        return d
+    case .bool(let b):
+        return b
+    case .null:
+        return NSNull()
+    case .array(let arr):
+        return arr.map { convertSendableValueToAny($0) }
+    case .dictionary(let dict):
+        return dict.mapValues { convertSendableValueToAny($0) }
     }
 }
