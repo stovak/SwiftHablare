@@ -203,10 +203,11 @@ final class AppleVoiceProviderTests: XCTestCase {
     // MARK: - Sendable Tests
 
     func testProvider_IsSendable() async {
+        let testProvider = provider!
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             Task {
                 // Should be able to capture provider in a task
-                XCTAssertEqual(provider.providerId, "apple")
+                XCTAssertEqual(testProvider.providerId, "apple")
                 continuation.resume()
             }
         }

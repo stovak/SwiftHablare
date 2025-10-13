@@ -15,6 +15,16 @@ public final class SecureKeychainManager: Sendable {
     private let service = "io.stovak.SwiftHablare"
     private let accessGroup: String? = nil
 
+    /// Use more permissive accessibility for tests to avoid user confirmation dialogs
+    private var accessibility: CFString {
+        // Check if we're running in a test environment
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||
+           ProcessInfo.processInfo.arguments.contains(where: { $0.contains("XCTest") }) {
+            return kSecAttrAccessibleAlways
+        }
+        return kSecAttrAccessibleAfterFirstUnlock
+    }
+
     private init() {}
 
     // MARK: - API Key Operations
@@ -251,7 +261,7 @@ public final class SecureKeychainManager: Sendable {
             kSecAttrAccount as String: uniqueAccount,
             kSecAttrLabel as String: type.rawValue,
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecAttrAccessible as String: accessibility,
             kSecAttrSynchronizable as String: false // Don't sync credentials to iCloud
         ]
 
@@ -281,7 +291,7 @@ public final class SecureKeychainManager: Sendable {
 
             let updateAttributes: [String: Any] = [
                 kSecValueData as String: data,
-                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+                kSecAttrAccessible as String: accessibility
             ]
 
             let updateStatus = SecItemUpdate(searchQuery as CFDictionary, updateAttributes as CFDictionary)
