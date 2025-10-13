@@ -647,15 +647,17 @@ final class ImageRequestorTests: XCTestCase {
         let provider = OpenAIProvider.shared()
         let requestors = provider.availableRequestors()
 
-        // Should have 3 text requestors + 2 image requestors = 5 total
-        XCTAssertEqual(requestors.count, 5)
+        // Should have 3 text + 2 image + 3 embedding requestors = 8 total
+        XCTAssertEqual(requestors.count, 8)
 
         // Count by category
         let textRequestors = requestors.filter { $0.category == .text }
         let imageRequestors = requestors.filter { $0.category == .image }
+        let embeddingRequestors = requestors.filter { $0.category == .embedding }
 
         XCTAssertEqual(textRequestors.count, 3)
         XCTAssertEqual(imageRequestors.count, 2)
+        XCTAssertEqual(embeddingRequestors.count, 3)
 
         // Check image requestor IDs
         let imageRequestorIDs = imageRequestors.map { $0.requestorID }.sorted()

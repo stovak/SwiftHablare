@@ -266,8 +266,8 @@ extension OpenAIProvider {
 
     /// Returns all requestors offered by this provider
     ///
-    /// OpenAI offers multiple text requestors for different GPT models
-    /// and image requestors for DALL-E models.
+    /// OpenAI offers multiple text requestors for different GPT models,
+    /// image requestors for DALL-E models, and embedding requestors.
     public func availableRequestors() -> [any AIRequestor] {
         return [
             // Text requestors
@@ -276,7 +276,11 @@ extension OpenAIProvider {
             OpenAITextRequestor(provider: self, model: .gpt35Turbo),
             // Image requestors
             OpenAIImageRequestor(provider: self, model: .dalle3),
-            OpenAIImageRequestor(provider: self, model: .dalle2)
+            OpenAIImageRequestor(provider: self, model: .dalle2),
+            // Embedding requestors
+            OpenAIEmbeddingRequestor(provider: self, model: .textEmbedding3Small),
+            OpenAIEmbeddingRequestor(provider: self, model: .textEmbedding3Large),
+            OpenAIEmbeddingRequestor(provider: self, model: .textEmbeddingAda002)
         ]
     }
 }
