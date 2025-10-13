@@ -37,6 +37,9 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
     // MARK: - TypedDataStorageProvider
 
     public func createStorageArea(for requestID: UUID) throws -> StorageAreaReference {
+        lock.lock()
+        defer { lock.unlock() }
+
         // Check if already exists
         if let existing = storageAreas[requestID] {
             return existing
@@ -63,10 +66,15 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
     }
 
     public func getStorageArea(for requestID: UUID) -> StorageAreaReference? {
+        lock.lock()
+        defer { lock.unlock() }
         return storageAreas[requestID]
     }
 
     public func removeStorageArea(for requestID: UUID) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
         guard storageAreas[requestID] != nil else {
             return  // Silently succeed if not found
         }
@@ -83,6 +91,9 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
         to storageArea: StorageAreaReference,
         metadata fileMetadata: [String: String]
     ) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
         let requestID = storageArea.requestID
 
         // Verify storage area exists
@@ -107,6 +118,9 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
         withID fileID: UUID,
         from storageArea: StorageAreaReference
     ) throws -> Data {
+        lock.lock()
+        defer { lock.unlock() }
+
         let requestID = storageArea.requestID
 
         guard let fileData = files[requestID]?[fileID] else {
@@ -120,6 +134,9 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
         withID fileID: UUID,
         from storageArea: StorageAreaReference
     ) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
         let requestID = storageArea.requestID
 
         files[requestID]?.removeValue(forKey: fileID)
@@ -127,6 +144,9 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
     }
 
     public func listFiles(in storageArea: StorageAreaReference) -> [UUID] {
+        lock.lock()
+        defer { lock.unlock() }
+
         let requestID = storageArea.requestID
         if let requestFiles = files[requestID] {
             return Array(requestFiles.keys)
@@ -135,10 +155,15 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
     }
 
     public func listStorageAreas() -> [UUID] {
+        lock.lock()
+        defer { lock.unlock() }
         return Array(storageAreas.keys)
     }
 
     public func cleanupStorageAreas(olderThan date: Date?) throws -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+
         guard let threshold = date else {
             return 0
         }
@@ -148,7 +173,11 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
         let areasToRemove = creationDates.filter { $0.value < threshold }.map { $0.key }
 
         for requestID in areasToRemove {
-            try removeStorageArea(for: requestID)
+            // Remove directly without acquiring lock again (we already have it)
+            storageAreas.removeValue(forKey: requestID)
+            files.removeValue(forKey: requestID)
+            metadata.removeValue(forKey: requestID)
+            creationDates.removeValue(forKey: requestID)
             removedCount += 1
         }
 
@@ -159,18 +188,24 @@ public final class MemoryStorageProvider: TypedDataStorageProvider {
 
     /// Returns the total size of all stored data
     public var totalSize: Int {
-        files.values.reduce(0) { total, requestFiles in
+        lock.lock()
+        defer { lock.unlock() }
+        return files.values.reduce(0) { total, requestFiles in
             total + requestFiles.values.reduce(0) { $0 + $1.count }
         }
     }
 
     /// Returns the number of files stored across all storage areas
     public var fileCount: Int {
-        files.values.reduce(0) { $0 + $1.count }
+        lock.lock()
+        defer { lock.unlock() }
+        return files.values.reduce(0) { $0 + $1.count }
     }
 
     /// Clears all storage (useful for testing)
     public func clearAll() {
+        lock.lock()
+        defer { lock.unlock() }
         storageAreas.removeAll()
         files.removeAll()
         metadata.removeAll()
