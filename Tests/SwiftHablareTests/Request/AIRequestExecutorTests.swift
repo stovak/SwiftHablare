@@ -39,6 +39,28 @@ final class MockAIProvider: AIServiceProvider, @unchecked Sendable {
         return true
     }
 
+    // New Result-based API
+    func generate(
+        prompt: String,
+        parameters: [String: Any]
+    ) async -> Result<ResponseContent, AIServiceError> {
+        generateCallCount += 1
+
+        if responseDelay > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(responseDelay * 1_000_000_000))
+        }
+
+        if shouldFail {
+            if let error = failureError as? AIServiceError {
+                return .failure(error)
+            }
+            return .failure(.networkError("Mock failure"))
+        }
+
+        return .success(.data(responseData))
+    }
+
+    // Legacy API (deprecated)
     func generate(
         prompt: String,
         parameters: [String: Any],

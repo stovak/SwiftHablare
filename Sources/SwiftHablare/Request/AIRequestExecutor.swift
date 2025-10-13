@@ -172,32 +172,54 @@ public actor AIRequestExecutor {
     ) async throws -> AIResponse {
         var lastError: Error?
         var attemptNumber = 0
-        let context = contextWrapper.context
 
         while attemptNumber <= retryConfig.maxRetries {
             do {
-                // Execute the request
-                let timeout = request.timeout ?? defaultTimeout
+                // Execute using the new Result-based API
+                // Convert [String: String] to [String: Any] for protocol compatibility
+                let anyParameters: [String: Any] = request.parameters.reduce(into: [:]) { result, pair in
+                    result[pair.key] = pair.value
+                }
+                let result = await provider.generate(
+                    prompt: request.prompt,
+                    parameters: anyParameters
+                )
 
-                // Execute without timeout wrapper to avoid Sendable issues with ModelContext
-                let content: Data
-                if timeout > 0 {
-                    content = try await provider.generate(
-                        prompt: request.prompt,
-                        parameters: request.parameters,
-                        context: context
-                    )
-                } else {
-                    content = try await provider.generate(
-                        prompt: request.prompt,
-                        parameters: request.parameters,
-                        context: context
-                    )
+                // Handle the result
+                let responseContent: ResponseContent
+                switch result {
+                case .success(let content):
+                    responseContent = content
+                case .failure(let error):
+                    throw error
+                }
+
+                // Extract data from ResponseContent
+                let data: Data
+                switch responseContent {
+                case .text(let text):
+                    data = text.data(using: .utf8) ?? Data()
+                case .data(let rawData):
+                    data = rawData
+                case .image(let imageData, format: _):
+                    // Extract just the data, ignore format
+                    data = imageData
+                case .audio(let audioData, format: _):
+                    // Extract just the data, ignore format
+                    data = audioData
+                case .structured(let dict):
+                    // Convert structured data to JSON
+                    let anyDict = dict.mapValues { convertSendableValueToAny($0) }
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: anyDict, options: []) {
+                        data = jsonData
+                    } else {
+                        data = Data()
+                    }
                 }
 
                 // Create response
                 let response = AIResponse(
-                    content: content,
+                    content: data,
                     providerID: provider.id,
                     finishReason: .completed,
                     metadata: request.metadata,
@@ -459,5 +481,27 @@ extension AIRequestExecutor {
             maxDelay: 120.0,
             backoffMultiplier: 3.0
         )
+    }
+}
+
+// MARK: - Helper Functions
+
+/// Converts a SendableValue to Any for JSON serialization.
+private func convertSendableValueToAny(_ value: SendableValue) -> Any {
+    switch value {
+    case .string(let s):
+        return s
+    case .int(let i):
+        return i
+    case .double(let d):
+        return d
+    case .bool(let b):
+        return b
+    case .null:
+        return NSNull()
+    case .array(let arr):
+        return arr.map { convertSendableValueToAny($0) }
+    case .dictionary(let dict):
+        return dict.mapValues { convertSendableValueToAny($0) }
     }
 }

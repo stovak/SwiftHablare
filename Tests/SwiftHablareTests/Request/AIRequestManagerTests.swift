@@ -190,8 +190,9 @@ struct AIRequestManagerTests {
 
         let requestID = await manager.submit(request: request, provider: provider)
 
-        // Collect statuses
+        // Collect statuses - ensure stream is set up before execution begins
         let statuses = await withTaskGroup(of: [RequestStatus].self) { group in
+            // Start collecting statuses FIRST
             group.addTask {
                 var collected: [RequestStatus] = []
                 for await status in await manager.statusStream(for: requestID) {
@@ -202,6 +203,10 @@ struct AIRequestManagerTests {
                 }
                 return collected
             }
+
+            // Give the stream task time to set up before executing
+            // This prevents a race where execution completes before stream collection starts
+            try? await Task.sleep(for: .milliseconds(10))
 
             // Execute the request
             _ = try? await manager.execute(requestID: requestID)
