@@ -51,6 +51,7 @@ public final class OpenAIProvider: BaseHTTPProvider, AIServiceProvider, @uncheck
 
     public let capabilities: [AICapability] = [
         .textGeneration,
+        .imageGeneration,
         .embeddings
     ]
 
@@ -265,12 +266,17 @@ extension OpenAIProvider {
 
     /// Returns all requestors offered by this provider
     ///
-    /// OpenAI offers multiple text requestors for different GPT models.
+    /// OpenAI offers multiple text requestors for different GPT models
+    /// and image requestors for DALL-E models.
     public func availableRequestors() -> [any AIRequestor] {
         return [
+            // Text requestors
             OpenAITextRequestor(provider: self, model: .gpt4),
             OpenAITextRequestor(provider: self, model: .gpt4Turbo),
-            OpenAITextRequestor(provider: self, model: .gpt35Turbo)
+            OpenAITextRequestor(provider: self, model: .gpt35Turbo),
+            // Image requestors
+            OpenAIImageRequestor(provider: self, model: .dalle3),
+            OpenAIImageRequestor(provider: self, model: .dalle2)
         ]
     }
 }
