@@ -374,4 +374,276 @@ struct AIContentValidatorTests {
 
         try await validator.validate(value: "", constraints: ["maxLength": "10"])
     }
+
+    // MARK: - Nonisolated validateValue Method
+
+    @Test("AIContentValidator nonisolated validateValue succeeds")
+    func testNonisolatedValidateValue() {
+        let validator = AIContentValidator()
+
+        // Test nonisolated method returns .valid
+        let result = validator.validateValue("Hello World", constraints: ["minLength": "5"])
+        #expect(result.isValid == true)
+    }
+
+    @Test("AIContentValidator nonisolated validateValue fails")
+    func testNonisolatedValidateValueFails() {
+        let validator = AIContentValidator()
+
+        // Test nonisolated method returns .invalid
+        let result = validator.validateValue("Hi", constraints: ["minLength": "5"])
+        #expect(result.isValid == false)
+    }
+
+    // MARK: - Invalid Constraint Values
+
+    @Test("AIContentValidator handles invalid minLength constraint")
+    func testInvalidMinLengthConstraint() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("test", constraints: ["minLength": "notAnInteger"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("must be a valid integer"))
+        }
+    }
+
+    @Test("AIContentValidator handles invalid maxLength constraint")
+    func testInvalidMaxLengthConstraint() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("test", constraints: ["maxLength": "notAnInteger"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("must be a valid integer"))
+        }
+    }
+
+    @Test("AIContentValidator handles invalid minValue constraint")
+    func testInvalidMinValueConstraint() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(10, constraints: ["minValue": "notANumber"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("must be a valid number"))
+        }
+    }
+
+    @Test("AIContentValidator handles invalid maxValue constraint")
+    func testInvalidMaxValueConstraint() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(10, constraints: ["maxValue": "notANumber"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("must be a valid number"))
+        }
+    }
+
+    // MARK: - Type Mismatch Errors
+
+    @Test("AIContentValidator minLength rejects non-string/data/array")
+    func testMinLengthTypeError() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(42, constraints: ["minLength": "5"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to String, Data, or Array"))
+        }
+    }
+
+    @Test("AIContentValidator maxLength rejects non-string/data/array")
+    func testMaxLengthTypeError() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(42, constraints: ["maxLength": "10"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to String, Data, or Array"))
+        }
+    }
+
+    @Test("AIContentValidator minValue rejects non-numeric")
+    func testMinValueTypeError() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("not a number", constraints: ["minValue": "5.0"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to numeric types"))
+        }
+    }
+
+    @Test("AIContentValidator maxValue rejects non-numeric")
+    func testMaxValueTypeError() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("not a number", constraints: ["maxValue": "10.0"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to numeric types"))
+        }
+    }
+
+    // MARK: - Array Length Validation
+
+    @Test("AIContentValidator validates array minLength")
+    func testArrayMinLength() {
+        let validator = AIContentValidator()
+
+        // Valid: array meets minimum
+        let validResult = validator.validateValue([1, 2, 3, 4, 5], constraints: ["minLength": "3"])
+        #expect(validResult.isValid == true)
+
+        // Invalid: array below minimum
+        let invalidResult = validator.validateValue([1, 2], constraints: ["minLength": "3"])
+        #expect(invalidResult.isValid == false)
+    }
+
+    @Test("AIContentValidator validates array maxLength")
+    func testArrayMaxLength() {
+        let validator = AIContentValidator()
+
+        // Valid: array under maximum
+        let validResult = validator.validateValue([1, 2, 3], constraints: ["maxLength": "5"])
+        #expect(validResult.isValid == true)
+
+        // Invalid: array exceeds maximum
+        let invalidResult = validator.validateValue([1, 2, 3, 4, 5, 6], constraints: ["maxLength": "5"])
+        #expect(invalidResult.isValid == false)
+    }
+
+    // MARK: - Float Type Support
+
+    @Test("AIContentValidator validates Float minValue")
+    func testFloatMinValue() {
+        let validator = AIContentValidator()
+
+        let floatValue: Float = 7.5
+        let result = validator.validateValue(floatValue, constraints: ["minValue": "5.0"])
+        #expect(result.isValid == true)
+    }
+
+    @Test("AIContentValidator validates Float maxValue")
+    func testFloatMaxValue() {
+        let validator = AIContentValidator()
+
+        let floatValue: Float = 7.5
+        let result = validator.validateValue(floatValue, constraints: ["maxValue": "10.0"])
+        #expect(result.isValid == true)
+    }
+
+    // MARK: - Custom Rule Error Handling
+
+    @Test("AIContentValidator handles custom rule throwing error")
+    func testCustomRuleThrowsError() async throws {
+        let validator = AIContentValidator()
+
+        struct CustomError: Error {}
+
+        // Register custom rule that throws
+        let throwingRule = AIContentValidator.ValidationRule(
+            name: "throwingRule",
+            validate: { _ in
+                throw CustomError()
+            },
+            errorMessage: "Custom rule error"
+        )
+
+        await validator.registerRule(throwingRule)
+
+        // Should catch error and return validation failure
+        do {
+            try await validator.validate(value: "test", constraints: ["throwingRule": "true"])
+            Issue.record("Expected validationError")
+        } catch let error as AIServiceError {
+            if case .validationError(let reason) = error {
+                #expect(reason.contains("failed"))
+            } else {
+                Issue.record("Expected validationError with error message")
+            }
+        }
+    }
+
+    // MARK: - Format Validation Edge Cases
+
+    @Test("AIContentValidator rejects unknown format")
+    func testUnknownFormat() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("test", constraints: ["format": "unknownFormat"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("Unknown format"))
+        }
+    }
+
+    @Test("AIContentValidator format constraint requires string")
+    func testFormatRequiresString() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(42, constraints: ["format": "email"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to String"))
+        }
+    }
+
+    @Test("AIContentValidator pattern constraint requires string")
+    func testPatternRequiresString() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue(42, constraints: ["pattern": ".*"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("only applies to String"))
+        }
+    }
+
+    @Test("AIContentValidator handles invalid regex pattern")
+    func testInvalidRegexPattern() {
+        let validator = AIContentValidator()
+
+        // Use an invalid regex pattern (unmatched parenthesis)
+        let result = validator.validateValue("test", constraints: ["pattern": "[invalid("])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("Invalid regex pattern"))
+        }
+    }
+
+    // MARK: - URL Validation Edge Cases
+
+    @Test("AIContentValidator rejects URL without scheme")
+    func testURLWithoutScheme() {
+        let validator = AIContentValidator()
+
+        let result = validator.validateValue("example.com", constraints: ["format": "url"])
+        #expect(result.isValid == false)
+    }
+
+    // MARK: - Required Validation for Arrays
+
+    @Test("AIContentValidator required validates empty array")
+    func testRequiredEmptyArray() {
+        let validator = AIContentValidator()
+
+        let emptyArray: [Int] = []
+        let result = validator.validateValue(emptyArray, constraints: ["required": "true"])
+        #expect(result.isValid == false)
+        if case .invalid(let reason) = result {
+            #expect(reason.contains("empty"))
+        }
+    }
+
+    @Test("AIContentValidator required ignores non-empty values")
+    func testRequiredNonEmpty() {
+        let validator = AIContentValidator()
+
+        // required=false should pass
+        let result = validator.validateValue("test", constraints: ["required": "false"])
+        #expect(result.isValid == true)
+    }
 }
