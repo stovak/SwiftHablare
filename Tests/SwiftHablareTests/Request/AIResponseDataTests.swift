@@ -731,6 +731,248 @@ struct AIResponseDataTests {
             _ = try JSONSerialization.jsonObject(with: data, options: [])
         }
     }
+
+    // MARK: - JSON Decoding Tests (covers init(from decoder:) paths)
+
+    @Test("Round-trip encode and decode simple structured data")
+    func testRoundTripSimpleStructuredData() throws {
+        // Create original structured data with only simple types
+        let original: [String: SendableValue] = [
+            "name": .string("Alice"),
+            "age": .int(30),
+            "active": .bool(true),
+            "score": .double(95.5),
+            "empty": .null
+        ]
+
+        let content = ResponseContent.structured(original)
+
+        // Encode to JSON
+        let encoded = content.dataContent
+        #expect(encoded != nil)
+
+        // Decode back - this exercises SendableValueWrapper.init(from decoder:)
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded!)
+
+        // Verify all values decoded correctly
+        #expect(wrapper.value["name"]?.stringValue == "Alice")
+        #expect(wrapper.value["age"]?.intValue == 30)
+        #expect(wrapper.value["active"]?.boolValue == true)
+        #expect(wrapper.value["score"]?.doubleValue == 95.5)
+        #expect(wrapper.value["empty"]?.isNull == true)
+    }
+
+    @Test("Round-trip nested JSON structures")
+    func testRoundTripNestedJSON() throws {
+        let original: [String: SendableValue] = [
+            "user": .dictionary([
+                "profile": .dictionary([
+                    "name": .string("Bob"),
+                    "verified": .bool(true)
+                ]),
+                "scores": .array([.int(10), .int(20), .int(30)])
+            ])
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+
+        // Decode and verify - exercises nested decoding paths
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        let profile = wrapper.value["user"]?.dictionaryValue?["profile"]?.dictionaryValue
+        #expect(profile?["name"]?.stringValue == "Bob")
+        #expect(profile?["verified"]?.boolValue == true)
+
+        let scores = wrapper.value["user"]?.dictionaryValue?["scores"]?.arrayValue
+        #expect(scores?.count == 3)
+        #expect(scores?[1].intValue == 20)
+    }
+
+    @Test("Round-trip array of dictionaries")
+    func testRoundTripArrayOfDictionaries() throws {
+        let original: [String: SendableValue] = [
+            "users": .array([
+                .dictionary(["name": .string("Alice"), "id": .int(1)]),
+                .dictionary(["name": .string("Bob"), "id": .int(2)]),
+                .dictionary(["name": .string("Charlie"), "id": .int(3)])
+            ])
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        let users = wrapper.value["users"]?.arrayValue
+
+        #expect(users?.count == 3)
+        #expect(users?[0].dictionaryValue?["name"]?.stringValue == "Alice")
+        #expect(users?[1].dictionaryValue?["id"]?.intValue == 2)
+        #expect(users?[2].dictionaryValue?["name"]?.stringValue == "Charlie")
+    }
+
+    @Test("Round-trip mixed type array")
+    func testRoundTripMixedTypeArray() throws {
+        let original: [String: SendableValue] = [
+            "mixed": .array([
+                .string("text"),
+                .int(42),
+                .double(3.14),
+                .bool(true),
+                .null
+            ])
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        let mixed = wrapper.value["mixed"]?.arrayValue
+
+        #expect(mixed?.count == 5)
+        #expect(mixed?[0].stringValue == "text")
+        #expect(mixed?[1].intValue == 42)
+        #expect(mixed?[2].doubleValue == 3.14)
+        #expect(mixed?[3].boolValue == true)
+        #expect(mixed?[4].isNull == true)
+    }
+
+    @Test("Round-trip deeply nested structure with all types")
+    func testRoundTripDeeplyNestedAllTypes() throws {
+        let original: [String: SendableValue] = [
+            "data": .dictionary([
+                "level1": .dictionary([
+                    "level2": .dictionary([
+                        "strings": .array([.string("a"), .string("b")]),
+                        "numbers": .array([.int(1), .int(2), .int(3)]),
+                        "mixed": .dictionary([
+                            "text": .string("hello"),
+                            "value": .double(99.9),
+                            "flag": .bool(false),
+                            "nothing": .null
+                        ])
+                    ])
+                ])
+            ])
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        // Navigate to deeply nested structure
+        let level2 = wrapper.value["data"]?
+            .dictionaryValue?["level1"]?
+            .dictionaryValue?["level2"]?
+            .dictionaryValue
+
+        #expect(level2?["strings"]?.arrayValue?.count == 2)
+        #expect(level2?["numbers"]?.arrayValue?[2].intValue == 3)
+
+        let mixed = level2?["mixed"]?.dictionaryValue
+        #expect(mixed?["text"]?.stringValue == "hello")
+        #expect(mixed?["value"]?.doubleValue == 99.9)
+        #expect(mixed?["flag"]?.boolValue == false)
+        #expect(mixed?["nothing"]?.isNull == true)
+    }
+
+    @Test("Round-trip empty structures")
+    func testRoundTripEmptyStructures() throws {
+        let original: [String: SendableValue] = [
+            "emptyDict": .dictionary([:]),
+            "emptyArray": .array([]),
+            "null": .null
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        #expect(wrapper.value["emptyDict"]?.dictionaryValue?.isEmpty == true)
+        #expect(wrapper.value["emptyArray"]?.arrayValue?.isEmpty == true)
+        #expect(wrapper.value["null"]?.isNull == true)
+    }
+
+    @Test("Round-trip large integer values")
+    func testRoundTripLargeIntegers() throws {
+        let original: [String: SendableValue] = [
+            "maxInt": .int(Int.max),
+            "minInt": .int(Int.min),
+            "zero": .int(0)
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        #expect(wrapper.value["maxInt"]?.intValue == Int.max)
+        #expect(wrapper.value["minInt"]?.intValue == Int.min)
+        #expect(wrapper.value["zero"]?.intValue == 0)
+    }
+
+    @Test("Round-trip floating point edge cases")
+    func testRoundTripFloatingPointEdgeCases() throws {
+        let original: [String: SendableValue] = [
+            "positive": .double(123.456),
+            "negative": .double(-789.012),
+            "zero": .double(0.0),
+            "small": .double(0.000001)
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        #expect(wrapper.value["positive"]?.doubleValue == 123.456)
+        #expect(wrapper.value["negative"]?.doubleValue == -789.012)
+        // JSON encodes 0.0 as 0 (int), which is expected behavior
+        // Check that the value exists and is 0 (either as int or double)
+        let zero = wrapper.value["zero"]
+        #expect(zero != nil)
+        #expect(zero?.intValue == 0 || zero?.doubleValue == 0.0)
+        #expect(wrapper.value["small"]?.doubleValue == 0.000001)
+    }
+
+    @Test("Round-trip array of arrays")
+    func testRoundTripArrayOfArrays() throws {
+        let original: [String: SendableValue] = [
+            "matrix": .array([
+                .array([.int(1), .int(2), .int(3)]),
+                .array([.int(4), .int(5), .int(6)]),
+                .array([.int(7), .int(8), .int(9)])
+            ])
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        let matrix = wrapper.value["matrix"]?.arrayValue
+
+        #expect(matrix?.count == 3)
+        #expect(matrix?[0].arrayValue?.count == 3)
+        #expect(matrix?[1].arrayValue?[1].intValue == 5)
+        #expect(matrix?[2].arrayValue?[2].intValue == 9)
+    }
+
+    @Test("Round-trip unicode strings")
+    func testRoundTripUnicodeStrings() throws {
+        let original: [String: SendableValue] = [
+            "emoji": .string("🎉🎊✨"),
+            "chinese": .string("你好世界"),
+            "arabic": .string("مرحبا"),
+            "special": .string("Special chars: \n\t\"\\")
+        ]
+
+        let content = ResponseContent.structured(original)
+        let encoded = content.dataContent!
+        let wrapper = try JSONDecoder().decode(SendableValueWrapper.self, from: encoded)
+
+        #expect(wrapper.value["emoji"]?.stringValue == "🎉🎊✨")
+        #expect(wrapper.value["chinese"]?.stringValue == "你好世界")
+        #expect(wrapper.value["arabic"]?.stringValue == "مرحبا")
+        #expect(wrapper.value["special"]?.stringValue == "Special chars: \n\t\"\\")
+    }
 }
 
 // MARK: - Test Helpers

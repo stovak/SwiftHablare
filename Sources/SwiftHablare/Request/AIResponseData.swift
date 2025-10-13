@@ -370,7 +370,7 @@ public struct UsageStats: Sendable {
 // MARK: - Codable Support
 
 // Helper for encoding SendableValue dictionaries
-private struct SendableValueWrapper: Codable {
+struct SendableValueWrapper: Codable {
     let value: [String: SendableValue]
 
     init(_ value: [String: SendableValue]) {
@@ -405,9 +405,15 @@ private struct SendableValueWrapper: Codable {
         case .bool(let b): return AnyCodable(b)
         case .null: return AnyCodable(NSNull())
         case .array(let arr):
-            return AnyCodable(try arr.map { try convertValueToEncodable($0) })
+            // Convert array elements to [Any] for proper JSON encoding
+            let anyArray: [Any] = try arr.map { value in
+                try convertValueToEncodable(value).value
+            }
+            return AnyCodable(anyArray)
         case .dictionary(let dict):
-            return AnyCodable(try convertToEncodable(dict))
+            // Convert dictionary values to [String: Any] for proper JSON encoding
+            let anyDict: [String: Any] = try convertToEncodable(dict).mapValues { $0.value }
+            return AnyCodable(anyDict)
         }
     }
 
@@ -438,7 +444,7 @@ private struct SendableValueWrapper: Codable {
     }
 }
 
-private struct AnyCodable: Codable {
+struct AnyCodable: Codable {
     let value: Any
 
     init(_ value: Any) {
@@ -457,6 +463,12 @@ private struct AnyCodable: Codable {
             try container.encode(bool)
         } else if value is NSNull {
             try container.encodeNil()
+        } else if let array = value as? [Any] {
+            // Encode array recursively
+            try container.encode(array.map { AnyCodable($0) })
+        } else if let dict = value as? [String: Any] {
+            // Encode dictionary recursively
+            try container.encode(dict.mapValues { AnyCodable($0) })
         } else {
             try container.encodeNil()
         }
@@ -475,6 +487,12 @@ private struct AnyCodable: Codable {
             value = double
         } else if let string = try? container.decode(String.self) {
             value = string
+        } else if let array = try? container.decode([AnyCodable].self) {
+            // Decode array recursively
+            value = array.map { $0.value }
+        } else if let dict = try? container.decode([String: AnyCodable].self) {
+            // Decode dictionary recursively
+            value = dict.mapValues { $0.value }
         } else {
             value = NSNull()
         }
