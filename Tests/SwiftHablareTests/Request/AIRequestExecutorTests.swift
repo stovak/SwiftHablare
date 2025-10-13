@@ -572,4 +572,317 @@ struct AIRequestExecutorTests {
             )
         }.value
     }
+
+    // MARK: - Response Content Type Tests
+
+    @Test("AIRequestExecutor handles text response content")
+    func testTextResponseContent() async throws {
+        let executor = AIRequestExecutor()
+        let context = createModelContext()
+
+        // Create a provider that returns text content
+        let provider = MockContentTypeProvider(contentType: .text("Hello, world!"))
+        let request = AIRequest(prompt: "Test")
+
+        let response = try await executor.execute(
+            request: request,
+            provider: provider,
+            context: context.context
+        )
+
+        #expect(response.providerID == provider.id)
+        #expect(response.asString() == "Hello, world!")
+    }
+
+    @Test("AIRequestExecutor handles image response content")
+    func testImageResponseContent() async throws {
+        let executor = AIRequestExecutor()
+        let context = createModelContext()
+
+        let imageData = Data([0xFF, 0xD8, 0xFF]) // JPEG header
+        let provider = MockContentTypeProvider(contentType: .image(imageData, format: .jpeg))
+        let request = AIRequest(prompt: "Generate image")
+
+        let response = try await executor.execute(
+            request: request,
+            provider: provider,
+            context: context.context
+        )
+
+        #expect(response.content == imageData)
+    }
+
+    @Test("AIRequestExecutor handles audio response content")
+    func testAudioResponseContent() async throws {
+        let executor = AIRequestExecutor()
+        let context = createModelContext()
+
+        let audioData = Data([0x01, 0x02, 0x03])
+        let provider = MockContentTypeProvider(contentType: .audio(audioData, format: .mp3))
+        let request = AIRequest(prompt: "Generate audio")
+
+        let response = try await executor.execute(
+            request: request,
+            provider: provider,
+            context: context.context
+        )
+
+        #expect(response.content == audioData)
+    }
+
+    @Test("AIRequestExecutor handles structured response content")
+    func testStructuredResponseContent() async throws {
+        let executor = AIRequestExecutor()
+        let context = createModelContext()
+
+        let structuredData: [String: SendableValue] = [
+            "name": .string("Alice"),
+            "age": .int(30),
+            "active": .bool(true)
+        ]
+        let provider = MockContentTypeProvider(contentType: .structured(structuredData))
+        let request = AIRequest(prompt: "Generate data")
+
+        let response = try await executor.execute(
+            request: request,
+            provider: provider,
+            context: context.context
+        )
+
+        #expect(response.content.count > 0)
+
+        // Verify it's valid JSON
+        let json = try? JSONSerialization.jsonObject(with: response.content, options: [])
+        #expect(json != nil)
+    }
+
+    // MARK: - Error Retry Logic Tests
+
+    @Test("AIRequestExecutor retries on unknown error")
+    func testRetryOnUnknownError() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(maxRetries: 2, baseDelay: 0.01)
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        // Use a generic Error (not AIServiceError)
+        struct UnknownError: Error {}
+        provider.setShouldFail(true, error: UnknownError())
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error")
+        } catch {
+            // Should have retried (unknown errors are retryable)
+            #expect(provider.generateCallCount == 3)
+        }
+    }
+
+    @Test("AIRequestExecutor doesn't retry on validation error")
+    func testNoRetryOnValidationError() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(maxRetries: 2)
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        provider.setShouldFail(true, error: AIServiceError.validationError("Validation failed"))
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error")
+        } catch {
+            // Should NOT retry validation errors
+            #expect(provider.generateCallCount == 1)
+        }
+    }
+
+    @Test("AIRequestExecutor doesn't retry on data format errors")
+    func testNoRetryOnDataFormatErrors() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(maxRetries: 2)
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        provider.setShouldFail(true, error: AIServiceError.unexpectedResponseFormat("Bad format"))
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error")
+        } catch {
+            // Should NOT retry format errors
+            #expect(provider.generateCallCount == 1)
+        }
+    }
+
+    @Test("AIRequestExecutor retries on persistence error")
+    func testRetryOnPersistenceError() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(maxRetries: 2, baseDelay: 0.01)
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        provider.setShouldFail(true, error: AIServiceError.persistenceError("DB error"))
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error")
+        } catch {
+            // Should retry persistence errors (might be transient)
+            #expect(provider.generateCallCount == 3)
+        }
+    }
+
+    @Test("AIRequestExecutor retries on provider error")
+    func testRetryOnProviderError() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(maxRetries: 2, baseDelay: 0.01)
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        provider.setShouldFail(true, error: AIServiceError.providerError("Server error", code: "500"))
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error")
+        } catch {
+            // Should retry provider errors
+            #expect(provider.generateCallCount == 3)
+        }
+    }
+
+    @Test("AIRequestExecutor fails after all retries exhausted")
+    func testFailsAfterAllRetries() async throws {
+        let retryConfig = AIRequestExecutor.RetryConfiguration(
+            maxRetries: 1,
+            baseDelay: 0.01,
+            maxDelay: 0.05
+        )
+        let executor = AIRequestExecutor(retryConfig: retryConfig)
+        let provider = MockAIProvider()
+        let context = createModelContext()
+
+        provider.setShouldFail(true, error: AIServiceError.networkError("Failed"))
+
+        let request = AIRequest(prompt: "Test")
+
+        do {
+            _ = try await executor.execute(
+                request: request,
+                provider: provider,
+                context: context.context
+            )
+            Issue.record("Expected error after retries")
+        } catch let error as AIServiceError {
+            // Should fail with the original error
+            if case .networkError(let message) = error {
+                #expect(message == "Failed")
+            } else {
+                Issue.record("Expected network error")
+            }
+            #expect(provider.generateCallCount == 2) // initial + 1 retry
+        }
+    }
+
+    // MARK: - Batch Error Handling Tests
+
+    @Test("AIRequestExecutor batch handles non-AIServiceError")
+    func testBatchHandlesGenericError() async {
+        let executor = AIRequestExecutor(retryConfig: .noRetries)
+        let context = createModelContext()
+
+        struct GenericError: Error {}
+        let provider = MockAIProvider()
+        provider.setShouldFail(true, error: GenericError())
+
+        let requests = [AIRequest(prompt: "Test")]
+
+        let response = await executor.executeBatch(
+            requests: requests,
+            provider: provider,
+            context: context.context
+        )
+
+        #expect(response.failures.count == 1)
+        // Should wrap generic error as networkError
+        if case .networkError = response.failures.first?.error {
+            // Expected
+        } else {
+            Issue.record("Expected networkError wrapping")
+        }
+    }
+}
+
+// MARK: - Mock Content Type Provider
+
+/// Mock provider that returns specific ResponseContent types
+final class MockContentTypeProvider: AIServiceProvider, @unchecked Sendable {
+    var id: String = "mock-content-provider"
+    var displayName: String = "Mock Content Provider"
+    var capabilities: [AICapability] = [.textGeneration, .imageGeneration, .audioGeneration]
+    var supportedDataStructures: [DataStructureCapability] = []
+    var requiresAPIKey: Bool = false
+
+    private let contentType: ResponseContent
+
+    init(contentType: ResponseContent) {
+        self.contentType = contentType
+    }
+
+    func isConfigured() -> Bool {
+        return true
+    }
+
+    func generate(
+        prompt: String,
+        parameters: [String: Any]
+    ) async -> Result<ResponseContent, AIServiceError> {
+        return .success(contentType)
+    }
+
+    func generate(
+        prompt: String,
+        parameters: [String: Any],
+        context: ModelContext
+    ) async throws -> Data {
+        fatalError("Not implemented")
+    }
+
+    func generateProperty<T: PersistentModel>(
+        for model: T,
+        property: PartialKeyPath<T>,
+        prompt: String?,
+        context: [String: Any]
+    ) async throws -> Any {
+        fatalError("Not implemented")
+    }
 }
