@@ -222,8 +222,7 @@ public final class AnthropicTextRequestor: AIRequestor, @unchecked Sendable {
     public func makeConfigurationView(
         configuration: Binding<TextGenerationConfig>
     ) -> AnyView {
-        // Phase 7: Implement configuration UI
-        return AnyView(Text("Text Configuration (Coming in Phase 7)"))
+        return AnyView(TextConfigurationView(configuration: configuration))
     }
 
     @MainActor
