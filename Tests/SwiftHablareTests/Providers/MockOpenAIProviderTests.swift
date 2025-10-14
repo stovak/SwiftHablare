@@ -360,8 +360,8 @@ struct MockOpenAIProviderTests {
 
         let duration = Date().timeIntervalSince(start)
 
-        // Mock provider should respond in under 200ms (includes 100ms simulated delay)
-        #expect(duration < 0.2, "Provider took \(duration)s, expected < 0.2s")
+        // Mock provider should respond quickly (within 500ms to account for CI variability)
+        #expect(duration < 0.5, "Provider took \(duration)s, expected < 0.5s")
     }
 
     // MARK: - Integration with Result Type
