@@ -280,7 +280,7 @@ Line 3.
         location: String? = nil,
         time: String? = nil
     ) -> GuionElementModel {
-        let element = GuionElementModel(elementText: text, elementType: type, isCentered: false, isDualDialogue: false)
+        let element = GuionElementModel(elementText: text, elementType: ElementType(string: type), isCentered: false, isDualDialogue: false)
         element.sceneId = sceneId
         element.locationLighting = lighting
         element.locationScene = location

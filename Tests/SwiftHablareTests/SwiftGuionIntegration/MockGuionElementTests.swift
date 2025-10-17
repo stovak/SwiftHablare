@@ -26,7 +26,7 @@ final class MockGuionElementTests: XCTestCase {
 
         let sceneHeading = GuionElementModel(
             elementText: "INT. COFFEE SHOP - DAY",
-            elementType: "Scene Heading",
+            elementType: .sceneHeading,
             isCentered: false,
             isDualDialogue: false
         )
@@ -43,15 +43,15 @@ final class MockGuionElementTests: XCTestCase {
 
         // THEN
         XCTAssertEqual(document.elements.count, 1)
-        XCTAssertEqual(document.elements[0].elementType, "Scene Heading")
+        XCTAssertEqual(document.elements[0].elementType, .sceneHeading)
     }
 
     func testMockDialogueSequence() throws {
         // GIVEN
         let document = createMockDocument()
 
-        let character = GuionElementModel(elementText: "JOHN", elementType: "Character", isCentered: false, isDualDialogue: false)
-        let dialogue = GuionElementModel(elementText: "Hello there.", elementType: "Dialogue", isCentered: false, isDualDialogue: false)
+        let character = GuionElementModel(elementText: "JOHN", elementType: .character, isCentered: false, isDualDialogue: false)
+        let dialogue = GuionElementModel(elementText: "Hello there.", elementType: .dialogue, isCentered: false, isDualDialogue: false)
 
         document.elements.append(character)
         document.elements.append(dialogue)
@@ -66,8 +66,8 @@ final class MockGuionElementTests: XCTestCase {
         XCTAssertEqual(elements.count, 2, "Should have 2 elements")
 
         // Check for element presence (order may vary due to SwiftData limitation)
-        let characterElements = elements.filter { $0.elementType == "Character" }
-        let dialogueElements = elements.filter { $0.elementType == "Dialogue" }
+        let characterElements = elements.filter { $0.elementType == .character }
+        let dialogueElements = elements.filter { $0.elementType == .dialogue }
 
         XCTAssertEqual(characterElements.count, 1, "Should have 1 Character element")
         XCTAssertEqual(dialogueElements.count, 1, "Should have 1 Dialogue element")
@@ -80,10 +80,10 @@ final class MockGuionElementTests: XCTestCase {
         let document = createMockDocument()
 
         // Use append to preserve order (SwiftData requirement)
-        document.elements.append(createElement(type: "Scene Heading", text: "INT. ROOM - DAY"))
-        document.elements.append(createElement(type: "Action", text: "John enters."))
-        document.elements.append(createElement(type: "Character", text: "JOHN"))
-        document.elements.append(createElement(type: "Dialogue", text: "Hello."))
+        document.elements.append(createElement(type: .sceneHeading, text: "INT. ROOM - DAY"))
+        document.elements.append(createElement(type: .action, text: "John enters."))
+        document.elements.append(createElement(type: .character, text: "JOHN"))
+        document.elements.append(createElement(type: .dialogue, text: "Hello."))
 
         context.insert(document)
         try context.save()
@@ -93,17 +93,17 @@ final class MockGuionElementTests: XCTestCase {
 
         // THEN - All elements present (order may vary due to SwiftData limitation)
         XCTAssertEqual(elements.count, 4)
-        XCTAssertEqual(elements.filter { $0.elementType == "Scene Heading" }.count, 1)
-        XCTAssertEqual(elements.filter { $0.elementType == "Action" }.count, 1)
-        XCTAssertEqual(elements.filter { $0.elementType == "Character" }.count, 1)
-        XCTAssertEqual(elements.filter { $0.elementType == "Dialogue" }.count, 1)
+        XCTAssertEqual(elements.filter { $0.elementType == .sceneHeading }.count, 1)
+        XCTAssertEqual(elements.filter { $0.elementType == .action }.count, 1)
+        XCTAssertEqual(elements.filter { $0.elementType == .character }.count, 1)
+        XCTAssertEqual(elements.filter { $0.elementType == .dialogue }.count, 1)
     }
 
     private func createMockDocument() -> GuionDocumentModel {
         GuionDocumentModel(filename: "Test.fountain", rawContent: "", suppressSceneNumbers: false)
     }
 
-    private func createElement(type: String, text: String) -> GuionElementModel {
+    private func createElement(type: ElementType, text: String) -> GuionElementModel {
         GuionElementModel(elementText: text, elementType: type, isCentered: false, isDualDialogue: false)
     }
 }

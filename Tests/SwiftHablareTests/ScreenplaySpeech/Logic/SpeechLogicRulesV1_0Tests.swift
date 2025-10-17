@@ -269,7 +269,7 @@ final class SpeechLogicRulesV1_0Tests: XCTestCase {
     ) -> GuionElementModel {
         let element = GuionElementModel(
             elementText: text,
-            elementType: type,
+            elementType: ElementType(string: type),
             isCentered: false,
             isDualDialogue: false
         )
