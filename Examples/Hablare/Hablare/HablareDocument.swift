@@ -53,7 +53,7 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
 
     /// Count of scenes in the document
     var sceneCount: Int {
-        displayModel.elements.filter { $0.elementType == "Scene Heading" }.count
+        displayModel.elements.filter { $0.elementType == .sceneHeading }.count
     }
 
     // MARK: - Initialization

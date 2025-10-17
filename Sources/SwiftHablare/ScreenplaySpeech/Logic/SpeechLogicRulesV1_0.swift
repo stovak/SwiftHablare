@@ -15,15 +15,22 @@ public final class SpeechLogicRulesV1_0 {
     private let characterAnnouncementFormat = "%@ says:"  // "JOHN says:"
 
     /// Element types to skip (not speakable)
-    private let nonSpeakableTypes: Set<String> = [
-        "Parenthetical",
-        "Transition",
-        "Note",
-        "Boneyard",
-        "Synopsis",
-        "Section Heading",
-        "Page Break"
+    private let nonSpeakableTypes: Set<ElementType> = [
+        .parenthetical,
+        .transition,
+        .comment,
+        .boneyard,
+        .synopsis,
+        .pageBreak
     ]
+
+    /// Check if element type is a section heading (special handling due to associated value)
+    private func isNonSpeakable(_ type: ElementType) -> Bool {
+        if case .sectionHeading = type {
+            return true
+        }
+        return nonSpeakableTypes.contains(type)
+    }
 
     /// Character normalizer for consistent character name handling
     private let normalizer = CharacterNormalizer()
@@ -77,7 +84,7 @@ public final class SpeechLogicRulesV1_0 {
 
         // 1. Character element
         guard index < elements.count,
-              elements[index].elementType == "Character" else {
+              elements[index].elementType == .character else {
             return ([], 1)
         }
 
@@ -87,13 +94,13 @@ public final class SpeechLogicRulesV1_0 {
         index += 1
 
         // 2. Skip optional parenthetical (per rules - not spoken)
-        if index < elements.count && elements[index].elementType == "Parenthetical" {
+        if index < elements.count && elements[index].elementType == .parenthetical {
             index += 1
         }
 
         // 3. Collect all consecutive dialogue lines
         var dialogueLines: [String] = []
-        while index < elements.count && elements[index].elementType == "Dialogue" {
+        while index < elements.count && elements[index].elementType == .dialogue {
             dialogueLines.append(elements[index].elementText)
             index += 1
         }
@@ -140,19 +147,19 @@ public final class SpeechLogicRulesV1_0 {
     /// Process a single element (Action, etc.)
     public func processSingleElement(_ element: GuionElementModel, orderIndex: Int) -> SpeakableItem? {
         // Skip non-speakable types
-        guard !nonSpeakableTypes.contains(element.elementType) else {
+        guard !isNonSpeakable(element.elementType) else {
             return nil
         }
 
         // Only process Action for now
-        guard element.elementType == "Action" else {
+        guard element.elementType == .action else {
             return nil
         }
 
         return SpeakableItem(
             orderIndex: orderIndex,
             sourceElementID: element.sceneId ?? "unknown",
-            sourceElementType: element.elementType,
+            sourceElementType: element.elementType.description,
             sceneID: element.sceneId,
             speakableText: element.elementText,
             ruleVersion: version,
