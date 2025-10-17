@@ -63,9 +63,16 @@ final class MockGuionElementTests: XCTestCase {
         let elements = document.elements
 
         // THEN
-        XCTAssertEqual(elements.count, 2)
-        XCTAssertEqual(elements[0].elementType, "Character")
-        XCTAssertEqual(elements[1].elementType, "Dialogue")
+        XCTAssertEqual(elements.count, 2, "Should have 2 elements")
+
+        // Check for element presence (order may vary due to SwiftData limitation)
+        let characterElements = elements.filter { $0.elementType == "Character" }
+        let dialogueElements = elements.filter { $0.elementType == "Dialogue" }
+
+        XCTAssertEqual(characterElements.count, 1, "Should have 1 Character element")
+        XCTAssertEqual(dialogueElements.count, 1, "Should have 1 Dialogue element")
+        XCTAssertEqual(characterElements[0].elementText, "JOHN")
+        XCTAssertEqual(dialogueElements[0].elementText, "Hello there.")
     }
 
     func testElementOrdering() throws {
