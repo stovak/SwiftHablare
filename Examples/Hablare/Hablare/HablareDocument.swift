@@ -188,7 +188,9 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
 
     nonisolated func snapshot(contentType: UTType) throws -> GuionParsedScreenplay {
         MainActor.assumeIsolated {
-            screenplay
+            // Synthesize a fresh GuionParsedScreenplay from the current displayModel
+            // to ensure user edits are persisted when saving
+            displayModel.toGuionParsedScreenplay()
         }
     }
 
@@ -297,5 +299,37 @@ extension GuionDocumentModel {
             elementModel.document = self
             self.elements.append(elementModel)
         }
+    }
+
+    /// Convert GuionDocumentModel back to GuionParsedScreenplay
+    ///
+    /// This ensures user edits made through the SwiftData model are
+    /// persisted when saving the document.
+    ///
+    /// - Returns: A GuionParsedScreenplay with current element state
+    func toGuionParsedScreenplay() -> GuionParsedScreenplay {
+        // Convert elements from SwiftData models back to GuionElements
+        let guionElements = elements.map { elementModel in
+            GuionElement(from: elementModel)
+        }
+
+        // Convert title page entries back to dictionary format
+        var titlePageDictionaries: [[String: [String]]] = []
+        if !titlePage.isEmpty {
+            var currentDict: [String: [String]] = [:]
+            for entry in titlePage {
+                currentDict[entry.key] = entry.values
+            }
+            if !currentDict.isEmpty {
+                titlePageDictionaries.append(currentDict)
+            }
+        }
+
+        return GuionParsedScreenplay(
+            filename: filename,
+            elements: guionElements,
+            titlePage: titlePageDictionaries,
+            suppressSceneNumbers: suppressSceneNumbers
+        )
     }
 }
