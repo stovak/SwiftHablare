@@ -1,0 +1,24 @@
+{
+  "originHash" : "8d64e59309b7c9f1d5dc08a271884178c2f9d8e37dd333049b16e3bc6d17942d",
+  "pins" : [
+    {
+      "identity" : "textbundle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mcritz/TextBundle.git",
+      "state" : {
+        "revision" : "6fd4f918150abb7c2f1bbd0cc02ebf5d5b51a1a4",
+        "version" : "1.0.7"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/weichsel/ZIPFoundation",
+      "state" : {
+        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
+        "version" : "0.9.20"
+      }
+    }
+  ],
+  "version" : 3
+}

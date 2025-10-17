@@ -7,80 +7,82 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D63C5A792E986A2D00DC623E /* SwiftHablare in Frameworks */ = {isa = PBXBuildFile; productRef = D63C5A782E986A2D00DC623E /* SwiftHablare */; };
+		D6DB98432EA1E6CB00B4D81B /* SwiftGuion in Frameworks */ = {isa = PBXBuildFile; productRef = D6DB98422EA1E6CB00B4D81B /* SwiftGuion */; };
+		D6DB98462EA1E6E500B4D81B /* SwiftHablare in Frameworks */ = {isa = PBXBuildFile; productRef = D6DB98452EA1E6E500B4D81B /* SwiftHablare */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		D6ACBEF72E92E5A30091C56A /* PBXContainerItemProxy */ = {
+		D6DB98142EA1E67B00B4D81B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D6ACBEDE2E92E5A20091C56A /* Project object */;
+			containerPortal = D6DB97FB2EA1E67A00B4D81B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D6ACBEE52E92E5A20091C56A;
-			remoteInfo = "Hablaré";
+			remoteGlobalIDString = D6DB98022EA1E67A00B4D81B;
+			remoteInfo = Hablare;
 		};
-		D6ACBF012E92E5A30091C56A /* PBXContainerItemProxy */ = {
+		D6DB981E2EA1E67B00B4D81B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D6ACBEDE2E92E5A20091C56A /* Project object */;
+			containerPortal = D6DB97FB2EA1E67A00B4D81B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D6ACBEE52E92E5A20091C56A;
-			remoteInfo = "Hablaré";
+			remoteGlobalIDString = D6DB98022EA1E67A00B4D81B;
+			remoteInfo = Hablare;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D6ACBEE62E92E5A20091C56A /* Hablaré.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hablaré.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D6ACBEF62E92E5A30091C56A /* HablaréTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "HablaréTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D6ACBF002E92E5A30091C56A /* HablaréUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "HablaréUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6DB98032EA1E67A00B4D81B /* Hablare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hablare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6DB98132EA1E67B00B4D81B /* HablareTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HablareTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6DB981D2EA1E67B00B4D81B /* HablareUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HablareUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D6ACBF082E92E5A30091C56A /* Exceptions for "Hablaré" folder in "Hablaré" target */ = {
+		D6DB98252EA1E67B00B4D81B /* Exceptions for "Hablare" folder in "Hablare" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = D6ACBEE52E92E5A20091C56A /* Hablaré */;
+			target = D6DB98022EA1E67A00B4D81B /* Hablare */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D6ACBEE82E92E5A20091C56A /* Hablaré */ = {
+		D6DB98052EA1E67A00B4D81B /* Hablare */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				D6ACBF082E92E5A30091C56A /* Exceptions for "Hablaré" folder in "Hablaré" target */,
+				D6DB98252EA1E67B00B4D81B /* Exceptions for "Hablare" folder in "Hablare" target */,
 			);
-			path = "Hablaré";
+			path = Hablare;
 			sourceTree = "<group>";
 		};
-		D6ACBEF92E92E5A30091C56A /* HablaréTests */ = {
+		D6DB98162EA1E67B00B4D81B /* HablareTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "HablaréTests";
+			path = HablareTests;
 			sourceTree = "<group>";
 		};
-		D6ACBF032E92E5A30091C56A /* HablaréUITests */ = {
+		D6DB98202EA1E67B00B4D81B /* HablareUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "HablaréUITests";
+			path = HablareUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D6ACBEE32E92E5A20091C56A /* Frameworks */ = {
+		D6DB98002EA1E67A00B4D81B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D63C5A792E986A2D00DC623E /* SwiftHablare in Frameworks */,
+				D6DB98462EA1E6E500B4D81B /* SwiftHablare in Frameworks */,
+				D6DB98432EA1E6CB00B4D81B /* SwiftGuion in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEF32E92E5A30091C56A /* Frameworks */ = {
+		D6DB98102EA1E67B00B4D81B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEFD2E92E5A30091C56A /* Frameworks */ = {
+		D6DB981A2EA1E67B00B4D81B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -90,22 +92,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D6ACBEDD2E92E5A20091C56A = {
+		D6DB97FA2EA1E67A00B4D81B = {
 			isa = PBXGroup;
 			children = (
-				D6ACBEE82E92E5A20091C56A /* Hablaré */,
-				D6ACBEF92E92E5A30091C56A /* HablaréTests */,
-				D6ACBF032E92E5A30091C56A /* HablaréUITests */,
-				D6ACBEE72E92E5A20091C56A /* Products */,
+				D6DB98052EA1E67A00B4D81B /* Hablare */,
+				D6DB98162EA1E67B00B4D81B /* HablareTests */,
+				D6DB98202EA1E67B00B4D81B /* HablareUITests */,
+				D6DB98042EA1E67A00B4D81B /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		D6ACBEE72E92E5A20091C56A /* Products */ = {
+		D6DB98042EA1E67A00B4D81B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D6ACBEE62E92E5A20091C56A /* Hablaré.app */,
-				D6ACBEF62E92E5A30091C56A /* HablaréTests.xctest */,
-				D6ACBF002E92E5A30091C56A /* HablaréUITests.xctest */,
+				D6DB98032EA1E67A00B4D81B /* Hablare.app */,
+				D6DB98132EA1E67B00B4D81B /* HablareTests.xctest */,
+				D6DB981D2EA1E67B00B4D81B /* HablareUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -113,138 +115,140 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D6ACBEE52E92E5A20091C56A /* Hablaré */ = {
+		D6DB98022EA1E67A00B4D81B /* Hablare */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6ACBF092E92E5A30091C56A /* Build configuration list for PBXNativeTarget "Hablaré" */;
+			buildConfigurationList = D6DB98262EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "Hablare" */;
 			buildPhases = (
-				D6ACBEE22E92E5A20091C56A /* Sources */,
-				D6ACBEE32E92E5A20091C56A /* Frameworks */,
-				D6ACBEE42E92E5A20091C56A /* Resources */,
+				D6DB97FF2EA1E67A00B4D81B /* Sources */,
+				D6DB98002EA1E67A00B4D81B /* Frameworks */,
+				D6DB98012EA1E67A00B4D81B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D6ACBEE82E92E5A20091C56A /* Hablaré */,
+				D6DB98052EA1E67A00B4D81B /* Hablare */,
 			);
-			name = "Hablaré";
+			name = Hablare;
 			packageProductDependencies = (
-				D63C5A782E986A2D00DC623E /* SwiftHablare */,
+				D6DB98422EA1E6CB00B4D81B /* SwiftGuion */,
+				D6DB98452EA1E6E500B4D81B /* SwiftHablare */,
 			);
-			productName = "Hablaré";
-			productReference = D6ACBEE62E92E5A20091C56A /* Hablaré.app */;
+			productName = Hablare;
+			productReference = D6DB98032EA1E67A00B4D81B /* Hablare.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D6ACBEF52E92E5A30091C56A /* HablaréTests */ = {
+		D6DB98122EA1E67B00B4D81B /* HablareTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6ACBF0E2E92E5A30091C56A /* Build configuration list for PBXNativeTarget "HablaréTests" */;
+			buildConfigurationList = D6DB982B2EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "HablareTests" */;
 			buildPhases = (
-				D6ACBEF22E92E5A30091C56A /* Sources */,
-				D6ACBEF32E92E5A30091C56A /* Frameworks */,
-				D6ACBEF42E92E5A30091C56A /* Resources */,
+				D6DB980F2EA1E67B00B4D81B /* Sources */,
+				D6DB98102EA1E67B00B4D81B /* Frameworks */,
+				D6DB98112EA1E67B00B4D81B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				D6ACBEF82E92E5A30091C56A /* PBXTargetDependency */,
+				D6DB98152EA1E67B00B4D81B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D6ACBEF92E92E5A30091C56A /* HablaréTests */,
+				D6DB98162EA1E67B00B4D81B /* HablareTests */,
 			);
-			name = "HablaréTests";
+			name = HablareTests;
 			packageProductDependencies = (
 			);
-			productName = "HablaréTests";
-			productReference = D6ACBEF62E92E5A30091C56A /* HablaréTests.xctest */;
+			productName = HablareTests;
+			productReference = D6DB98132EA1E67B00B4D81B /* HablareTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		D6ACBEFF2E92E5A30091C56A /* HablaréUITests */ = {
+		D6DB981C2EA1E67B00B4D81B /* HablareUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6ACBF112E92E5A30091C56A /* Build configuration list for PBXNativeTarget "HablaréUITests" */;
+			buildConfigurationList = D6DB982E2EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "HablareUITests" */;
 			buildPhases = (
-				D6ACBEFC2E92E5A30091C56A /* Sources */,
-				D6ACBEFD2E92E5A30091C56A /* Frameworks */,
-				D6ACBEFE2E92E5A30091C56A /* Resources */,
+				D6DB98192EA1E67B00B4D81B /* Sources */,
+				D6DB981A2EA1E67B00B4D81B /* Frameworks */,
+				D6DB981B2EA1E67B00B4D81B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				D6ACBF022E92E5A30091C56A /* PBXTargetDependency */,
+				D6DB981F2EA1E67B00B4D81B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D6ACBF032E92E5A30091C56A /* HablaréUITests */,
+				D6DB98202EA1E67B00B4D81B /* HablareUITests */,
 			);
-			name = "HablaréUITests";
+			name = HablareUITests;
 			packageProductDependencies = (
 			);
-			productName = "HablaréUITests";
-			productReference = D6ACBF002E92E5A30091C56A /* HablaréUITests.xctest */;
+			productName = HablareUITests;
+			productReference = D6DB981D2EA1E67B00B4D81B /* HablareUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D6ACBEDE2E92E5A20091C56A /* Project object */ = {
+		D6DB97FB2EA1E67A00B4D81B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					D6ACBEE52E92E5A20091C56A = {
+					D6DB98022EA1E67A00B4D81B = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
-					D6ACBEF52E92E5A30091C56A = {
+					D6DB98122EA1E67B00B4D81B = {
 						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = D6ACBEE52E92E5A20091C56A;
+						TestTargetID = D6DB98022EA1E67A00B4D81B;
 					};
-					D6ACBEFF2E92E5A30091C56A = {
+					D6DB981C2EA1E67B00B4D81B = {
 						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = D6ACBEE52E92E5A20091C56A;
+						TestTargetID = D6DB98022EA1E67A00B4D81B;
 					};
 				};
 			};
-			buildConfigurationList = D6ACBEE12E92E5A20091C56A /* Build configuration list for PBXProject "Hablaré" */;
+			buildConfigurationList = D6DB97FE2EA1E67A00B4D81B /* Build configuration list for PBXProject "Hablare" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = D6ACBEDD2E92E5A20091C56A;
+			mainGroup = D6DB97FA2EA1E67A00B4D81B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D63C5A772E986A2D00DC623E /* XCLocalSwiftPackageReference "../../../SwiftHablare" */,
+				D6DB98412EA1E6CB00B4D81B /* XCLocalSwiftPackageReference "../../../SwiftGuion" */,
+				D6DB98442EA1E6E500B4D81B /* XCLocalSwiftPackageReference "../../../SwiftHablare" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = D6ACBEE72E92E5A20091C56A /* Products */;
+			productRefGroup = D6DB98042EA1E67A00B4D81B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D6ACBEE52E92E5A20091C56A /* Hablaré */,
-				D6ACBEF52E92E5A30091C56A /* HablaréTests */,
-				D6ACBEFF2E92E5A30091C56A /* HablaréUITests */,
+				D6DB98022EA1E67A00B4D81B /* Hablare */,
+				D6DB98122EA1E67B00B4D81B /* HablareTests */,
+				D6DB981C2EA1E67B00B4D81B /* HablareUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D6ACBEE42E92E5A20091C56A /* Resources */ = {
+		D6DB98012EA1E67A00B4D81B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEF42E92E5A30091C56A /* Resources */ = {
+		D6DB98112EA1E67B00B4D81B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEFE2E92E5A30091C56A /* Resources */ = {
+		D6DB981B2EA1E67B00B4D81B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -254,21 +258,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D6ACBEE22E92E5A20091C56A /* Sources */ = {
+		D6DB97FF2EA1E67A00B4D81B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEF22E92E5A30091C56A /* Sources */ = {
+		D6DB980F2EA1E67B00B4D81B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D6ACBEFC2E92E5A30091C56A /* Sources */ = {
+		D6DB98192EA1E67B00B4D81B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -278,27 +282,25 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D6ACBEF82E92E5A30091C56A /* PBXTargetDependency */ = {
+		D6DB98152EA1E67B00B4D81B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D6ACBEE52E92E5A20091C56A /* Hablaré */;
-			targetProxy = D6ACBEF72E92E5A30091C56A /* PBXContainerItemProxy */;
+			target = D6DB98022EA1E67A00B4D81B /* Hablare */;
+			targetProxy = D6DB98142EA1E67B00B4D81B /* PBXContainerItemProxy */;
 		};
-		D6ACBF022E92E5A30091C56A /* PBXTargetDependency */ = {
+		D6DB981F2EA1E67B00B4D81B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D6ACBEE52E92E5A20091C56A /* Hablaré */;
-			targetProxy = D6ACBF012E92E5A30091C56A /* PBXContainerItemProxy */;
+			target = D6DB98022EA1E67A00B4D81B /* Hablare */;
+			targetProxy = D6DB981E2EA1E67B00B4D81B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		D6ACBF0A2E92E5A30091C56A /* Debug */ = {
+		D6DB98272EA1E67B00B4D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Hablaré/Hablare.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				ENABLE_APP_SANDBOX = YES;
@@ -306,33 +308,46 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Hablaré/Info.plist";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
+				INFOPLIST_FILE = Hablare/Info.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.Hablare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
-		D6ACBF0B2E92E5A30091C56A /* Release */ = {
+		D6DB98282EA1E67B00B4D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Hablaré/Hablare.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				ENABLE_APP_SANDBOX = YES;
@@ -340,26 +355,41 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Hablaré/Info.plist";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
+				INFOPLIST_FILE = Hablare/Info.plist;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UISupportsDocumentBrowser[sdk=iphonesimulator*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.Hablare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
-		D6ACBF0C2E92E5A30091C56A /* Debug */ = {
+		D6DB98292EA1E67B00B4D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -413,17 +443,15 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		D6ACBF0D2E92E5A30091C56A /* Release */ = {
+		D6DB982A2EA1E67B00B4D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -471,15 +499,13 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
-		D6ACBF0F2E92E5A30091C56A /* Debug */ = {
+		D6DB982C2EA1E67B00B4D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -487,20 +513,25 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.HablareTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hablaré.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hablaré";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hablare.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hablare";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
-		D6ACBF102E92E5A30091C56A /* Release */ = {
+		D6DB982D2EA1E67B00B4D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -508,92 +539,109 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.HablareTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hablaré.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hablaré";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hablare.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hablare";
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
-		D6ACBF122E92E5A30091C56A /* Debug */ = {
+		D6DB982F2EA1E67B00B4D81B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.HablareUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Hablaré";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Hablare;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
-		D6ACBF132E92E5A30091C56A /* Release */ = {
+		D6DB98302EA1E67B00B4D81B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = H3EJ6Y8VJ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.stovak.TableReader.Hablare-UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = io.stovak.HablareUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Hablaré";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Hablare;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D6ACBEE12E92E5A20091C56A /* Build configuration list for PBXProject "Hablaré" */ = {
+		D6DB97FE2EA1E67A00B4D81B /* Build configuration list for PBXProject "Hablare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D6ACBF0C2E92E5A30091C56A /* Debug */,
-				D6ACBF0D2E92E5A30091C56A /* Release */,
+				D6DB98292EA1E67B00B4D81B /* Debug */,
+				D6DB982A2EA1E67B00B4D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6ACBF092E92E5A30091C56A /* Build configuration list for PBXNativeTarget "Hablaré" */ = {
+		D6DB98262EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "Hablare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D6ACBF0A2E92E5A30091C56A /* Debug */,
-				D6ACBF0B2E92E5A30091C56A /* Release */,
+				D6DB98272EA1E67B00B4D81B /* Debug */,
+				D6DB98282EA1E67B00B4D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6ACBF0E2E92E5A30091C56A /* Build configuration list for PBXNativeTarget "HablaréTests" */ = {
+		D6DB982B2EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "HablareTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D6ACBF0F2E92E5A30091C56A /* Debug */,
-				D6ACBF102E92E5A30091C56A /* Release */,
+				D6DB982C2EA1E67B00B4D81B /* Debug */,
+				D6DB982D2EA1E67B00B4D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6ACBF112E92E5A30091C56A /* Build configuration list for PBXNativeTarget "HablaréUITests" */ = {
+		D6DB982E2EA1E67B00B4D81B /* Build configuration list for PBXNativeTarget "HablareUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D6ACBF122E92E5A30091C56A /* Debug */,
-				D6ACBF132E92E5A30091C56A /* Release */,
+				D6DB982F2EA1E67B00B4D81B /* Debug */,
+				D6DB98302EA1E67B00B4D81B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -601,18 +649,26 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		D63C5A772E986A2D00DC623E /* XCLocalSwiftPackageReference "../../../SwiftHablare" */ = {
+		D6DB98412EA1E6CB00B4D81B /* XCLocalSwiftPackageReference "../../../SwiftGuion" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../../SwiftGuion;
+		};
+		D6DB98442EA1E6E500B4D81B /* XCLocalSwiftPackageReference "../../../SwiftHablare" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../../../SwiftHablare;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D63C5A782E986A2D00DC623E /* SwiftHablare */ = {
+		D6DB98422EA1E6CB00B4D81B /* SwiftGuion */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SwiftGuion;
+		};
+		D6DB98452EA1E6E500B4D81B /* SwiftHablare */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftHablare;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = D6ACBEDE2E92E5A20091C56A /* Project object */;
+	rootObject = D6DB97FB2EA1E67A00B4D81B /* Project object */;
 }
