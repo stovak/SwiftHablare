@@ -39,10 +39,18 @@ public final class BackgroundTaskManager {
         while let nextTask = tasks.first(where: { $0.state == .queued }) {
             runningTask = nextTask
 
+            // Transition to running state before execution
+            nextTask.state = .running
+
             // Execute the task if it has an executor
             if let executor = nextTask.executor {
                 do {
                     try await executor()
+                    // Mark as completed after successful execution
+                    // (unless the executor changed the state itself, e.g., to cancelled)
+                    if nextTask.state == .running {
+                        nextTask.state = .completed
+                    }
                 } catch {
                     nextTask.state = .failed
                     nextTask.error = error
