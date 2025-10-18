@@ -2,6 +2,17 @@
 
 Welcome to the SwiftHablare Voice Provider Integration Guide. This document will walk you through creating and integrating a new voice provider into the SwiftHablare framework.
 
+## 🚀 New: True Extensibility
+
+**As of v2.0**, SwiftHablare supports **completely independent voice provider packages** that can be created and registered without modifying the library code. You can now:
+
+✅ Create voice providers in separate Swift packages
+✅ Register providers dynamically at runtime
+✅ No need to modify the SwiftHablare library source code
+✅ UI automatically discovers and displays all registered providers
+
+This means you can distribute your custom voice provider as a separate package and integrate it seamlessly!
+
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
@@ -12,17 +23,25 @@ Welcome to the SwiftHablare Voice Provider Integration Guide. This document will
 6. [Advanced Topics](#advanced-topics)
 7. [Common Patterns and Best Practices](#common-patterns-and-best-practices)
 8. [Troubleshooting](#troubleshooting)
+9. [Creating an External Provider Package](#creating-an-external-provider-package)
 
 ---
 
 ## Architecture Overview
 
-SwiftHablare uses a protocol-oriented architecture for voice providers. The system consists of:
+SwiftHablare uses a protocol-oriented architecture with **dynamic provider registration**. The system consists of:
 
 - **`VoiceProvider` Protocol**: The core interface all providers must implement
-- **`VoiceProviderManager`**: Manages provider lifecycle, switching, and caching
-- **`VoiceProviderType` Enum**: Defines available provider types
+- **`VoiceProviderManager`**: Manages provider lifecycle, registration, switching, and caching
+- **`VoiceProviderInfo`**: Struct containing provider metadata for dynamic discovery
 - **Supporting Models**: `Voice`, `AudioFile` for data persistence
+
+### Key Architectural Features
+
+- **Dynamic Registration**: Providers register themselves at runtime using `manager.registerProvider()`
+- **String-Based Identification**: Providers identified by `providerId` string (not enum)
+- **Automatic UI Integration**: UI components automatically discover and display registered providers
+- **Backward Compatible**: Legacy enum-based API still works (deprecated)
 
 ### Provider Responsibilities
 
@@ -32,6 +51,7 @@ Each provider must:
 3. Estimate audio duration
 4. Handle its own configuration and authentication
 5. Report availability status
+6. Provide unique `providerId` and `displayName`
 
 ---
 
@@ -137,34 +157,48 @@ private struct APIVoice: Codable {
 
 ## Step-by-Step Implementation
 
-### Step 1: Define Your Provider Type
+### Step 1: Create Your Provider Package (Optional)
 
-Add your provider to the `VoiceProviderType` enum:
+You can create your provider as a separate Swift package for maximum reusability:
 
-**File:** `Sources/SwiftHablare/VoiceProvider.swift`
-
-```swift
-public enum VoiceProviderType: String, CaseIterable, Codable, Sendable {
-    case elevenlabs = "elevenlabs"
-    case apple = "apple"
-    case mycustom = "mycustom"  // Add your provider
-
-    public var displayName: String {
-        switch self {
-        case .elevenlabs:
-            return "ElevenLabs"
-        case .apple:
-            return "Apple Text-to-Speech"
-        case .mycustom:
-            return "My Custom TTS"  // Add display name
-        }
-    }
-}
+```bash
+mkdir MyCustomVoiceProvider
+cd MyCustomVoiceProvider
+swift package init --type library --name MyCustomVoiceProvider
 ```
+
+**Package.swift:**
+```swift
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "MyCustomVoiceProvider",
+    platforms: [.macOS(.v14)],
+    products: [
+        .library(
+            name: "MyCustomVoiceProvider",
+            targets: ["MyCustomVoiceProvider"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/intrusive-memory/SwiftHablare.git", from: "2.0.0")
+    ],
+    targets: [
+        .target(
+            name: "MyCustomVoiceProvider",
+            dependencies: ["SwiftHablare"]),
+        .testTarget(
+            name: "MyCustomVoiceProviderTests",
+            dependencies: ["MyCustomVoiceProvider"]),
+    ]
+)
+```
+
+Or, if you prefer, create your provider directly in your app.
 
 ### Step 2: Create Your Provider Class
 
-Create a new file in `Sources/SwiftHablare/Providers/`:
+Create your provider class (either in your package or your app):
 
 **File:** `Sources/SwiftHablare/Providers/MyCustomVoiceProvider.swift`
 
@@ -384,39 +418,67 @@ public func isConfigured() -> Bool {
 
 ## Registration and Integration
 
-### Step 4: Register Your Provider
+### Step 4: Register Your Provider Dynamically
 
-Update the `VoiceProviderManager` to include your provider:
-
-**File:** `Sources/SwiftHablare/VoiceProviderManager.swift`
+**NEW APPROACH**: You no longer need to modify the SwiftHablare library! Simply register your provider at runtime:
 
 ```swift
-public init(modelContext: ModelContext) {
-    self.modelContext = modelContext
+import SwiftHablare
+import MyCustomVoiceProvider  // Your separate package
 
-    // Load saved provider preference
-    if let savedType = UserDefaults.standard.string(forKey: currentProviderKey),
-       let providerType = VoiceProviderType(rawValue: savedType) {
-        self.currentProviderType = providerType
-    } else {
-        self.currentProviderType = .elevenlabs
-    }
+// Initialize the manager (built-in providers auto-register)
+let manager = VoiceProviderManager(modelContext: modelContext)
 
-    // Register all providers
-    registerProvider(ElevenLabsVoiceProvider())
-    registerProvider(AppleVoiceProvider())
-    registerProvider(MyCustomVoiceProvider())  // Add your provider
+// Register your custom provider dynamically
+manager.registerProvider(MyCustomVoiceProvider())
+
+// That's it! Your provider is now available
+```
+
+#### Advanced: Skip Default Providers
+
+If you want to provide your own set of providers without the defaults:
+
+```swift
+// Initialize without auto-registering defaults
+let manager = VoiceProviderManager(modelContext: modelContext, registerDefaults: false)
+
+// Register only your providers
+manager.registerProvider(MyCustomVoiceProvider())
+manager.registerProvider(AnotherCustomProvider())
+```
+
+#### Check Provider Registration
+
+```swift
+// Check if a provider is registered
+if manager.isProviderRegistered("mycustom") {
+    print("Provider is registered!")
+}
+
+// Get all registered provider IDs
+let providerIds = manager.getRegisteredProviderIds()
+print("Available providers: \(providerIds)")
+
+// Get detailed provider information
+let providers = manager.getRegisteredProviders()
+for info in providers {
+    print("\(info.displayName) [\(info.id)] - Configured: \(info.isConfigured)")
 }
 ```
 
 ### Step 5: Use Your Provider
 
 ```swift
-// Initialize the manager
-let manager = VoiceProviderManager(modelContext: modelContext)
+// Switch to your provider using its ID
+manager.switchProvider(to: "mycustom")
 
-// Switch to your provider
-manager.switchProvider(to: .mycustom)
+// Or use the returned boolean to check success
+if manager.switchProvider(to: "mycustom") {
+    print("Successfully switched to custom provider")
+} else {
+    print("Provider 'mycustom' not found")
+}
 
 // Check configuration
 if manager.isCurrentProviderConfigured() {
@@ -432,6 +494,38 @@ if manager.isCurrentProviderConfigured() {
     print("Provider not configured. Please set API key.")
 }
 ```
+
+### UI Integration
+
+The best part? **No UI code changes needed!** The UI components automatically discover and display all registered providers:
+
+```swift
+// VoiceProviderWidget automatically shows all registered providers
+VoiceProviderWidget(providerManager: manager)
+
+// ProviderSelectionView also works automatically
+ProviderSelectionView(providerManager: manager)
+```
+
+Your custom provider will appear in the UI with:
+- Its display name
+- Configuration status (configured/not configured)
+- A default icon (or custom if you match the provider ID)
+
+### Legacy Approach (Deprecated)
+
+The old approach of modifying the `VoiceProviderType` enum still works but is deprecated:
+
+```swift
+// Old way (deprecated) - DO NOT USE
+enum VoiceProviderType {
+    case elevenlabs
+    case apple
+    case mycustom  // Had to modify library code
+}
+```
+
+**Use the dynamic registration approach instead!**
 
 ---
 
@@ -1070,17 +1164,311 @@ public final class AzureVoiceProvider: VoiceProvider {
 
 ---
 
+## Creating an External Provider Package
+
+This section shows how to create a complete, distributable voice provider package that works independently of the SwiftHablare library.
+
+### Complete Package Structure
+
+```
+MyCustomVoiceProvider/
+├── Package.swift
+├── README.md
+├── Sources/
+│   └── MyCustomVoiceProvider/
+│       ├── MyCustomVoiceProvider.swift
+│       └── Models/
+│           ├── CustomVoiceModels.swift
+│           └── CustomAPIModels.swift
+└── Tests/
+    └── MyCustomVoiceProviderTests/
+        └── MyCustomVoiceProviderTests.swift
+```
+
+### Example: Complete External Package
+
+**Package.swift:**
+```swift
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "MyCustomVoiceProvider",
+    platforms: [.macOS(.v14), .iOS(.v17)],
+    products: [
+        .library(
+            name: "MyCustomVoiceProvider",
+            targets: ["MyCustomVoiceProvider"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/intrusive-memory/SwiftHablare.git", from: "2.0.0")
+    ],
+    targets: [
+        .target(
+            name: "MyCustomVoiceProvider",
+            dependencies: ["SwiftHablare"]),
+        .testTarget(
+            name: "MyCustomVoiceProviderTests",
+            dependencies: ["MyCustomVoiceProvider"]),
+    ]
+)
+```
+
+**Sources/MyCustomVoiceProvider/MyCustomVoiceProvider.swift:**
+```swift
+import Foundation
+import SwiftHablare
+
+public final class MyCustomVoiceProvider: VoiceProvider {
+    // MARK: - VoiceProvider Protocol
+
+    public let providerId = "mycustom"
+    public let displayName = "My Custom TTS"
+    public let requiresAPIKey = true
+
+    private let baseURL = "https://api.mycustom.com/v1"
+    private let keychainManager = KeychainManager.shared
+    private let apiKeyAccount = "mycustom-api-key"
+
+    public init() {}
+
+    public func isConfigured() -> Bool {
+        do {
+            _ = try keychainManager.getAPIKey(for: apiKeyAccount)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    public func fetchVoices() async throws -> [Voice] {
+        guard isConfigured() else {
+            throw VoiceProviderError.notConfigured
+        }
+
+        let apiKey = try keychainManager.getAPIKey(for: apiKeyAccount)
+        guard let url = URL(string: "\(baseURL)/voices") else {
+            throw VoiceProviderError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.addValue(apiKey, forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(VoicesResponse.self, from: data)
+
+        return response.voices.map { apiVoice in
+            Voice(
+                id: apiVoice.id,
+                name: apiVoice.name,
+                description: apiVoice.description,
+                providerId: providerId,
+                language: apiVoice.language,
+                locality: apiVoice.locality,
+                gender: apiVoice.gender
+            )
+        }
+    }
+
+    public func generateAudio(text: String, voiceId: String) async throws -> Data {
+        guard isConfigured() else {
+            throw VoiceProviderError.notConfigured
+        }
+
+        let apiKey = try keychainManager.getAPIKey(for: apiKeyAccount)
+        guard let url = URL(string: "\(baseURL)/generate") else {
+            throw VoiceProviderError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(apiKey, forHTTPHeaderField: "Authorization")
+
+        let body = GenerateRequest(text: text, voiceId: voiceId)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return data
+    }
+
+    public func estimateDuration(text: String, voiceId: String) async -> TimeInterval {
+        return Double(text.count) / 13.0 * 1.15
+    }
+
+    public func isVoiceAvailable(voiceId: String) async -> Bool {
+        do {
+            let voices = try await fetchVoices()
+            return voices.contains { $0.id == voiceId }
+        } catch {
+            return false
+        }
+    }
+}
+
+// MARK: - API Models
+
+private struct VoicesResponse: Codable {
+    let voices: [APIVoice]
+}
+
+private struct APIVoice: Codable {
+    let id: String
+    let name: String
+    let description: String?
+    let language: String?
+    let locality: String?
+    let gender: String?
+}
+
+private struct GenerateRequest: Codable {
+    let text: String
+    let voiceId: String
+}
+```
+
+**README.md:**
+```markdown
+# My Custom Voice Provider
+
+A SwiftHablare voice provider for My Custom TTS service.
+
+## Installation
+
+### Swift Package Manager
+
+Add this to your `Package.swift`:
+
+\```swift
+dependencies: [
+    .package(url: "https://github.com/yourusername/MyCustomVoiceProvider.git", from: "1.0.0")
+]
+\```
+
+Or in Xcode: File > Add Package Dependencies...
+
+## Usage
+
+\```swift
+import SwiftHablare
+import MyCustomVoiceProvider
+
+// Register the provider
+let manager = VoiceProviderManager(modelContext: context)
+manager.registerProvider(MyCustomVoiceProvider())
+
+// Configure API key
+try KeychainManager.shared.saveAPIKey("your-api-key", for: "mycustom-api-key")
+
+// Switch to the provider
+manager.switchProvider(to: "mycustom")
+
+// Use it!
+let voices = try await manager.getVoices()
+let audio = try await manager.generateAudio(text: "Hello!", voiceId: voices.first!.id)
+\```
+
+## Configuration
+
+This provider requires an API key from [My Custom TTS](https://mycustom.com).
+
+## License
+
+MIT
+```
+
+### Using Your External Package
+
+In your app's `Package.swift`:
+```swift
+dependencies: [
+    .package(url: "https://github.com/intrusive-memory/SwiftHablare.git", from: "2.0.0"),
+    .package(url: "https://github.com/yourusername/MyCustomVoiceProvider.git", from: "1.0.0")
+]
+```
+
+In your app:
+```swift
+import SwiftUI
+import SwiftData
+import SwiftHablare
+import MyCustomVoiceProvider
+
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .modelContainer(for: [VoiceModel.self, AudioFile.self])
+        }
+    }
+}
+
+struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var providerManager: VoiceProviderManager
+
+    init() {
+        // This will be set properly in onAppear
+        _providerManager = StateObject(wrappedValue: VoiceProviderManager(
+            modelContext: ModelContext(try! ModelContainer(for: VoiceModel.self, AudioFile.self))
+        ))
+    }
+
+    var body: some View {
+        VStack {
+            VoiceProviderWidget(providerManager: providerManager)
+        }
+        .onAppear {
+            // Register custom provider
+            providerManager.registerProvider(MyCustomVoiceProvider())
+        }
+    }
+}
+```
+
+### Publishing Your Package
+
+1. **Create a Git repository**:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   ```
+
+2. **Tag a release**:
+   ```bash
+   git tag 1.0.0
+   git push origin main --tags
+   ```
+
+3. **Share it**:
+   - Add it to the [Swift Package Index](https://swiftpackageindex.com)
+   - Share the repository URL
+   - Document it in your README
+
+---
+
 ## Summary
 
-To integrate a new voice provider:
+To integrate a new voice provider **without modifying the library**:
 
 1. **Create the provider class** conforming to `VoiceProvider`
-2. **Add provider type** to `VoiceProviderType` enum
-3. **Implement required methods**: `fetchVoices()`, `generateAudio()`, etc.
-4. **Handle authentication** if needed (keychain storage)
-5. **Register provider** in `VoiceProviderManager`
-6. **Write tests** to verify functionality
-7. **Document** any provider-specific configuration
+   - Optionally in a separate Swift package for reusability
+2. **Implement required methods**: `fetchVoices()`, `generateAudio()`, etc.
+3. **Handle authentication** if needed (keychain storage)
+4. **Register dynamically**: `manager.registerProvider(YourProvider())`
+5. **Write tests** to verify functionality
+6. **Document** any provider-specific configuration
+7. **Distribute** as a package (optional)
+
+### Key Benefits of the New Architecture
+
+✅ **No library modification needed**
+✅ **Providers can be separate packages**
+✅ **Dynamic registration at runtime**
+✅ **Automatic UI integration**
+✅ **Backward compatible with existing code**
 
 The architecture handles caching, persistence, and UI integration automatically once your provider is registered.
 
