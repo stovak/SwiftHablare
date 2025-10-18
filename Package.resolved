@@ -1,5 +1,5 @@
 {
-  "originHash" : "4bdc693c117261e4d25b27d7085d2aedb49d47482e3063bf2c6f606466a39b75",
+  "originHash" : "d1b1801a280605a8f347e5a96001214eea1ee49485c407a47b26af6303524a13",
   "pins" : [
     {
       "identity" : "swiftfijos",
@@ -8,6 +8,33 @@
       "state" : {
         "revision" : "cd3897d48eefddd27cd0fbedf066268fb59c3b38",
         "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "swiftguion",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/intrusive-memory/SwiftGuion.git",
+      "state" : {
+        "revision" : "528121e973afe1314e24f9edc2483cd93a5ba8c7",
+        "version" : "2.2.0"
+      }
+    },
+    {
+      "identity" : "textbundle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mcritz/TextBundle.git",
+      "state" : {
+        "revision" : "6fd4f918150abb7c2f1bbd0cc02ebf5d5b51a1a4",
+        "version" : "1.0.7"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/weichsel/ZIPFoundation",
+      "state" : {
+        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
+        "version" : "0.9.20"
       }
     }
   ],

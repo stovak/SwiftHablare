@@ -63,7 +63,8 @@ public final class SecureKeychainManager: Sendable {
     /// Use more permissive accessibility for tests to avoid user confirmation dialogs
     private var accessibility: CFString {
         if isTestEnvironment {
-            return kSecAttrAccessibleAlways
+            // swiftlint:disable:next deprecation_warning
+            return kSecAttrAccessibleAlways  // Acceptable in test environment
         }
         return kSecAttrAccessibleAfterFirstUnlock
     }
@@ -217,7 +218,7 @@ public final class SecureKeychainManager: Sendable {
             }
         }
 
-        var query: [String: Any] = [
+        let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrLabel as String: type.rawValue,

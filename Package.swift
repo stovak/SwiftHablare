@@ -14,17 +14,22 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/intrusive-memory/SwiftFijos.git", from: "1.0.0")
+        .package(url: "https://github.com/intrusive-memory/SwiftFijos.git", from: "1.0.0"),
+        .package(url: "https://github.com/intrusive-memory/SwiftGuion.git", from: "2.1.0")
     ],
     targets: [
         .target(
-            name: "SwiftHablare"
+            name: "SwiftHablare",
+            dependencies: [
+                .product(name: "SwiftGuion", package: "SwiftGuion")
+            ]
         ),
         .testTarget(
             name: "SwiftHablareTests",
             dependencies: [
                 "SwiftHablare",
-                .product(name: "SwiftFijos", package: "SwiftFijos")
+                .product(name: "SwiftFijos", package: "SwiftFijos"),
+                .product(name: "SwiftGuion", package: "SwiftGuion")
             ]
         ),
     ]
