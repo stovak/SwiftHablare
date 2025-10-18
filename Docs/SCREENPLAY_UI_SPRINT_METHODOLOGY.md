@@ -4,10 +4,11 @@
 
 This document defines a phased, test-driven approach to implementing the screenplay speech UI system as specified in [SCREENPLAY_UI_WORKFLOW_DESIGN.md](SCREENPLAY_UI_WORKFLOW_DESIGN.md).
 
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2025-10-18
 **Related Documents**:
 - [SCREENPLAY_UI_WORKFLOW_DESIGN.md](SCREENPLAY_UI_WORKFLOW_DESIGN.md) - UI/Workflow specification
+- [SCREENPLAY_UI_DECISIONS.md](SCREENPLAY_UI_DECISIONS.md) - **Critical UI decisions** ⚠️
 - [SCREENPLAY_SPEECH_METHODOLOGY.md](SCREENPLAY_SPEECH_METHODOLOGY.md) - Backend methodology
 - [SAMPLE_APP_DESIGN.md](SAMPLE_APP_DESIGN.md) - Sample app architecture
 
@@ -26,6 +27,7 @@ This document defines a phased, test-driven approach to implementing the screenp
 - Swift 6 strict concurrency compliance (future work)
 - Advanced export features (Phase 8 placeholder)
 - Voice preview/testing (Phase 8 enhancement)
+- Auto voice assignment algorithm (explicitly out of scope per UI decisions)
 
 ### Estimated Timeline
 - **Total**: 7 phases
@@ -39,50 +41,65 @@ This document defines a phased, test-driven approach to implementing the screenp
 ### Phase 1: Task Architecture Foundation ⚡ Priority: CRITICAL
 **Goal**: Implement core task execution and progress tracking infrastructure
 
+**⚠️ UPDATED per UI Decisions**: Replace TaskProgressOverlay with BackgroundTasksPalette
+
 #### Requirements
-1. `TaskProgress` @Observable class
-   - Properties: currentStep, totalSteps, currentMessage, isRunning, isCancelled, error
+1. `BackgroundTask` @Observable class (replaces TaskProgress)
+   - Properties: id, name, state, currentStep, totalSteps, message, error, isBlocking
    - Computed: progressFraction, progressPercentage
+   - Methods: execute() async throws, cancel()
+   - States: queued, running, completed, failed, cancelled
    - Must be @MainActor
 
 2. `ScreenplayTask` protocol
-   - Properties: progress (TaskProgress)
+   - Properties: backgroundTask (BackgroundTask)
    - Methods: execute() async throws, cancel()
    - Must be @MainActor
 
-3. `ScreenplayTaskCoordinator` @Observable class
-   - Properties: currentTask, taskHistory
-   - Methods: runTask(), cancelCurrentTask()
-   - Must handle errors and auto-clear completed tasks
+3. `BackgroundTaskManager` @Observable class (replaces ScreenplayTaskCoordinator)
+   - Properties: tasks (array of BackgroundTask), runningTask
+   - Methods: enqueue(), cancelTask(), clearCompleted()
+   - Automatically runs queued tasks when current completes
    - Must be @MainActor
 
-4. `TaskHistoryEntry` struct
-   - Properties: id, name, startTime, endTime, success, error
-   - Computed: duration
+4. `BackgroundTasksPalette` view
+   - Floating palette showing all tasks
+   - Progress bars for running tasks
+   - Error display in red underneath failed tasks
+   - Blocking indicators (🔒 icon)
+   - Cancel buttons for running/queued tasks
+   - Auto-hides when empty (optional)
 
 #### Testing Strategy
-- **Unit Tests**: TaskProgress calculations, state transitions
-- **Integration Tests**: TaskCoordinator lifecycle, error handling
+- **Unit Tests**: BackgroundTask state machine, progress calculations
+- **Integration Tests**: BackgroundTaskManager lifecycle, queueing, error handling
 - **Mock Tasks**: Create simple test task implementations
+- **UI Tests**: BackgroundTasksPalette display states
 
 #### Quality Gates
-- ✅ All task states tracked correctly
+- ✅ All task states tracked correctly (queued → running → completed/failed/cancelled)
 - ✅ Progress calculations accurate
-- ✅ Error handling comprehensive
+- ✅ Error handling comprehensive with user-friendly messages
+- ✅ Task queueing works correctly
+- ✅ Blocking indicators display properly
+- ✅ Cancelled tasks preserve partial data
 - ✅ 95%+ coverage on task infrastructure
 - ✅ All tests passing
 
 #### Deliverables
 ```
 Sources/SwiftHablare/ScreenplaySpeech/Tasks/
-├── TaskProgress.swift
+├── BackgroundTask.swift
 ├── ScreenplayTask.swift
-├── ScreenplayTaskCoordinator.swift
-└── TaskHistoryEntry.swift
+├── BackgroundTaskManager.swift
+└── BackgroundTaskRow.swift
+
+Sources/SwiftHablare/ScreenplaySpeech/UI/
+└── BackgroundTasksPalette.swift
 
 Tests/SwiftHablareTests/ScreenplaySpeech/Tasks/
-├── TaskProgressTests.swift
-├── ScreenplayTaskCoordinatorTests.swift
+├── BackgroundTaskTests.swift
+├── BackgroundTaskManagerTests.swift
 └── MockScreenplayTask.swift
 ```
 
@@ -132,14 +149,22 @@ Tests/SwiftHablareTests/ScreenplaySpeech/Tasks/
 ### Phase 3: Data Models & Character Mapping ⚡ Priority: HIGH
 **Goal**: Implement character-voice mapping SwiftData model and generation
 
+**⚠️ UPDATED per UI Decisions**: Add screenplayID to SpeakableItem model
+
 #### Requirements
-1. `CharacterVoiceMapping` @Model class
+1. **Update `SpeakableItem` model**
+   - Add `screenplayID: String` property
+   - Links to `GuionDocumentModel.id.uuidString`
+   - Migration strategy for existing items
+   - Update queries to filter by screenplayID
+
+2. `CharacterVoiceMapping` @Model class
    - All properties as specified in workflow design
    - SwiftData persistence
    - Queries by screenplayID
 
-2. `CharacterMappingGenerator` utility
-   - Scans SpeakableItems for characters
+3. `CharacterMappingGenerator` utility
+   - Scans SpeakableItems for characters (filtered by screenplayID)
    - Groups by normalized name
    - Collects aliases
    - Counts dialogue lines
@@ -173,50 +198,60 @@ Tests/SwiftHablareTests/ScreenplaySpeech/Models/
 ---
 
 ### Phase 4: Core UI Scaffolding ⚡ Priority: HIGH
-**Goal**: Implement main container, tab structure, and progress overlay
+**Goal**: Implement main container, tab structure, and background tasks palette
+
+**⚠️ UPDATED per UI Decisions**: Replace modal overlay with floating palette, add provider picker
 
 #### Requirements
 1. `ScreenplaySpeechView` main container
+   - **Global provider picker at top** (segmented control or dropdown)
    - TabView with 4 tabs
    - Header with screenplay title
-   - Task trigger buttons
-   - Overlay for task progress
-   - Integration with ScreenplayTaskCoordinator
+   - Task trigger buttons (disabled while tasks running)
+   - Integration with BackgroundTaskManager
 
-2. `TaskProgressOverlay` modal view
-   - Dimmed background
-   - Progress card with percentage
-   - Current message display
-   - Cancel button
-   - Binds to currentTask progress
+2. `ProviderPickerView` component
+   - Displays available voice providers (ElevenLabs, Apple, etc.)
+   - Segmented control or dropdown style
+   - Updates global selected provider
+   - Shows current provider status (configured/unconfigured)
 
-3. Placeholder tab views
+3. Integration with `BackgroundTasksPalette` (from Phase 1)
+   - Floating palette overlays main window
+   - Positioned bottom-right by default
+   - Shows/hides via toggle button
+   - Displays all tasks from BackgroundTaskManager
+
+4. Placeholder tab views
    - Basic ContentUnavailableView for each tab
    - Proper tab labels and icons
 
 #### Testing Strategy
 - **Preview Tests**: Xcode preview compilation
 - **Snapshot Tests**: Visual regression (if tooling available)
-- **State Tests**: Tab switching, overlay show/hide
-- **Mock Integration**: Use mock task coordinator
+- **State Tests**: Tab switching, palette show/hide, provider switching
+- **Mock Integration**: Use mock BackgroundTaskManager
 
 #### Quality Gates
 - ✅ All views compile without errors
 - ✅ Xcode previews work
 - ✅ Tab navigation functional
-- ✅ Progress overlay displays correctly
+- ✅ Provider picker switches providers correctly
+- ✅ Background tasks palette displays correctly
 - ✅ Task buttons disabled during execution
-- ✅ Basic integration with task coordinator
+- ✅ Basic integration with BackgroundTaskManager
 
 #### Deliverables
 ```
 Sources/SwiftHablare/ScreenplaySpeech/UI/
 ├── ScreenplaySpeechView.swift
-├── TaskProgressOverlay.swift
+├── ProviderPickerView.swift
 └── ExportView.swift (placeholder)
 
 Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 └── ScreenplaySpeechViewTests.swift
+
+Note: BackgroundTasksPalette delivered in Phase 1
 ```
 
 ---
@@ -224,13 +259,16 @@ Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 ### Phase 5: Character-Voice Mapping Views ⚡ Priority: MEDIUM
 **Goal**: Implement bidirectional character↔voice mapping interfaces
 
+**⚠️ UPDATED per UI Decisions**: Auto-detect creates mappings only, does NOT assign voices
+
 #### Requirements
 1. `CharacterToVoiceMappingView`
    - @Query for CharacterVoiceMapping by screenplayID
-   - @Query for available voices
+   - @Query for available voices (filtered by selected provider)
    - List of characters with voice pickers
-   - Auto-detect button
+   - "Auto-Detect Characters" button (creates mappings, voices remain nil)
    - Sort by dialogue count (descending)
+   - Empty state guides user to generate items first
 
 2. `CharacterMappingRow` component
    - Character display name
@@ -259,7 +297,9 @@ Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 - ✅ Views display correctly with data
 - ✅ Empty states handled gracefully
 - ✅ Voice picker updates mapping
-- ✅ Auto-detect generates mappings
+- ✅ Auto-detect generates mappings (voices remain nil/unassigned)
+- ✅ User can manually assign voices via picker
+- ✅ Provider switching updates available voices
 - ✅ Sorting works correctly
 - ✅ 85%+ coverage on testable logic
 
@@ -328,10 +368,12 @@ Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 ### Phase 7: Audio Generation Task & Integration ⚡ Priority: MEDIUM
 **Goal**: Implement audio generation task with provider integration
 
+**⚠️ UPDATED per UI Decisions**: Provider-specific settings, global provider selection
+
 #### Requirements
 1. `AudioGenerationTask` class
-   - Iterates SpeakableItems
-   - Calls audio requestor for each item
+   - Iterates SpeakableItems (filtered by screenplayID)
+   - Calls audio requestor for each item using selected provider
    - Updates item status (.audioQueued → .audioGenerating → .audioComplete/.audioFailed)
    - Creates SpeakableAudio linking records
    - Rate limiting pause between requests
@@ -340,15 +382,23 @@ Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 2. `VoiceGenerationSettings` struct
    - Provider name, voice ID, voice name
    - Audio format, max characters
-   - Optional: temperature, speed, stability, clarity
+   - Provider-specific settings (passed through to provider)
 
-3. `AudioRequestorProtocol` protocol
+3. `VoiceSettingsView` protocol
+   - Each provider implements custom settings UI
+   - ElevenLabs: stability, clarity, style
+   - Apple: rate, pitch, volume
+   - Settings displayed inline or in drawer
+
+4. `AudioRequestorProtocol` protocol
    - Method: generateAudio(text:voice:settings:) async throws -> GeneratedAudioRecord
-   - Note: Actual provider implementations exist, just need adapter
+   - Adapter for existing provider infrastructure
 
-4. Integration with ScreenplaySpeechView
-   - Voice settings configuration (basic UI or defaults)
+5. Integration with ScreenplaySpeechView
+   - Uses globally selected provider
+   - Provider-specific settings UI (optional, can use defaults)
    - Trigger audio generation for items with status .textGenerated
+   - Respects character-voice mappings
 
 #### Testing Strategy
 - **Unit Tests**: Task lifecycle, status transitions
@@ -370,7 +420,12 @@ Tests/SwiftHablareTests/ScreenplaySpeech/UI/
 Sources/SwiftHablare/ScreenplaySpeech/Tasks/
 ├── AudioGenerationTask.swift
 ├── VoiceGenerationSettings.swift
-└── AudioRequestorProtocol.swift
+├── AudioRequestorProtocol.swift
+└── VoiceSettingsView.swift (protocol)
+
+Sources/SwiftHablare/ScreenplaySpeech/Providers/
+├── ElevenLabsSettingsView.swift (example implementation)
+└── AppleVoiceSettingsView.swift (example implementation)
 
 Tests/SwiftHablareTests/ScreenplaySpeech/Tasks/
 ├── AudioGenerationTaskTests.swift
@@ -620,6 +675,7 @@ Tests/SwiftHablareTests/ScreenplaySpeech/Tasks/
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-10-18 | Initial UI sprint methodology |
+| 1.1 | 2025-10-18 | **Major update based on UI decisions**: Replace TaskProgressOverlay with BackgroundTasksPalette, add ProviderPickerView, add screenplayID to SpeakableItem, clarify auto-detect as detect-only (no auto-assignment), add provider-specific settings |
 
 ---
 
