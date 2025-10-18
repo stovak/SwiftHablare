@@ -6,11 +6,11 @@
 //  Created by TOM STOVALL on 10/16/25.
 //
 
-import SwiftUI
-import SwiftData
-import UniformTypeIdentifiers
-import SwiftGuion
 import Combine
+import SwiftData
+import SwiftGuion
+import SwiftUI
+import UniformTypeIdentifiers
 
 /// Document model for screenplay editing and viewing.
 ///
@@ -45,7 +45,8 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
     /// Document title (from title page or filename)
     var title: String {
         if let titleEntry = displayModel.titlePage.first(where: { $0.key.lowercased() == "title" }),
-           let titleValue = titleEntry.values.first, !titleValue.isEmpty {
+            let titleValue = titleEntry.values.first, !titleValue.isEmpty
+        {
             return titleValue
         }
         return screenplay.filename ?? "Untitled"
@@ -65,7 +66,7 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
         let schema = Schema([
             GuionDocumentModel.self,
             GuionElementModel.self,
-            TitlePageEntryModel.self
+            TitlePageEntryModel.self,
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: [config])
@@ -106,7 +107,7 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
         let schema = Schema([
             GuionDocumentModel.self,
             GuionElementModel.self,
-            TitlePageEntryModel.self
+            TitlePageEntryModel.self,
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [config])
@@ -194,7 +195,9 @@ final class HablareDocument: ReferenceFileDocument, ObservableObject {
         }
     }
 
-    nonisolated func fileWrapper(snapshot: GuionParsedScreenplay, configuration: WriteConfiguration) throws -> FileWrapper {
+    nonisolated func fileWrapper(snapshot: GuionParsedScreenplay, configuration: WriteConfiguration)
+        throws -> FileWrapper
+    {
         // Convert the screenplay to a TextPack file wrapper
         let fileWrapper = try TextPackWriter.createTextPack(from: snapshot)
         return fileWrapper
@@ -300,7 +303,6 @@ extension GuionDocumentModel {
             self.elements.append(elementModel)
         }
     }
-
     /// Convert GuionDocumentModel back to GuionParsedScreenplay
     ///
     /// This ensures user edits made through the SwiftData model are
@@ -332,4 +334,5 @@ extension GuionDocumentModel {
             suppressSceneNumbers: suppressSceneNumbers
         )
     }
+
 }
