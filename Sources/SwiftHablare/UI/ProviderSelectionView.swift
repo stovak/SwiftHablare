@@ -17,13 +17,13 @@ public struct ProviderSelectionView: View {
 
     public var body: some View {
         Menu {
-            ForEach(VoiceProviderType.allCases, id: \.self) { provider in
+            ForEach(providerManager.getRegisteredProviders()) { providerInfo in
                 Button {
-                    providerManager.switchProvider(to: provider)
+                    providerManager.switchProvider(to: providerInfo.id)
                 } label: {
                     HStack {
-                        Text(provider.displayName)
-                        if providerManager.currentProviderType == provider {
+                        Text(providerInfo.displayName)
+                        if providerManager.currentProviderId == providerInfo.id {
                             Image(systemName: "checkmark")
                         }
                     }
@@ -33,7 +33,7 @@ public struct ProviderSelectionView: View {
             HStack(spacing: 6) {
                 Image(systemName: "waveform")
                     .font(.system(size: 14))
-                Text(providerManager.currentProviderType.displayName)
+                Text(currentProviderDisplayName)
                     .font(.system(size: 14, weight: .medium))
                 Image(systemName: "chevron.down")
                     .font(.system(size: 10, weight: .semibold))
@@ -46,5 +46,10 @@ public struct ProviderSelectionView: View {
                     .fill(Color(nsColor: .systemGray).opacity(0.1))
             )
         }
+    }
+
+    /// Get the display name of the current provider
+    private var currentProviderDisplayName: String {
+        providerManager.getCurrentProvider()?.displayName ?? "No Provider"
     }
 }

@@ -22,16 +22,15 @@ public struct VoiceProviderWidget: View {
             Text("Voice Provider")
                 .font(.headline)
 
-            // Provider list
+            // Provider list (dynamic, based on registered providers)
             VStack(spacing: 8) {
-                ForEach(VoiceProviderType.allCases, id: \.self) { providerType in
-                    ProviderRow(
-                        providerType: providerType,
-                        isSelected: providerManager.currentProviderType == providerType,
-                        isConfigured: isProviderConfigured(providerType)
+                ForEach(providerManager.getRegisteredProviders()) { providerInfo in
+                    ProviderInfoRow(
+                        providerInfo: providerInfo,
+                        isSelected: providerManager.currentProviderId == providerInfo.id
                     )
                     .onTapGesture {
-                        providerManager.switchProvider(to: providerType)
+                        providerManager.switchProvider(to: providerInfo.id)
                     }
                 }
             }
@@ -43,17 +42,85 @@ public struct VoiceProviderWidget: View {
                 .shadow(color: .black.opacity(0.1), radius: 10, y: 4)
         )
     }
+}
 
-    /// Check if a provider is configured
-    private func isProviderConfigured(_ providerType: VoiceProviderType) -> Bool {
-        guard let provider = providerManager.getProvider(for: providerType.rawValue) else {
-            return false
+/// Row view for displaying a voice provider in the widget (new dynamic version)
+public struct ProviderInfoRow: View {
+    public let providerInfo: VoiceProviderInfo
+    public let isSelected: Bool
+
+    public init(providerInfo: VoiceProviderInfo, isSelected: Bool) {
+        self.providerInfo = providerInfo
+        self.isSelected = isSelected
+    }
+
+    public var body: some View {
+        HStack(spacing: 12) {
+            // Provider icon
+            Image(systemName: iconName)
+                .font(.system(size: 24))
+                .foregroundStyle(isSelected ? .blue : .secondary)
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle()
+                        .fill(isSelected ? Color.blue.opacity(0.15) : Color.gray.opacity(0.1))
+                )
+
+            // Provider info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(providerInfo.displayName)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .medium)
+
+                HStack(spacing: 4) {
+                    // Configuration status
+                    Image(systemName: providerInfo.isConfigured ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(providerInfo.isConfigured ? .green : .orange)
+
+                    Text(providerInfo.isConfigured ? "Configured" : "Not configured")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            // Selection indicator
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.blue)
+            }
         }
-        return provider.isConfigured()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? Color.blue.opacity(0.08) : Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isSelected ? Color.blue.opacity(0.4) : Color.gray.opacity(0.2), lineWidth: 1.5)
+        )
+    }
+
+    /// Icon name for the provider (with fallback for custom providers)
+    private var iconName: String {
+        // Try to match known provider IDs
+        switch providerInfo.id {
+        case "elevenlabs":
+            return "waveform.circle.fill"
+        case "apple":
+            return "speaker.wave.3.fill"
+        default:
+            return "megaphone.fill"  // Default icon for custom providers
+        }
     }
 }
 
-/// Row view for displaying a voice provider in the widget
+/// Row view for displaying a voice provider in the widget (deprecated enum-based version)
+@available(*, deprecated, message: "Use ProviderInfoRow instead")
 public struct ProviderRow: View {
     public let providerType: VoiceProviderType
     public let isSelected: Bool
