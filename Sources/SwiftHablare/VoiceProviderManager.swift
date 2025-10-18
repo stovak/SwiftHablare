@@ -12,9 +12,18 @@ import SwiftData
 /// Manages voice providers and handles switching between them
 @MainActor
 public final class VoiceProviderManager: ObservableObject {
+    /// Current provider ID (string-based for extensibility)
+    @Published public var currentProviderId: String {
+        didSet {
+            UserDefaults.standard.set(currentProviderId, forKey: "selectedVoiceProvider")
+        }
+    }
+
+    /// Legacy enum-based provider type (deprecated)
+    @available(*, deprecated, message: "Use currentProviderId instead")
     @Published public var currentProviderType: VoiceProviderType {
         didSet {
-            UserDefaults.standard.set(currentProviderType.rawValue, forKey: "selectedVoiceProvider")
+            currentProviderId = currentProviderType.rawValue
         }
     }
 
@@ -23,20 +32,29 @@ public final class VoiceProviderManager: ObservableObject {
     private var providers: [String: VoiceProvider] = [:]
     private let modelContext: ModelContext
 
-    public init(modelContext: ModelContext) {
+    /// Initialize with ModelContext and optionally register default providers
+    /// - Parameters:
+    ///   - modelContext: SwiftData model context for caching
+    ///   - registerDefaults: Whether to register built-in providers (ElevenLabs, Apple). Default: true
+    public init(modelContext: ModelContext, registerDefaults: Bool = true) {
         self.modelContext = modelContext
 
         // Load saved provider or default to ElevenLabs
-        if let savedProvider = UserDefaults.standard.string(forKey: "selectedVoiceProvider"),
-           let providerType = VoiceProviderType(rawValue: savedProvider) {
-            currentProviderType = providerType
+        let savedProviderId = UserDefaults.standard.string(forKey: "selectedVoiceProvider") ?? "elevenlabs"
+        self.currentProviderId = savedProviderId
+
+        // Set deprecated property for backward compatibility
+        if let providerType = VoiceProviderType(rawValue: savedProviderId) {
+            self.currentProviderType = providerType
         } else {
-            currentProviderType = .elevenlabs
+            self.currentProviderType = .elevenlabs
         }
 
-        // Register providers
-        registerProvider(ElevenLabsVoiceProvider())
-        registerProvider(AppleVoiceProvider())
+        // Register default providers if requested
+        if registerDefaults {
+            registerProvider(ElevenLabsVoiceProvider())
+            registerProvider(AppleVoiceProvider())
+        }
     }
 
     /// Register a voice provider
@@ -46,7 +64,7 @@ public final class VoiceProviderManager: ObservableObject {
 
     /// Get the current active provider
     public func getCurrentProvider() -> VoiceProvider? {
-        return providers[currentProviderType.rawValue]
+        return providers[currentProviderId]
     }
 
     /// Get a provider by ID
@@ -58,6 +76,28 @@ public final class VoiceProviderManager: ObservableObject {
     public func isCurrentProviderConfigured() -> Bool {
         guard let provider = getCurrentProvider() else { return false }
         return provider.isConfigured()
+    }
+
+    /// Get all registered provider IDs
+    public func getRegisteredProviderIds() -> [String] {
+        return Array(providers.keys).sorted()
+    }
+
+    /// Get all registered providers as VoiceProviderInfo
+    public func getRegisteredProviders() -> [VoiceProviderInfo] {
+        return providers.values
+            .map { VoiceProviderInfo(from: $0) }
+            .sorted { $0.displayName < $1.displayName }
+    }
+
+    /// Check if a provider with the given ID is registered
+    public func isProviderRegistered(_ providerId: String) -> Bool {
+        return providers[providerId] != nil
+    }
+
+    /// Unregister a provider by ID
+    public func unregisterProvider(_ providerId: String) {
+        providers.removeValue(forKey: providerId)
     }
 
     /// Get voices from current provider (with caching)
@@ -182,14 +222,35 @@ public final class VoiceProviderManager: ObservableObject {
         try modelContext.save()
     }
 
-    /// Get all available provider types
+    /// Get all available provider types (deprecated)
+    @available(*, deprecated, message: "Use getRegisteredProviders() instead")
     public func getAvailableProviders() -> [VoiceProviderType] {
         return VoiceProviderType.allCases
     }
 
-    /// Switch to a different provider
-    public func switchProvider(to providerType: VoiceProviderType) {
-        currentProviderType = providerType
+    /// Switch to a different provider by ID
+    /// - Parameter providerId: The provider ID to switch to
+    /// - Returns: True if switch was successful, false if provider not found
+    @discardableResult
+    public func switchProvider(to providerId: String) -> Bool {
+        guard isProviderRegistered(providerId) else {
+            lastError = "Provider '\(providerId)' is not registered"
+            return false
+        }
+        currentProviderId = providerId
+
+        // Update deprecated property if it matches
+        if let providerType = VoiceProviderType(rawValue: providerId) {
+            currentProviderType = providerType
+        }
+
         lastError = nil
+        return true
+    }
+
+    /// Switch to a different provider (deprecated enum-based version)
+    @available(*, deprecated, message: "Use switchProvider(to: String) instead")
+    public func switchProvider(to providerType: VoiceProviderType) {
+        switchProvider(to: providerType.rawValue)
     }
 }
