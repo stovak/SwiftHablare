@@ -41,8 +41,23 @@ public final class ScreenplayToSpeechProcessor {
         var sceneContext = SceneContext()
         var index = 0
 
-        // Use elements directly from the screenplay
-        let elements = screenplay.elements
+        // Parse the screenplay to get properly ordered elements
+        // SwiftData relationships don't maintain insertion order, so we parse from rawContent
+        let parsedScreenplay = screenplay.toGuionParsedScreenplay()
+
+        // Convert GuionElements to GuionElementModel for processing
+        let elements: [GuionElementModel] = parsedScreenplay.elements.map { guionElement in
+            let model = GuionElementModel(
+                elementText: guionElement.elementText,
+                elementType: guionElement.elementType,
+                isCentered: guionElement.isCentered,
+                isDualDialogue: guionElement.isDualDialogue
+            )
+            model.sceneId = guionElement.sceneId
+            model.sceneNumber = guionElement.sceneNumber
+            // Location data will be parsed from elementText by GuionElementModel
+            return model
+        }
 
         while index < elements.count {
             let element = elements[index]

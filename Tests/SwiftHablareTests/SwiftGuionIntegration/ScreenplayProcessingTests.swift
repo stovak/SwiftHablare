@@ -285,7 +285,7 @@ Line 3.
         element.locationLighting = lighting
         element.locationScene = location
         element.locationTimeOfDay = time
-        context.insert(element)
+        // Don't insert separately - will be inserted when document is inserted
         return element
     }
 }
