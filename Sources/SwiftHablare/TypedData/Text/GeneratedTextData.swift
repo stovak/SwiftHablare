@@ -78,7 +78,7 @@ public struct GeneratedTextData: Codable, Sendable, SerializableTypedData {
         self.promptTokens = promptTokens
 
         // Calculate counts
-        self.wordCount = text.split(separator: " ").count
+        self.wordCount = text.split(whereSeparator: \.isWhitespace).count
         self.characterCount = text.count
     }
 
@@ -152,12 +152,15 @@ public struct TextGenerationConfig: Codable, Sendable {
     /// Conservative configuration (lower temperature, deterministic)
     public static let conservative = TextGenerationConfig(
         temperature: 0.3,
-        maxTokens: 1024
+        maxTokens: 1024,
+        topP: 0.9
     )
 
     /// Creative configuration (higher temperature, more random)
     public static let creative = TextGenerationConfig(
         temperature: 1.2,
-        maxTokens: 4096
+        maxTokens: 4096,
+        topP: 0.95,
+        presencePenalty: 0.6
     )
 }

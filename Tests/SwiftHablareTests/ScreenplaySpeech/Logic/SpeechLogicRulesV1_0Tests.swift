@@ -249,7 +249,7 @@ final class SpeechLogicRulesV1_0Tests: XCTestCase {
     // MARK: - Non-Speakable Elements Tests
 
     func testNonSpeakableElements() {
-        let nonSpeakable = ["Parenthetical", "Transition", "Note", "Boneyard", "Synopsis"]
+        let nonSpeakable = ["Parenthetical", "Transition", "Comment", "Boneyard", "Synopsis"]
 
         for type in nonSpeakable {
             let element = createMockElement(type: type, text: "Should not be spoken")

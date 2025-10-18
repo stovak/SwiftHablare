@@ -41,12 +41,8 @@ public final class ScreenplayToSpeechProcessor {
         var sceneContext = SceneContext()
         var index = 0
 
-        // Convert to GuionParsedScreenplay to get ordered elements
-        // (SwiftData relationships don't preserve order)
-        let parsedScreenplay = screenplay.toGuionParsedScreenplay()
-
-        // Convert GuionElements back to GuionElementModel for processing
-        let elements = parsedScreenplay.elements.map { GuionElementModel(from: $0) }
+        // Use elements directly from the screenplay
+        let elements = screenplay.elements
 
         while index < elements.count {
             let element = elements[index]

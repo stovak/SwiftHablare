@@ -21,6 +21,7 @@ public struct SceneContext {
     /// Mark a character as having spoken in this scene
     public mutating func markCharacterSpoken(_ name: String) {
         charactersWhoHaveSpoken.insert(name)
+        lastSpeaker = name
     }
 
     /// Check if a character has already spoken in this scene

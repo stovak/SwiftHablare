@@ -285,6 +285,7 @@ Line 3.
         element.locationLighting = lighting
         element.locationScene = location
         element.locationTimeOfDay = time
+        context.insert(element)
         return element
     }
 }
