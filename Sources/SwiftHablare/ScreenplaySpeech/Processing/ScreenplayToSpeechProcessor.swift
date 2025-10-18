@@ -41,12 +41,12 @@ public final class ScreenplayToSpeechProcessor {
         var sceneContext = SceneContext()
         var index = 0
 
-        // Parse the screenplay to get properly ordered elements
-        // SwiftData relationships don't maintain insertion order, so we parse from rawContent
-        let parsedScreenplay = screenplay.toGuionParsedScreenplay()
+        // Parse the screenplay rawContent to get properly ordered elements
+        // SwiftData relationships don't maintain insertion order
+        let parser = FountainParser(string: screenplay.rawContent ?? "")
 
         // Convert GuionElements to GuionElementModel for processing
-        let elements: [GuionElementModel] = parsedScreenplay.elements.map { guionElement in
+        let elements: [GuionElementModel] = parser.elements.map { guionElement in
             let model = GuionElementModel(
                 elementText: guionElement.elementText,
                 elementType: guionElement.elementType,
