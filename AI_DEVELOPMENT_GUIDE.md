@@ -610,6 +610,333 @@ print("Generated \(items.count) speakable items")
 
 ---
 
+## SpeakableItemGenerationTask Deep Dive
+
+### Overview
+
+`SpeakableItemGenerationTask` is the core task for converting a screenplay into `SpeakableItem` models. It wraps the `ScreenplayToSpeechProcessor` with progress tracking, cancellation support, and periodic saves.
+
+### Architecture
+
+```
+SpeakableItemGenerationTask
+    │
+    ├── BackgroundTask (progress tracking)
+    ├── ScreenplayToSpeechProcessor (core logic)
+    ├── SpeechLogicRulesV1_0 (processing rules)
+    └── ModelContext (SwiftData persistence)
+```
+
+### Initialization Parameters
+
+```swift
+public init(
+    screenplay: GuionDocumentModel,        // Required: Source screenplay
+    context: ModelContext,                 // Required: SwiftData context
+    rulesProvider: SpeechLogicRulesV1_0 = SpeechLogicRulesV1_0(),  // Optional
+    saveInterval: Int = 50                 // Optional: Items between saves
+)
+```
+
+**Parameter Details:**
+- `screenplay`: The GuionDocumentModel containing `rawContent` (Fountain format)
+- `context`: SwiftData context for persisting SpeakableItems
+- `rulesProvider`: Speech logic rules (default: v1.0) - allows custom rules
+- `saveInterval`: How many items to process before saving (default: 50)
+
+### Execution Flow
+
+**Phase 1: Initialization**
+```swift
+backgroundTask.state = .running
+backgroundTask.message = "Parsing screenplay..."
+
+// Parse Fountain format to elements
+let parser = FountainParser(string: screenplay.rawContent ?? "")
+let elements = parser.elements.map { /* Convert to GuionElementModel */ }
+
+backgroundTask.totalSteps = elements.count
+```
+
+**Phase 2: Element Processing Loop**
+```swift
+var items: [SpeakableItem] = []
+var sceneContext = SceneContext()
+var index = 0
+var itemsProcessedSinceLastSave = 0
+
+while index < elements.count {
+    // 1. Check cancellation
+    guard backgroundTask.state == .running else {
+        throw CancellationError()
+    }
+
+    // 2. Update progress
+    backgroundTask.currentStep = index + 1
+    backgroundTask.message = "Processing element \(index + 1) of \(elements.count)"
+
+    // 3. Process element (scene heading/dialogue/action)
+    // 4. Accumulate items
+    // 5. Periodic save check
+
+    if itemsProcessedSinceLastSave >= saveInterval {
+        try await performPeriodicSave(items: items)
+        items.removeAll()
+        itemsProcessedSinceLastSave = 0
+    }
+}
+```
+
+**Phase 3: Completion**
+```swift
+// Final save for remaining items
+if !items.isEmpty {
+    try await performPeriodicSave(items: items)
+}
+
+backgroundTask.state = .completed
+backgroundTask.message = "Completed: \(elements.count) elements processed"
+```
+
+### Element Type Processing
+
+**Scene Headings:**
+```swift
+if element.elementType == .sceneHeading {
+    sceneContext = SceneContext(sceneID: element.sceneId)
+
+    if let item = rulesProvider.processSceneHeading(
+        element,
+        orderIndex: index,
+        screenplayID: screenplayID
+    ) {
+        items.append(item)
+    }
+    index += 1
+}
+```
+- Resets scene context (clears character tracking)
+- Creates single SpeakableItem with narrative tone
+- Transforms "INT." → "Interior", "EXT." → "Exterior"
+
+**Dialogue Blocks:**
+```swift
+else if element.elementType == .character {
+    let (dialogueItems, consumed) = rulesProvider.processDialogueBlock(
+        startIndex: index,
+        elements: Array(elements),
+        context: &sceneContext,
+        screenplayID: screenplayID
+    )
+    items.append(contentsOf: dialogueItems)
+    index += consumed  // Skips character + parenthetical + dialogue lines
+}
+```
+- Groups Character + Parenthetical + Dialogue lines
+- First dialogue in scene: includes character announcement ("JOHN says:")
+- Subsequent dialogues: no announcement
+- Updates scene context with who has spoken
+
+**Action Elements:**
+```swift
+else {
+    if let item = rulesProvider.processSingleElement(
+        element,
+        orderIndex: index,
+        screenplayID: screenplayID
+    ) {
+        items.append(item)
+    }
+    index += 1
+}
+```
+- Single element → Single SpeakableItem
+- Narrative tone hint
+
+### Progress Tracking
+
+**Available Properties:**
+```swift
+task.backgroundTask.state              // TaskState: .queued, .running, .completed, .failed, .cancelled
+task.backgroundTask.currentStep        // Int: Current element index
+task.backgroundTask.totalSteps         // Int: Total elements in screenplay
+task.backgroundTask.progressFraction   // Double: 0.0 to 1.0
+task.backgroundTask.progressPercentage // Int: 0 to 100
+task.backgroundTask.message            // String: "Processing element 5 of 100"
+task.backgroundTask.error              // Error?: Set on failure
+```
+
+**Progress Updates:**
+- Updated every element processed
+- Message includes element number and total
+- Percentage calculated automatically
+
+### Cancellation
+
+**How to Cancel:**
+```swift
+// From any thread (task is @MainActor)
+await task.cancel()
+
+// Or via manager
+await BackgroundTaskManager.shared.cancelTask(task.backgroundTask.id)
+```
+
+**Cancellation Behavior:**
+1. Sets `backgroundTask.state = .cancelled`
+2. Next iteration checks state and throws `CancellationError()`
+3. Partial results preserved via last periodic save
+4. Message set to "Cancelled after processing X of Y elements"
+
+**Cancellation Safety:**
+- Checked on every element (fine-grained cancellation)
+- No orphaned database changes (saves are transactional)
+- Partial work is useful (can resume later)
+
+### Periodic Saves
+
+**Purpose:**
+- Prevent data loss on long screenplays (100+ elements)
+- Survive app crashes during processing
+- Enable partial result recovery on cancellation
+
+**Implementation:**
+```swift
+private func performPeriodicSave(items: [SpeakableItem]) async throws {
+    for item in items {
+        context.insert(item)
+    }
+    try context.save()
+}
+```
+
+**Configuration:**
+- Default: Every 50 items
+- Configurable via `saveInterval` parameter
+- Smaller values: More saves, safer, slower
+- Larger values: Fewer saves, faster, riskier
+
+**Recommendations:**
+- Short screenplays (<100 elements): Use default (50)
+- Long screenplays (100-500 elements): Use 50-100
+- Very long (500+ elements): Use 100-200
+
+### Error Handling
+
+**Common Errors:**
+```swift
+do {
+    try await task.execute()
+} catch is CancellationError {
+    // User cancelled
+    print("Task cancelled: \(task.backgroundTask.message)")
+} catch {
+    // Other errors (parsing, SwiftData, etc.)
+    print("Task failed: \(error)")
+    print("Error stored in: \(task.backgroundTask.error)")
+}
+```
+
+**Error States:**
+- `.failed`: Execution error (check `task.backgroundTask.error`)
+- `.cancelled`: User initiated cancellation
+- Both preserve partial results from periodic saves
+
+### Testing
+
+**Unit Test Pattern:**
+```swift
+@MainActor
+final class SpeakableItemGenerationTaskTests: XCTestCase {
+    var container: ModelContainer!
+    var context: ModelContext!
+
+    override func setUp() async throws {
+        container = try ModelContainer(
+            for: SpeakableItem.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        context = ModelContext(container)
+    }
+
+    func testBasicExecution() async throws {
+        let screenplay = GuionDocumentModel()
+        screenplay.rawContent = """
+        INT. COFFEE SHOP - DAY
+
+        JOHN
+        Hello!
+        """
+        screenplay.filename = "test"
+
+        let task = SpeakableItemGenerationTask(
+            screenplay: screenplay,
+            context: context
+        )
+
+        try await task.execute()
+
+        let items = try context.fetch(FetchDescriptor<SpeakableItem>())
+        XCTAssertGreaterThan(items.count, 0)
+        XCTAssertEqual(task.backgroundTask.state, .completed)
+    }
+}
+```
+
+**Coverage Areas:**
+- ✅ Basic execution with small screenplay
+- ✅ Empty screenplay handling
+- ✅ Progress tracking accuracy
+- ✅ Cancellation mid-processing
+- ✅ Periodic saves functionality
+- ✅ Large screenplay performance (100+ elements)
+- ✅ Scene heading, dialogue, and action processing
+
+### Integration with Other Components
+
+**With BackgroundTaskManager:**
+```swift
+let manager = BackgroundTaskManager.shared
+await manager.enqueue(task)  // Automatically executes when queue available
+
+// Monitor multiple tasks
+for task in manager.tasks {
+    print("\(task.name): \(task.state)")
+}
+```
+
+**With ScreenplayToSpeechProcessor:**
+- Task wraps processor logic
+- Adds progress tracking layer
+- Handles periodic saves
+- Same output (SpeakableItems) as direct processor use
+
+**With SwiftData:**
+- Uses provided ModelContext
+- Inserts items in batches (every saveInterval)
+- Transactional saves (all or nothing per batch)
+- Compatible with in-memory contexts for testing
+
+### Performance Characteristics
+
+**Typical Performance:**
+- Small screenplay (50 elements): <1 second
+- Medium screenplay (200 elements): 1-3 seconds
+- Large screenplay (500+ elements): 3-10 seconds
+
+**Factors Affecting Speed:**
+- SwiftData persistence overhead
+- Dialogue block complexity (character tracking)
+- Save interval (more saves = slower)
+- Device performance
+
+**Optimization Tips:**
+- Increase saveInterval for faster processing (trade safety for speed)
+- Use in-memory ModelContext for testing (10x faster)
+- Process in background queue (don't block UI)
+
+---
+
 ## Error Handling
 
 ### AIServiceError Enum

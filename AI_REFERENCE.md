@@ -106,6 +106,75 @@ await BackgroundTaskManager.shared.enqueue(task)
 - Scene-aware character announcements
 - Integration with SwiftGuion screenplay parser
 
+**SpeakableItemGenerationTask Deep Dive:**
+
+The task processes a screenplay through these stages:
+
+1. **Initialization:**
+```swift
+let task = SpeakableItemGenerationTask(
+    screenplay: screenplay,           // GuionDocumentModel
+    context: modelContext,            // SwiftData ModelContext
+    rulesProvider: SpeechLogicRulesV1_0(),  // Optional, defaults to v1.0
+    saveInterval: 50                  // Optional, defaults to 50
+)
+```
+
+2. **Execution Flow:**
+```
+Parse screenplay → Extract elements → Set totalSteps → Loop:
+  - Check cancellation (guard state == .running)
+  - Process element (scene/dialogue/action)
+  - Update progress (currentStep++, message)
+  - Periodic save (every saveInterval items)
+→ Final save → Mark completed
+```
+
+3. **Element Processing:**
+- **Scene Headings**: Single item, resets scene context
+- **Dialogue Blocks**: Character + Parenthetical + Dialogue → Single item
+  - First dialogue in scene: adds character announcement
+  - Subsequent: no announcement
+- **Actions**: Single item per action element
+- **Skipped**: Transitions, comments, parentheticals
+
+4. **Progress Tracking:**
+- `totalSteps`: Total screenplay elements (from FountainParser)
+- `currentStep`: Current element index being processed
+- `progressPercentage`: `(currentStep / totalSteps) * 100`
+- `message`: Descriptive status (e.g., "Processing element 5 of 100")
+
+5. **Cancellation:**
+```swift
+// Cancel from anywhere
+task.cancel()  // Sets state to .cancelled
+
+// Task checks state in loop:
+guard backgroundTask.state == .running else {
+    backgroundTask.message = "Cancelled after processing X of Y elements"
+    throw CancellationError()
+}
+
+// Partial results are saved via periodic saves
+```
+
+6. **Periodic Saves:**
+- Every `saveInterval` items (default 50)
+- Prevents data loss on long screenplays
+- Survives crashes and cancellations
+- Configurable per task instance
+
+7. **Error Handling:**
+```swift
+do {
+    try await task.execute()
+} catch {
+    // Check task.backgroundTask.state:
+    // .failed - execution error (check .error property)
+    // .cancelled - user cancelled
+}
+```
+
 ## Memory-Saving Tips for AI Agents
 
 1. **Check Configuration First**
